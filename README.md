@@ -9,3 +9,5 @@ Automate the application process on LinkedIn
 * Make sure you have chromedriver installed in the same directory!
 
 more info here: https://medium.com/xplor8/how-to-apply-for-1-000-jobs-while-you-are-sleeping-da27edc3b703
+
+Video: https://www.youtube.com/watch?v=iSjNdM01hPA&feature=youtu.be
