@@ -11,8 +11,6 @@ import tkinter.messagebox as tm
 import os
 from urllib.request import urlopen
 
-import login_v06
-
 # pyinstaller --onefile --windowed --icon=app.ico easyapplybot_v06.5.py
 
 class EasyApplyBot:
@@ -21,9 +19,10 @@ class EasyApplyBot:
 
     def __init__(self,username,password, language, position, location, resumeloctn):
 
+        print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
-        #print("current directory is : " + dirpath)
-        #print(dirpath + "\chromedriver.exe")
+        print("current directory is : " + dirpath)
+        chromepath = dirpath + '/assets/chromedriver.exe'
         #foldername = os.path.basename(dirpath)
         #print("Directory name is : " + foldername)
 
@@ -31,7 +30,7 @@ class EasyApplyBot:
         self.options = self.browser_options()
         #self.browser = webdriver.Chrome()
         #self.browser = webdriver.Chrome(executable_path = "C:/chromedriver_win32/chromedriver.exe")
-        self.browser = webdriver.Chrome(chrome_options=self.options, executable_path = dirpath + "\chromedriver.exe")
+        self.browser = webdriver.Chrome(chrome_options=self.options, executable_path = chromepath)
         self.start_linkedin(username,password)
 
 
@@ -41,14 +40,13 @@ class EasyApplyBot:
         options.add_argument("--ignore-certificate-errors")
         options.add_argument("user-agent=Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393")
         #options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
         #options.add_argument('--disable-gpu')
+        #options.add_argument('disable-infobars')
+        options.add_argument("--disable-extensions")
         return options
 
     def start_linkedin(self,username,password):
-    #    self.browser.get("https://linkedin.com/uas/login")
-
-
-    #def login(driver): #, username, password):
         print("\nLogging in.....\n \nPlease wait :) \n ")
         self.browser.get("https://www.linkedin.com/")
         try:
@@ -62,7 +60,7 @@ class EasyApplyBot:
             time.sleep(1)
             login_button.click()
         except TimeoutException:
-            print("TimeoutException! Username/password field or login button not found on glassdoor.com")
+            print("TimeoutException! Username/password field or login button not found")
 
 
     def wait_for_login(self):
@@ -93,12 +91,6 @@ class EasyApplyBot:
         self.resumeloctn = resumeloctn
         print(self.resumeloctn)
 
-        #print("\nPlease select your curriculum\n")
-        #time.sleep(1)
-        #root = Tk()
-        #self.resumeloctn = filedialog.askopenfilename(parent=root, initialdir="/",title='Please select your curriculum')
-        #print(self.resumeloctn)
-        #root.destroy()
 
     def start_apply(self):
         #self.wait_for_login()
@@ -128,7 +120,7 @@ class EasyApplyBot:
         while count_application < self.MAX_APPLICATIONS:
             # sleep to make sure everything loads, add random to make us look human.
             time.sleep(random.uniform(3.5, 6.9))
-
+            self.load_page(sleep=1)
             page = BeautifulSoup(self.browser.page_source, 'lxml')
 
             jobs = self.get_job_links(page)
@@ -154,10 +146,20 @@ class EasyApplyBot:
                 position_number = str(count_job + jobs_per_page)
                 print(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
 
+
+
+                if count_application % 20 == 0:
+                    print('\n\n****************************************\n\n')
+                    print('Time for a nap - see you in 10 min..')
+                    print('\n\n****************************************\n\n')
+                    time.sleep (600)
+
                 if count_job == len(jobs):
                     jobs_per_page = jobs_per_page + 25
                     count_job = 0
-                    print("Going to next jobs page !")
+                    print('\n\n****************************************\n\n')
+                    print('Going to next jobs page, YEAAAHHH!!')
+                    print('\n\n****************************************\n\n')
                     self.avoid_lock()
                     self.browser, jobs_per_page = self.next_jobs_page(jobs_per_page)
 
@@ -167,9 +169,6 @@ class EasyApplyBot:
         links = []
         for link in page.find_all('a'):
             url = link.get('href')
-            #url2 = link['href']
-            #print(url)
-            #print(page)
             if url:
                 if '/jobs/view' in url:
                     links.append(url)
@@ -256,29 +255,4 @@ class EasyApplyBot:
     def finish_apply(self):
         self.browser.close()
 
-
-if __name__ == '__main__':
-
-    print("\nEasy Apply Bot\n")
-
-    app = login_v06.LoginGUI()
-    app.mainloop()
-
-    # get user info info
-    username=app.frames["StartPage"].username
-    password=app.frames["StartPage"].password
-    language=app.frames["PageOne"].language
-    position=app.frames["PageTwo"].position
-    location_code=app.frames["PageThree"].location_code
-    if location_code == 1:
-        location=app.frames["PageThree"].location
-    else:
-        location = app.frames["PageFour"].location
-    resumeloctn=app.frames["PageFive"].resumeloctn
-
-
-    print(username,password, language, position, location_code, location, resumeloctn)
-
-    #start bot
-    bot = EasyApplyBot(username,password, language, position, location, resumeloctn)
-    bot.start_apply()
+### if __name__ == '__main__':

@@ -1,5 +1,5 @@
-import tkinter as tk                
-from tkinter import font  as tkfont 
+import tkinter as tk
+from tkinter import font  as tkfont
 import tkinter.messagebox as tm
 from urllib.request import urlopen
 from tkinter import filedialog
@@ -46,12 +46,12 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        
+
         #title
         label = tk.Label(self, text="Insert your LinkedIn credentials", font=controller.subtitle_font)
         label.grid(row=2,columnspan = 2, pady=10)
 
-        
+
         #Username and password
         label_username = tk.Label(self, text="Username")
         label_password = tk.Label(self, text="Password")
@@ -62,37 +62,30 @@ class StartPage(tk.Frame):
         self.entry_password = tk.Entry(self, show="*")
         self.entry_username.grid(row=4, column=1)
         self.entry_password.grid(row=5, column=1)
-        
+
         #button = tk.Button(self, text="Next", command=lambda: controller.show_frame("PageOne"))
         button = tk.Button(self, text="Next", command= self.auth)
         button.grid(row=7, columnspan=2, pady=30)
 
     def auth (self):
-  
+
         self.username = self.entry_username.get()
         self.password = self.entry_password.get()
-        
-        data=urlopen("https://raw.githubusercontent.com/nicoo77/test/master/list.txt").read().decode('utf_8')
-        data = data.split("\n")
 
-        if self.username in data:
-            tm.showinfo("user authorized!\n press 'ok' to continue")
-            self.controller.show_frame("PageOne")
+        self.controller.show_frame("PageOne")
             
-        else :
-            tm.showinfo("User not authorized! \n Please contact: nicolomantini@gmail.com\n")
-        
+
 
 class PageOne(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        
+
         #title
         label = tk.Label(self, text="Choose your LinkedIn language", font=controller.subtitle_font)
         label.grid(row=2,columnspan = 2, pady=10)
-        
+
         #language
         self.var = tk.StringVar()
         R1 = tk.Radiobutton(self, text="English", variable=self.var, value="en")#,command=self.sel)
@@ -119,7 +112,7 @@ class PageTwo(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        
+
         #title
         label = tk.Label(self, text="Type your desired job title \n (e.g. Consulting innovation)", font=controller.subtitle_font)
         label.grid(row=2,columnspan = 2, pady=10)
@@ -144,11 +137,11 @@ class PageThree(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        
+
         #title
         label = tk.Label(self, text="Where are you looking for a job?", font=controller.subtitle_font)
         label.grid(row=2,columnspan = 2, pady=10)
-                
+
         #Location
         self.var = tk.IntVar()
         R1 = tk.Radiobutton(self, text="Worldwide", variable=self.var, value=1)#,command=self.sel_location_code)
@@ -172,20 +165,20 @@ class PageThree(tk.Frame):
 
     def sel_location_code(self):
         self.location_code = self.var.get()
-        
+
         if self.location_code == 1:
             self.location = "Worldwide"
             self.controller.show_frame("PageFive")
         else:
             self.controller.show_frame("PageFour")
 
-        
+
 class PageFour(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        
+
         #title
         label = tk.Label(self, text="loc2", font=controller.subtitle_font)
         label.grid(row=2,columnspan = 2, pady=10)
@@ -195,7 +188,7 @@ class PageFour(tk.Frame):
         label_location.grid(row=2, column=0)
         self.entry_location = tk.Entry(self)
         self.entry_location.grid(row=2, column=1)
-        
+
         #button
         #button = tk.Button(self, text="Next",command=lambda: controller.show_frame("StartPage"))
         button = tk.Button(self, text="Next",command= self.sel_location)
@@ -224,15 +217,15 @@ class PageFive(tk.Frame):
         button1.grid(row=7, column = 1, pady=30)
         button2 = tk.Button(self, text="Next",command= lambda: self.controller.show_frame("PageSix"))
         button2.grid(row=7, column = 2, pady=30)
-        
+
     def CV (self):
         #root = tk.Tk()
         self.resumeloctn = filedialog.askopenfilename(parent=self, initialdir="/", title='Please select your curriculum')
         #root.destroy()
         #print(self.resumeloctn)
         return
-        
-    
+
+
 class PageSix(tk.Frame):
 
     def __init__(self, parent, controller):
@@ -247,7 +240,7 @@ class PageSix(tk.Frame):
         #button1 = tk.Button(self, text="Next", command=lambda: controller.show_frame("PageOne"))
         button = tk.Button(self, text="START!",command=self.finish)
         button.grid(row=7, columnspan=2, pady=30)
-    
+
     def finish(self):
         self.controller.destroy()
 
@@ -257,7 +250,7 @@ class PageSix(tk.Frame):
 #     app = LoginGUI()
 #     app.mainloop()
 
-#     #get user info 
+#     #get user info
 #     username=app.frames["StartPage"].username
 #     password=app.frames["StartPage"].password
 #     language=app.frames["PageOne"].language
