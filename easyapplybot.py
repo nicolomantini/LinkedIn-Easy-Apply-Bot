@@ -1,15 +1,15 @@
-import time
-import random
+import time, random, os, csv, datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
+import pandas as pd
 import pyautogui
 from tkinter import filedialog, Tk
 import tkinter.messagebox as tm
-import os
 from urllib.request import urlopen
+import loginGUI
 
 # pyinstaller --onefile --windowed --icon=app.ico easyapplybot_v06.5.py
 
@@ -17,7 +17,7 @@ class EasyApplyBot:
 
     MAX_APPLICATIONS = 500
 
-    def __init__(self,username,password, language, position, location, resumeloctn):
+    def __init__(self,username,password, language, position, location, resumeloctn, appliedJobIDs, filename):
 
         print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
@@ -27,6 +27,8 @@ class EasyApplyBot:
         #print("Directory name is : " + foldername)
 
         self.language = language
+        self.appliedJobIDs = appliedJobIDs
+        self.filename = filename
         self.options = self.browser_options()
         #self.browser = webdriver.Chrome()
         #self.browser = webdriver.Chrome(executable_path = "C:/chromedriver_win32/chromedriver.exe")
@@ -112,49 +114,73 @@ class EasyApplyBot:
         self.browser, _ = self.next_jobs_page(jobs_per_page)
         print("\nLooking for jobs.. Please wait..\n")
 
-        submitButton = self.browser.find_element_by_class_name("jobs-search-dropdown__trigger-icon")
-        submitButton.click()
-        submitButton = self.browser.find_element_by_class_name("jobs-search-dropdown__option")
-        submitButton.click()
+        self.browser.find_element_by_class_name("jobs-search-dropdown__trigger-icon").click()
+        self.browser.find_element_by_class_name("jobs-search-dropdown__option").click()
+        #self.job_page = self.load_page(sleep=0.5)
 
         while count_application < self.MAX_APPLICATIONS:
+            
             # sleep to make sure everything loads, add random to make us look human.
             time.sleep(random.uniform(3.5, 6.9))
             self.load_page(sleep=1)
-            page = BeautifulSoup(self.browser.page_source, 'lxml')
 
-            jobs = self.get_job_links(page)
+            # get job links
+            links = self.browser.find_elements_by_xpath(
+                    '//div[@data-job-id]'
+                    )
+            
+            # get job ID of each job link 
+            IDs = []
+            for link in links :                  
+                temp = link.get_attribute("data-job-id")
+                jobID = temp.split(":")[-1]
+                IDs.append(int(jobID))
+            IDs = set(IDs)
+            
+            # remove already applied jobs
+            jobIDs = [x for x in IDs if x not in self.appliedJobIDs]
 
-            if not jobs:
-                print("Jobs not found")
-                break
+            if len(jobIDs) == 0:
+                jobs_per_page = jobs_per_page + 25
+                count_job = 0
+                self.avoid_lock()
+                self.browser, jobs_per_page = self.next_jobs_page(jobs_per_page)
 
-            for job in jobs:
+            # loop over IDs to apply
+            for jobID in jobIDs:
                 count_job += 1
-                job_page = self.get_job_page(job)
+                self.get_job_page(jobID)
 
-                if self.got_easy_apply(job_page):
-                    string_easy = "* has Easy Apply Button"
-                    xpath = self.easy_apply_xpath()
-                    self.click_button(xpath)
+                # get easy apply button
+                button = self.get_easy_apply_button ()
+                if button is not False: 
+                    string_easy = "* has Easy Apply Button"                 
+                    button.click()
                     self.send_resume()
                     count_application += 1
-
                 else:
                     string_easy = "* Doesn't have Easy Apply Button"
 
                 position_number = str(count_job + jobs_per_page)
                 print(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
 
+                # append applied job ID to csv file
+                timestamp = datetime.datetime.now()
+                toWrite = [timestamp, jobID]
+                with open(self.filename,'a') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(toWrite)
 
-
+                # sleep every 20 applications
                 if count_application % 20 == 0:
+                    sleepTime = random.randint(500, 900)
                     print('\n\n****************************************\n\n')
-                    print('Time for a nap - see you in 10 min..')
+                    print('Time for a nap - see you in: ' + int(sleepTime/60) + 'min..')
                     print('\n\n****************************************\n\n')
-                    time.sleep (600)
+                    time.sleep (sleepTime)
 
-                if count_job == len(jobs):
+                # go to new page if all jobs are done
+                if count_job == len(jobIDs):
                     jobs_per_page = jobs_per_page + 25
                     count_job = 0
                     print('\n\n****************************************\n\n')
@@ -174,22 +200,38 @@ class EasyApplyBot:
                     links.append(url)
         return set(links)
 
-    def get_job_page(self, job):
-        root = 'www.linkedin.com'
-        if root not in job:
-            job = 'https://www.linkedin.com'+job
+    def get_job_page(self, jobID):
+        #root = 'www.linkedin.com'
+        #if root not in job:
+        job = 'https://www.linkedin.com/jobs/view/'+jobID
         self.browser.get(job)
         self.job_page = self.load_page(sleep=0.5)
         return self.job_page
 
     def got_easy_apply(self, page):
-        button = page.find("button", class_="jobs-apply-button artdeco-button jobs-apply-button--top-card artdeco-button--3 ember-view")
-        return len(str(button)) > 4
+        #button = page.find("button", class_="jobs-apply-button artdeco-button jobs-apply-button--top-card artdeco-button--3 ember-view")
+        
+        button = self.browser.find_elements_by_xpath(
+                    '//button[contains(@class, "jobs-apply")]/span[1]'
+                    ) 
+        EasyApplyButton = button [0]
+        if EasyApplyButton.text in "Easy Apply" :
+            return EasyApplyButton
+        else :
+            return False
+        #return len(str(button)) > 4
 
     def get_easy_apply_button(self):
-        button_class = "jobs-s-apply jobs-s-apply--fadein inline-flex mr2 ember-view"
-        button = self.job_page.find("div", class_=button_class)
-        return button
+        try :
+            button = self.browser.find_elements_by_xpath(
+                        '//button[contains(@class, "jobs-apply")]/span[1]'
+                        ) 
+            #if button[0].text in "Easy Apply" :
+            EasyApplyButton = button [0]
+        except :
+            EasyApplyButton = False
+        
+        return EasyApplyButton
 
     def easy_apply_xpath(self):
         button = self.get_easy_apply_button()
@@ -207,18 +249,22 @@ class EasyApplyBot:
         time.sleep(1)
 
     def send_resume(self):
-        self.browser.find_element_by_xpath('//*[@id="file-browse-input"]').send_keys(self.resumeloctn)
-        submit_button = None
-        time.sleep(3)
-        while not submit_button:
-            if language == "en":
-                submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Submit application')]")
-            elif language == "es":
-                submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar solicitud')]")
-            elif language == "pt":
-                submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar candidatura')]")
-        submit_button.click()
-        time.sleep(random.uniform(1.5, 2.5))
+        try: 
+            self.browser.find_element_by_xpath('//*[@id="file-browse-input"]').send_keys(self.resumeloctn)
+            submit_button = None
+            time.sleep(3)
+            while not submit_button:
+                if language == "en":
+                    submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Submit application')]")
+                elif language == "es":
+                    submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar solicitud')]")
+                elif language == "pt":
+                    submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar candidatura')]")
+            #submit_button.click()
+            time.sleep(random.uniform(1.5, 2.5))
+        
+        except :
+            print("cannot apply to this job")
 
     def load_page(self, sleep=1):
         scroll_page = 0
@@ -255,4 +301,60 @@ class EasyApplyBot:
     def finish_apply(self):
         self.browser.close()
 
-### if __name__ == '__main__':
+if __name__ == '__main__':
+
+    # set use of gui (T/F)
+    useGUI = False
+    
+    # use gui
+    if useGUI == True:
+
+        app = loginGUI.LoginGUI()
+        app.mainloop()
+
+        #get user info info
+        username=app.frames["StartPage"].username
+        password=app.frames["StartPage"].password
+        language=app.frames["PageOne"].language
+        position=app.frames["PageTwo"].position
+        location_code=app.frames["PageThree"].location_code
+        if location_code == 1:
+            location=app.frames["PageThree"].location
+        else:
+            location = app.frames["PageFour"].location
+        resumeloctn=app.frames["PageFive"].resumeloctn
+
+    # no gui
+    if useGUI == False:
+
+        username = ''
+        password = ''
+        language = 'en'
+        position = ''
+        location = ''
+        resumeloctn = ''
+
+    # print input
+    print("\nThese is your input:")
+
+    print(
+        "\nUsername:  "+ username,
+        "\nPassword:  "+ password,
+        "\nLanguage:  "+ language,
+        "\nPosition:  "+ position,
+        "\nLocation:  "+ location
+        )
+    
+    print("\nLet's scrape some jobs!\n")
+    
+    # get list of already applied jobs
+    filename = 'joblist.csv'
+    try:
+        df = pd.read_csv(filename, header=None)
+        appliedJobIDs = list (df.iloc[:,1])
+    except:
+        appliedJobIDs = []
+
+    # start bot
+    bot = EasyApplyBot(username, password, language, position, location, resumeloctn, appliedJobIDs, filename)
+    bot.start_apply()
