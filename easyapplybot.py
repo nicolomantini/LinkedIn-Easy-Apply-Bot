@@ -11,7 +11,7 @@ import tkinter.messagebox as tm
 from urllib.request import urlopen
 import loginGUI
 
-# pyinstaller --onefile --windowed --icon=app.ico easyapplybot_v06.5.py
+# pyinstaller --onefile --windowed --icon=app.ico easyapplybot.py
 
 class EasyApplyBot:
 
@@ -40,7 +40,7 @@ class EasyApplyBot:
         options = Options()
         options.add_argument("--start-maximized")
         options.add_argument("--ignore-certificate-errors")
-        options.add_argument("user-agent=Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393")
+        #options.add_argument("user-agent=Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393")
         #options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         #options.add_argument('--disable-gpu')
@@ -203,7 +203,7 @@ class EasyApplyBot:
     def get_job_page(self, jobID):
         #root = 'www.linkedin.com'
         #if root not in job:
-        job = 'https://www.linkedin.com/jobs/view/'+jobID
+        job = 'https://www.linkedin.com/jobs/view/'+ str(jobID)
         self.browser.get(job)
         self.job_page = self.load_page(sleep=0.5)
         return self.job_page
@@ -260,7 +260,7 @@ class EasyApplyBot:
                     submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar solicitud')]")
                 elif language == "pt":
                     submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar candidatura')]")
-            #submit_button.click()
+            submit_button.click()
             time.sleep(random.uniform(1.5, 2.5))
         
         except :
@@ -304,7 +304,9 @@ class EasyApplyBot:
 if __name__ == '__main__':
 
     # set use of gui (T/F)
-    useGUI = False
+    
+    useGUI = True
+    #useGUI = False
     
     # use gui
     if useGUI == True:
@@ -330,7 +332,7 @@ if __name__ == '__main__':
         username = ''
         password = ''
         language = 'en'
-        position = ''
+        position = 'marketing'
         location = ''
         resumeloctn = ''
 
