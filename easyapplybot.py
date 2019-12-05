@@ -3,13 +3,17 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import pandas as pd
 import pyautogui
 from tkinter import filedialog, Tk
 import tkinter.messagebox as tm
 from urllib.request import urlopen
-import loginGUI
+import loginGUI 
 
 # pyinstaller --onefile --windowed --icon=app.ico easyapplybot.py
 
@@ -33,6 +37,7 @@ class EasyApplyBot:
         #self.browser = webdriver.Chrome()
         #self.browser = webdriver.Chrome(executable_path = "C:/chromedriver_win32/chromedriver.exe")
         self.browser = webdriver.Chrome(chrome_options=self.options, executable_path = chromepath)
+        self.wait = WebDriverWait(self.browser, 30)
         self.start_linkedin(username,password)
 
 
@@ -64,7 +69,6 @@ class EasyApplyBot:
         except TimeoutException:
             print("TimeoutException! Username/password field or login button not found")
 
-
     def wait_for_login(self):
         if language == "en":
              title = "Sign In to LinkedIn"
@@ -92,7 +96,6 @@ class EasyApplyBot:
         self.location = "&location=" + location
         self.resumeloctn = resumeloctn
         print(self.resumeloctn)
-
 
     def start_apply(self):
         #self.wait_for_login()
@@ -255,13 +258,21 @@ class EasyApplyBot:
             time.sleep(3)
             while not submit_button:
                 if language == "en":
-                    submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Submit application')]")
+                    submit_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Submit application']")))
                 elif language == "es":
-                    submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar solicitud')]")
+                    submit_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Enviar solicitud']")))
+                    #submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar solicitud')]")
                 elif language == "pt":
-                    submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar candidatura')]")
+                    submit_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Enviar candidatura']")))
+                    #submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar candidatura')]")
             submit_button.click()
+
             time.sleep(random.uniform(1.5, 2.5))
+
+            #After submiting the application, a dialog shows up, we need to close this dialog
+            close_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Dismiss']")))
+            
+            close_button.click()
 
         except :
             print("cannot apply to this job")
