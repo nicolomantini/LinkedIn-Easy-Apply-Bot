@@ -294,8 +294,8 @@ class EasyApplyBot:
 
     def avoid_lock(self):
         x, _ = pyautogui.position()
-        pyautogui.moveTo(x+200, None, duration=1.0)
-        pyautogui.moveTo(x, None, duration=0.5)
+        pyautogui.moveTo(x + 200, pyautogui.position().y, duration=1.0)
+        pyautogui.moveTo(x, pyautogui.position().y, duration=0.5)
         pyautogui.keyDown('ctrl')
         pyautogui.press('esc')
         pyautogui.keyUp('ctrl')
