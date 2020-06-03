@@ -1,4 +1,4 @@
-import time, random, os, csv, datetime
+import time, random, os, csv, datetime, platform
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
@@ -13,7 +13,7 @@ import pyautogui
 from tkinter import filedialog, Tk
 import tkinter.messagebox as tm
 from urllib.request import urlopen
-import loginGUI 
+import loginGUI
 
 # pyinstaller --onefile --windowed --icon=app.ico easyapplybot.py
 
@@ -26,7 +26,8 @@ class EasyApplyBot:
         print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
         print("current directory is : " + dirpath)
-        chromepath = dirpath + '/assets/chromedriver.exe'
+        # get path chromedriver exec for relevant OS
+        chromepath = dirpath + '/assets/chromedriver_%s' % (platform.system()).lower()
         #foldername = os.path.basename(dirpath)
         #print("Directory name is : " + foldername)
 
@@ -116,7 +117,7 @@ class EasyApplyBot:
         self.browser.maximize_window()
         self.browser, _ = self.next_jobs_page(jobs_per_page)
         print("\nLooking for jobs.. Please wait..\n")
-        #below was causing issues, and not sure what they are for. 
+        #below was causing issues, and not sure what they are for.
         #self.browser.find_element_by_class_name("jobs-search-dropdown__trigger-icon").click()
         #self.browser.find_element_by_class_name("jobs-search-dropdown__option").click()
         #self.job_page = self.load_page(sleep=0.5)
@@ -271,7 +272,7 @@ class EasyApplyBot:
 
             #After submiting the application, a dialog shows up, we need to close this dialog
             close_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Dismiss']")))
-            
+
             close_button.click()
 
         except :
