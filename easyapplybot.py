@@ -30,10 +30,7 @@ class EasyApplyBot:
         print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
         print("current directory is : " + dirpath)
-        # get path chromedriver exec for relevant OS
-        chromepath = dirpath + '/assets/chromedriver_%s' % (platform.system()).lower()
-        #foldername = os.path.basename(dirpath)
-        #print("Directory name is : " + foldername)
+
 
         self.position = position
         self.location = "&location=" + location
@@ -42,9 +39,7 @@ class EasyApplyBot:
         self.appliedJobIDs = appliedJobIDs
         self.filename = filename
         self.options = self.browser_options()
-        #self.browser = webdriver.Chrome()
-        #self.browser = webdriver.Chrome(executable_path = "C:/chromedriver_win32/chromedriver.exe")
-        self.browser = driver #webdriver.Chrome(chrome_options=self.options, executable_path = chromepath)
+        self.browser = driver
         self.wait = WebDriverWait(self.browser, 30)
         self.start_linkedin(username,password)
 
