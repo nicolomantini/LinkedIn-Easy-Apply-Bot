@@ -25,7 +25,7 @@ class EasyApplyBot:
 
     MAX_APPLICATIONS = 500
 
-    def __init__(self,username,password, language, position, location, resumeloctn, appliedJobIDs=None, filename='output.csv'):
+    def __init__(self,username,password, language, position, location, resumeloctn, appliedJobIDs=[], filename='output.csv'):
 
         print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
