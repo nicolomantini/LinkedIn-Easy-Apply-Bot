@@ -14,6 +14,10 @@ from tkinter import filedialog, Tk
 import tkinter.messagebox as tm
 from urllib.request import urlopen
 import loginGUI
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+
+driver = webdriver.Chrome(ChromeDriverManager().install())
 
 # pyinstaller --onefile --windowed --icon=app.ico easyapplybot.py
 
@@ -21,7 +25,7 @@ class EasyApplyBot:
 
     MAX_APPLICATIONS = 500
 
-    def __init__(self,username,password, language, position, location, resumeloctn, appliedJobIDs, filename):
+    def __init__(self,username,password, language, position, location, resumeloctn, appliedJobIDs=None, filename='output.csv'):
 
         print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
@@ -37,7 +41,7 @@ class EasyApplyBot:
         self.options = self.browser_options()
         #self.browser = webdriver.Chrome()
         #self.browser = webdriver.Chrome(executable_path = "C:/chromedriver_win32/chromedriver.exe")
-        self.browser = webdriver.Chrome(chrome_options=self.options, executable_path = chromepath)
+        self.browser = driver #webdriver.Chrome(chrome_options=self.options, executable_path = chromepath)
         self.wait = WebDriverWait(self.browser, 30)
         self.start_linkedin(username,password)
 
