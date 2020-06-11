@@ -35,6 +35,9 @@ class EasyApplyBot:
         #foldername = os.path.basename(dirpath)
         #print("Directory name is : " + foldername)
 
+        self.position = position
+        self.location = "&location=" + location
+        self.resumeloctn = resumeloctn
         self.language = language
         self.appliedJobIDs = appliedJobIDs
         self.filename = filename
@@ -97,9 +100,9 @@ class EasyApplyBot:
         self.browser.set_window_position(2000, 2000)
         os.system("reset")
 
-        self.position = position
-        self.location = "&location=" + location
-        self.resumeloctn = resumeloctn
+        #self.position = position
+        #self.location = "&location=" + location
+        #self.resumeloctn = resumeloctn
         print(self.resumeloctn)
 
     def start_apply(self):
