@@ -14,6 +14,10 @@ from tkinter import filedialog, Tk
 import tkinter.messagebox as tm
 from urllib.request import urlopen
 import loginGUI
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+
+driver = webdriver.Chrome(ChromeDriverManager().install())
 
 # pyinstaller --onefile --windowed --icon=app.ico easyapplybot.py
 
@@ -21,23 +25,21 @@ class EasyApplyBot:
 
     MAX_APPLICATIONS = 500
 
-    def __init__(self,username,password, language, position, location, resumeloctn, appliedJobIDs, filename):
+    def __init__(self,username,password, language, position, location, resumeloctn, appliedJobIDs=[], filename='output.csv'):
 
         print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
         print("current directory is : " + dirpath)
-        # get path chromedriver exec for relevant OS
-        chromepath = dirpath + '/assets/chromedriver_%s' % (platform.system()).lower()
-        #foldername = os.path.basename(dirpath)
-        #print("Directory name is : " + foldername)
 
+
+        self.position = position
+        self.location = "&location=" + location
+        self.resumeloctn = resumeloctn
         self.language = language
         self.appliedJobIDs = appliedJobIDs
         self.filename = filename
         self.options = self.browser_options()
-        #self.browser = webdriver.Chrome()
-        #self.browser = webdriver.Chrome(executable_path = "C:/chromedriver_win32/chromedriver.exe")
-        self.browser = webdriver.Chrome(chrome_options=self.options, executable_path = chromepath)
+        self.browser = driver
         self.wait = WebDriverWait(self.browser, 30)
         self.start_linkedin(username,password)
 
@@ -93,9 +95,9 @@ class EasyApplyBot:
         self.browser.set_window_position(2000, 2000)
         os.system("reset")
 
-        self.position = position
-        self.location = "&location=" + location
-        self.resumeloctn = resumeloctn
+        #self.position = position
+        #self.location = "&location=" + location
+        #self.resumeloctn = resumeloctn
         print(self.resumeloctn)
 
     def start_apply(self):
