@@ -95,9 +95,6 @@ class EasyApplyBot:
         self.browser.set_window_position(2000, 2000)
         os.system("reset")
 
-        #self.position = position
-        #self.location = "&location=" + location
-        #self.resumeloctn = resumeloctn
         print(self.resumeloctn)
 
     def start_apply(self):
@@ -162,6 +159,7 @@ class EasyApplyBot:
                 if button is not False:
                     string_easy = "* has Easy Apply Button"
                     button.click()
+                    time.sleep (3)
                     self.send_resume()
                     count_application += 1
                 else:
@@ -172,16 +170,16 @@ class EasyApplyBot:
 
                 # append applied job ID to csv file
                 timestamp = datetime.datetime.now()
-                toWrite = [timestamp, jobID]
+                toWrite = [timestamp, jobID, str(self.browser.title).split(' | ')[0], str(self.browser.title).split(' | ')[1], button]
                 with open(self.filename,'a') as f:
                     writer = csv.writer(f)
                     writer.writerow(toWrite)
 
                 # sleep every 20 applications
-                if count_application % 20 == 0:
+                if count_application != 0  and count_application % 20 == 0:
                     sleepTime = random.randint(500, 900)
-                    print('\n\n****************************************\n\n')
-                    print('Time for a nap - see you in: ' + int(sleepTime/60) + 'min..')
+                    print(f'\n\n********count_application: {count_application}************\n\n')
+                    print(f"Time for a nap - see you in:{int(sleepTime/60)} min")
                     print('\n\n****************************************\n\n')
                     time.sleep (sleepTime)
 
@@ -255,30 +253,81 @@ class EasyApplyBot:
         time.sleep(1)
 
     def send_resume(self):
+        def is_present(button_locator):
+            return len(self.browser.find_elements(button_locator[0],
+                                                     button_locator[1])) > 0
+
+
+
         try:
-            self.browser.find_element_by_xpath('//*[@id="file-browse-input"]').send_keys(self.resumeloctn)
+            #self.browser.find_element_by_xpath('//*[@id="file-browse-input"]').send_keys(self.resumeloctn)
             submit_button = None
             time.sleep(3)
+            print(f"Navigating... ")
+            next_locater = (By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
+            review_locater = (By.CSS_SELECTOR, "button[aria-label='Review your application']")
+            submit_locater = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
+            submit_application_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
+            error_locator = (By.CSS_SELECTOR, "p[data-test-form-element-error-message='true']")
+            
             while not submit_button:
-                if language == "en":
+                button = None
+                for i, button_locator in enumerate([next_locater, review_locater, submit_locater, submit_application_locator]):
+                    print(i)
+                    if is_present(button_locator):
+                        print("button found")
+                        button = self.wait.until(EC.element_to_be_clickable(button_locator))
+                    if button:
+                        if is_present(error_locator):
+                            for element in self.browser.find_elements(error_locator[0],
+                                                     error_locator[1]):
+                                text = element.text
+                                print(text)
+                                if "Please enter a valid answer" in text:
+                                    print("Error Found")
+                                    button = None
+                                    break
+                        button.click()
+                        time.sleep(random.uniform(1.5, 2.5))
+                        break
+                if button == None:
+                    print("Could not complete submission")
+                    break
+                '''
+                if self.language == "en" and self.browser.find_elements(By.CSS_SELECTOR, "button[aria-label='Continue to next step']").size() > 0:
+                    next_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Continue to next step']")))
+                    print("Next Button Found")
+                    next_button.click()
+                elif self.language == "en":
+                    review_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Review your application']")))
+                    print("Review Button Found")
+                    review_button.click()
+                elif self.language == "en":
                     submit_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Submit application']")))
-                elif language == "es":
+                elif self.language == "es":
                     submit_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Enviar solicitud']")))
                     #submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar solicitud')]")
-                elif language == "pt":
+                elif self.language == "pt":
                     submit_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Enviar candidatura']")))
                     #submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar candidatura')]")
-            submit_button.click()
+                else:
+                    print("No Button Found")
+                    break
+                '''
+            #if submit_button:
+            #    submit_button.click()
 
             time.sleep(random.uniform(1.5, 2.5))
 
             #After submiting the application, a dialog shows up, we need to close this dialog
-            close_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Dismiss']")))
+            #close_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[aria-label='Dismiss']")))
 
-            close_button.click()
+            #close_button.click()
 
-        except :
+        except Exception as e:
+            print(e)
             print("cannot apply to this job")
+            raise(e)
 
     def load_page(self, sleep=1):
         scroll_page = 0
