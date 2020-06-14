@@ -23,7 +23,7 @@ driver = webdriver.Chrome(ChromeDriverManager().install())
 
 class EasyApplyBot:
 
-    MAX_APPLICATIONS = 5
+    MAX_APPLICATIONS = 50
 
     def __init__(self,username,password, language, positions, locations, resumeloctn, appliedJobIDs=[], filename='output.csv'):
 
