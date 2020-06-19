@@ -16,6 +16,7 @@ from urllib.request import urlopen
 import loginGUI
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
+import re
 
 driver = webdriver.Chrome(ChromeDriverManager().install())
 
@@ -23,17 +24,17 @@ driver = webdriver.Chrome(ChromeDriverManager().install())
 
 class EasyApplyBot:
 
-    MAX_APPLICATIONS = 50
+    MAX_APPLICATIONS = 10
 
-    def __init__(self,username,password, language, positions, locations, resumeloctn, appliedJobIDs=[], filename='output.csv'):
+    def __init__(self,username,password, language, resumeloctn, appliedJobIDs=[], filename='output.csv'):
 
         print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
         print("current directory is : " + dirpath)
 
 
-        self.positions = positions
-        self.locations = locations
+        #self.positions = positions
+        #self.locations = locations
         self.resumeloctn = resumeloctn
         self.language = language
         self.appliedJobIDs = appliedJobIDs
@@ -97,11 +98,12 @@ class EasyApplyBot:
 
         print(self.resumeloctn)
 
-    def start_apply(self):
+    def start_apply(self, positions, locations):
         #self.wait_for_login()
         self.fill_data()
-        for position in self.positions:
-            for location in self.locations:
+        for position in positions:
+            while True:
+                location = locations[random.randint(0, len(locations) - 1)]
                 print(f"Applying to {position}: {location}")
                 location = "&location=" + location
                 self.applications_loop(position, location)
@@ -176,12 +178,7 @@ class EasyApplyBot:
                 position_number = str(count_job + jobs_per_page)
                 print(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
 
-                # append applied job ID to csv file
-                timestamp = datetime.datetime.now()
-                toWrite = [timestamp, jobID, str(self.browser.title).split(' | ')[0], str(self.browser.title).split(' | ')[1], button, result]
-                with open(self.filename,'a') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(toWrite)
+                self.write_to_file(button, jobID, self.browser.title, result)
 
                 # sleep every 20 applications
                 if count_application != 0  and count_application % 20 == 0:
@@ -203,7 +200,23 @@ class EasyApplyBot:
                                                                         location,
                                                                         jobs_per_page)
 
-        
+    def write_to_file(self, button, jobID, browserTitle, result):
+        def re_extract(text, pattern):
+            target = re.search(pattern, text)
+            if target:
+                target = target.group(1)
+            return target
+
+        timestamp = datetime.datetime.now()
+        attempted = False if button == False else True
+        #job = re.search(r"\(?\d?\)?\s?(\w.*)", browserTitle.split(' | ')[0]).group(1)
+        job = re_extract(browserTitle.split(' | ')[0], r"\(?\d?\)?\s?(\w.*)")
+        #company = re.search(r"(\w.*)", browserTitle.split(' | ')[1]).group(1)
+        company = re_extract(browserTitle.split(' | ')[1], r"(\w.*)" )
+        toWrite = [timestamp, jobID, job, company, attempted, result]
+        with open(self.filename,'a') as f:
+            writer = csv.writer(f)
+            writer.writerow(toWrite)
 
     def get_job_links(self, page):
         links = []
@@ -279,6 +292,7 @@ class EasyApplyBot:
             submitted = False
             while True:
                 button = None
+                #self.browser.find_element_by_xpath('//*[@id="file-browse-input"]').send_keys(self.resumeloctn)
                 for i, button_locator in enumerate([next_locater, review_locater, submit_locater, submit_application_locator]):
                     #print(i)
                     if is_present(button_locator):
