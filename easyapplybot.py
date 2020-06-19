@@ -23,17 +23,17 @@ driver = webdriver.Chrome(ChromeDriverManager().install())
 
 class EasyApplyBot:
 
-    MAX_APPLICATIONS = 500
+    MAX_APPLICATIONS = 5
 
-    def __init__(self,username,password, language, position, location, resumeloctn, appliedJobIDs=[], filename='output.csv'):
+    def __init__(self,username,password, language, positions, locations, resumeloctn, appliedJobIDs=[], filename='output.csv'):
 
         print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
         print("current directory is : " + dirpath)
 
 
-        self.position = position
-        self.location = "&location=" + location
+        self.positions = positions
+        self.locations = locations
         self.resumeloctn = resumeloctn
         self.language = language
         self.appliedJobIDs = appliedJobIDs
@@ -100,9 +100,14 @@ class EasyApplyBot:
     def start_apply(self):
         #self.wait_for_login()
         self.fill_data()
-        self.applications_loop()
+        for position in self.positions:
+            for location in self.locations:
+                print(f"Applying to {position}: {location}")
+                location = "&location=" + location
+                self.applications_loop(position, location)
+        self.finish_apply()
 
-    def applications_loop(self):
+    def applications_loop(self, position, location):
 
         count_application = 0
         count_job = 0
@@ -114,7 +119,7 @@ class EasyApplyBot:
 
         self.browser.set_window_position(0, 0)
         self.browser.maximize_window()
-        self.browser, _ = self.next_jobs_page(jobs_per_page)
+        self.browser, _ = self.next_jobs_page(position, location, jobs_per_page)
         print("\nLooking for jobs.. Please wait..\n")
         #below was causing issues, and not sure what they are for.
         #self.browser.find_element_by_class_name("jobs-search-dropdown__trigger-icon").click()
@@ -147,7 +152,9 @@ class EasyApplyBot:
                 jobs_per_page = jobs_per_page + 25
                 count_job = 0
                 self.avoid_lock()
-                self.browser, jobs_per_page = self.next_jobs_page(jobs_per_page)
+                self.browser, jobs_per_page = self.next_jobs_page(position,
+                                                                    location,
+                                                                    jobs_per_page)
 
             # loop over IDs to apply
             for jobID in jobIDs:
@@ -192,9 +199,11 @@ class EasyApplyBot:
                     print('Going to next jobs page, YEAAAHHH!!')
                     print('\n\n****************************************\n\n')
                     self.avoid_lock()
-                    self.browser, jobs_per_page = self.next_jobs_page(jobs_per_page)
+                    self.browser, jobs_per_page = self.next_jobs_page(position,
+                                                                        location,
+                                                                        jobs_per_page)
 
-        self.finish_apply()
+        
 
     def get_job_links(self, page):
         links = []
@@ -337,10 +346,10 @@ class EasyApplyBot:
         time.sleep(0.5)
         pyautogui.press('esc')
 
-    def next_jobs_page(self, jobs_per_page):
+    def next_jobs_page(self, position, location, jobs_per_page):
         self.browser.get(
             "https://www.linkedin.com/jobs/search/?f_LF=f_AL&keywords=" +
-            self.position + self.location + "&start="+str(jobs_per_page))
+            position + location + "&start="+str(jobs_per_page))
         self.avoid_lock()
         self.load_page()
         return (self.browser, jobs_per_page)
