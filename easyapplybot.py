@@ -23,7 +23,7 @@ driver = webdriver.Chrome(ChromeDriverManager().install())
 
 class EasyApplyBot:
 
-    MAX_APPLICATIONS = 5
+    MAX_SEARCH_TIME = 10*60
 
     def __init__(self,username,password, language, positions, locations, resumeloctn, appliedJobIDs=[], filename='output.csv'):
 
@@ -112,6 +112,7 @@ class EasyApplyBot:
         count_application = 0
         count_job = 0
         jobs_per_page = 0
+        start_time = time.time()
 
         os.system("reset")
 
@@ -126,7 +127,8 @@ class EasyApplyBot:
         #self.browser.find_element_by_class_name("jobs-search-dropdown__option").click()
         #self.job_page = self.load_page(sleep=0.5)
 
-        while count_application < self.MAX_APPLICATIONS:
+        while start_time - time.time() < self.MAX_SEARCH_TIME:
+            print(f"{(start_time - time.time())/60} minutes left in this search")
 
             # sleep to make sure everything loads, add random to make us look human.
             time.sleep(random.uniform(3.5, 6.9))
