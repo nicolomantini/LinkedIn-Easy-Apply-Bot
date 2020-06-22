@@ -131,8 +131,8 @@ class EasyApplyBot:
         #self.browser.find_element_by_class_name("jobs-search-dropdown__option").click()
         #self.job_page = self.load_page(sleep=0.5)
 
-        while start_time - time.time() < self.MAX_SEARCH_TIME:
-            print(f"{(start_time - time.time())/60} minutes left in this search")
+        while time.time() - start_time < self.MAX_SEARCH_TIME:
+            print(f"{(time.time() - start_time)/60} minutes left in this search")
 
             # sleep to make sure everything loads, add random to make us look human.
             time.sleep(random.uniform(3.5, 6.9))
