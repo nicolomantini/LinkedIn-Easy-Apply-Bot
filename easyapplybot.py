@@ -26,6 +26,7 @@ class EasyApplyBot:
 
 
     MAX_SEARCH_TIME = 10*60
+    blacklist = ["Staffigo"]
 
 
     def __init__(self,username,password, language, resumeloctn, appliedJobIDs=[], filename='output.csv'):
@@ -146,9 +147,14 @@ class EasyApplyBot:
             # get job ID of each job link
             IDs = []
             for link in links :
-                temp = link.get_attribute("data-job-id")
-                jobID = temp.split(":")[-1]
-                IDs.append(int(jobID))
+                children = link.find_elements_by_xpath(
+                    './/a[@data-control-name]'
+                    )
+                for child in children:
+                    if child.text not in self.blacklist:
+                        temp = link.get_attribute("data-job-id")
+                        jobID = temp.split(":")[-1]
+                        IDs.append(int(jobID))
             IDs = set(IDs)
 
             # remove already applied jobs
