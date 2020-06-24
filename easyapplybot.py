@@ -132,7 +132,7 @@ class EasyApplyBot:
         #self.job_page = self.load_page(sleep=0.5)
 
         while time.time() - start_time < self.MAX_SEARCH_TIME:
-            print(f"{(time.time() - start_time)/60} minutes left in this search")
+            print(f"{(self.MAX_SEARCH_TIME - (time.time() - start_time))//60} minutes left in this search")
 
             # sleep to make sure everything loads, add random to make us look human.
             time.sleep(random.uniform(3.5, 6.9))
