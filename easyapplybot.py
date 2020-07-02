@@ -29,24 +29,28 @@ class EasyApplyBot:
     blacklist = ["Staffigo"]
 
 
-    def __init__(self,username,password, language, resumeloctn, appliedJobIDs=[], filename='output.csv'):
+    def __init__(self,username,password, language, resumeloctn,  filename='output.csv'):
 
         print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
         print("current directory is : " + dirpath)
 
-
-        #self.positions = positions
-        #self.locations = locations
         self.resumeloctn = resumeloctn
         self.language = language
-        self.appliedJobIDs = appliedJobIDs
+        self.appliedJobIDs = self.get_appliedIDs(filename)
         self.filename = filename
         self.options = self.browser_options()
         self.browser = driver
         self.wait = WebDriverWait(self.browser, 30)
         self.start_linkedin(username,password)
 
+
+    def get_appliedIDs(self, filename):
+
+        df = pd.read_csv(filename,
+                        header=None,
+                        names=['timestamp', 'jobID', 'job', 'company', 'attempted', 'result'])
+        return list(df.jobID)
 
     def browser_options(self):
         options = Options()
@@ -103,13 +107,14 @@ class EasyApplyBot:
 
     def start_apply(self, positions, locations):
         #self.wait_for_login()
+        start = time.time()
         self.fill_data()
-        for position in positions:
-            while True:
-                location = locations[random.randint(0, len(locations) - 1)]
-                print(f"Applying to {position}: {location}")
-                location = "&location=" + location
-                self.applications_loop(position, location)
+        while True:
+            position = positions[random.randint(0, len(positions) - 1)]
+            location = locations[random.randint(0, len(locations) - 1)]
+            print(f"Applying to {position}: {location}")
+            location = "&location=" + location
+            self.applications_loop(position, location)
         self.finish_apply()
 
     def applications_loop(self, position, location):
@@ -144,6 +149,9 @@ class EasyApplyBot:
                     '//div[@data-job-id]'
                     )
 
+            if len(links) == 0:
+                break
+
             # get job ID of each job link
             IDs = []
             for link in links :
@@ -169,7 +177,7 @@ class EasyApplyBot:
                                                                     jobs_per_page)
 
             # loop over IDs to apply
-            for jobID in jobIDs:
+            for i, jobID in enumerate(jobIDs):
                 count_job += 1
                 self.get_job_page(jobID)
 
@@ -209,6 +217,8 @@ class EasyApplyBot:
                     self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                         location,
                                                                         jobs_per_page)
+            if len(jobIDs) == 0 or i == (len(jobIDs) - 1):
+                break
 
     def write_to_file(self, button, jobID, browserTitle, result):
         def re_extract(text, pattern):
