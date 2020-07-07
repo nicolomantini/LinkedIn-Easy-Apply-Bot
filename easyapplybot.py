@@ -19,18 +19,18 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 driver = webdriver.Chrome(ChromeDriverManager().install())
 
+
 # pyinstaller --onefile --windowed --icon=app.ico easyapplybot.py
 
 class EasyApplyBot:
-
     MAX_APPLICATIONS = 5
 
-    def __init__(self,username,password, language, positions, locations, resumeloctn, appliedJobIDs=[], filename='output.csv'):
+    def __init__(self, username, password, language, positions, locations, resumeloctn, appliedJobIDs=[],
+                 filename='output.csv'):
 
         print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
         print("current directory is : " + dirpath)
-
 
         self.positions = positions
         self.locations = locations
@@ -41,22 +41,21 @@ class EasyApplyBot:
         self.options = self.browser_options()
         self.browser = driver
         self.wait = WebDriverWait(self.browser, 30)
-        self.start_linkedin(username,password)
-
+        self.start_linkedin(username, password)
 
     def browser_options(self):
         options = Options()
         options.add_argument("--start-maximized")
         options.add_argument("--ignore-certificate-errors")
-        #options.add_argument("user-agent=Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393")
-        #options.add_argument('--headless')
+        # options.add_argument("user-agent=Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393")
+        # options.add_argument('--headless')
         options.add_argument('--no-sandbox')
-        #options.add_argument('--disable-gpu')
-        #options.add_argument('disable-infobars')
+        # options.add_argument('--disable-gpu')
+        # options.add_argument('disable-infobars')
         options.add_argument("--disable-extensions")
         return options
 
-    def start_linkedin(self,username,password):
+    def start_linkedin(self, username, password):
         print("\nLogging in.....\n \nPlease wait :) \n ")
         self.browser.get("https://www.linkedin.com/login?trk=guest_homepage-basic_nav-header-signin")
         try:
@@ -74,11 +73,11 @@ class EasyApplyBot:
 
     def wait_for_login(self):
         if language == "en":
-             title = "Sign In to LinkedIn"
+            title = "Sign In to LinkedIn"
         elif language == "es":
-             title = "Inicia sesión"
+            title = "Inicia sesión"
         elif language == "pt":
-             title = "Entrar no LinkedIn"
+            title = "Entrar no LinkedIn"
 
         time.sleep(1)
 
@@ -98,13 +97,14 @@ class EasyApplyBot:
         print(self.resumeloctn)
 
     def start_apply(self):
-        #self.wait_for_login()
+        # self.wait_for_login()
         self.fill_data()
-        for position in self.positions:
-            for location in self.locations:
-                print(f"Applying to {position}: {location}")
-                location = "&location=" + location
-                self.applications_loop(position, location)
+        # TODO commented out positions and locations for loops since they caused issues with search. Need to fix later
+        # for position in self.positions:
+        #   for location in self.locations:
+        print(f"Applying to {position}: {location}")
+        # location = "&location=" + location
+        self.applications_loop(position, location)
         self.finish_apply()
 
     def applications_loop(self, position, location):
@@ -121,10 +121,10 @@ class EasyApplyBot:
         self.browser.maximize_window()
         self.browser, _ = self.next_jobs_page(position, location, jobs_per_page)
         print("\nLooking for jobs.. Please wait..\n")
-        #below was causing issues, and not sure what they are for.
-        #self.browser.find_element_by_class_name("jobs-search-dropdown__trigger-icon").click()
-        #self.browser.find_element_by_class_name("jobs-search-dropdown__option").click()
-        #self.job_page = self.load_page(sleep=0.5)
+        # below was causing issues, and not sure what they are for.
+        # self.browser.find_element_by_class_name("jobs-search-dropdown__trigger-icon").click()
+        # self.browser.find_element_by_class_name("jobs-search-dropdown__option").click()
+        # self.job_page = self.load_page(sleep=0.5)
 
         while count_application < self.MAX_APPLICATIONS:
 
@@ -134,12 +134,12 @@ class EasyApplyBot:
 
             # get job links
             links = self.browser.find_elements_by_xpath(
-                    '//div[@data-job-id]'
-                    )
+                '//div[@data-job-id]'
+            )
 
             # get job ID of each job link
             IDs = []
-            for link in links :
+            for link in links:
                 temp = link.get_attribute("data-job-id")
                 jobID = temp.split(":")[-1]
                 IDs.append(int(jobID))
@@ -153,8 +153,8 @@ class EasyApplyBot:
                 count_job = 0
                 self.avoid_lock()
                 self.browser, jobs_per_page = self.next_jobs_page(position,
-                                                                    location,
-                                                                    jobs_per_page)
+                                                                  location,
+                                                                  jobs_per_page)
 
             # loop over IDs to apply
             for jobID in jobIDs:
@@ -162,11 +162,11 @@ class EasyApplyBot:
                 self.get_job_page(jobID)
 
                 # get easy apply button
-                button = self.get_easy_apply_button ()
+                button = self.get_easy_apply_button()
                 if button is not False:
                     string_easy = "* has Easy Apply Button"
                     button.click()
-                    time.sleep (3)
+                    time.sleep(3)
                     result = self.send_resume()
                     count_application += 1
                 else:
@@ -178,18 +178,19 @@ class EasyApplyBot:
 
                 # append applied job ID to csv file
                 timestamp = datetime.datetime.now()
-                toWrite = [timestamp, jobID, str(self.browser.title).split(' | ')[0], str(self.browser.title).split(' | ')[1], button, result]
-                with open(self.filename,'a') as f:
+                toWrite = [timestamp, jobID, str(self.browser.title).split(' | ')[0],
+                           str(self.browser.title).split(' | ')[1], button, result]
+                with open(self.filename, 'a') as f:
                     writer = csv.writer(f)
                     writer.writerow(toWrite)
 
                 # sleep every 20 applications
-                if count_application != 0  and count_application % 20 == 0:
+                if count_application != 0 and count_application % 20 == 0:
                     sleepTime = random.randint(500, 900)
                     print(f'\n\n********count_application: {count_application}************\n\n')
-                    print(f"Time for a nap - see you in:{int(sleepTime/60)} min")
+                    print(f"Time for a nap - see you in:{int(sleepTime / 60)} min")
                     print('\n\n****************************************\n\n')
-                    time.sleep (sleepTime)
+                    time.sleep(sleepTime)
 
                 # go to new page if all jobs are done
                 if count_job == len(jobIDs):
@@ -200,10 +201,8 @@ class EasyApplyBot:
                     print('\n\n****************************************\n\n')
                     self.avoid_lock()
                     self.browser, jobs_per_page = self.next_jobs_page(position,
-                                                                        location,
-                                                                        jobs_per_page)
-
-        
+                                                                      location,
+                                                                      jobs_per_page)
 
     def get_job_links(self, page):
         links = []
@@ -215,34 +214,34 @@ class EasyApplyBot:
         return set(links)
 
     def get_job_page(self, jobID):
-        #root = 'www.linkedin.com'
-        #if root not in job:
-        job = 'https://www.linkedin.com/jobs/view/'+ str(jobID)
+        # root = 'www.linkedin.com'
+        # if root not in job:
+        job = 'https://www.linkedin.com/jobs/view/' + str(jobID)
         self.browser.get(job)
         self.job_page = self.load_page(sleep=0.5)
         return self.job_page
 
     def got_easy_apply(self, page):
-        #button = page.find("button", class_="jobs-apply-button artdeco-button jobs-apply-button--top-card artdeco-button--3 ember-view")
+        # button = page.find("button", class_="jobs-apply-button artdeco-button jobs-apply-button--top-card artdeco-button--3 ember-view")
 
         button = self.browser.find_elements_by_xpath(
-                    '//button[contains(@class, "jobs-apply")]/span[1]'
-                    )
-        EasyApplyButton = button [0]
-        if EasyApplyButton.text in "Easy Apply" :
+            '//button[contains(@class, "jobs-apply")]/span[1]'
+        )
+        EasyApplyButton = button[0]
+        if EasyApplyButton.text in "Easy Apply":
             return EasyApplyButton
-        else :
+        else:
             return False
-        #return len(str(button)) > 4
+        # return len(str(button)) > 4
 
     def get_easy_apply_button(self):
-        try :
+        try:
             button = self.browser.find_elements_by_xpath(
-                        '//button[contains(@class, "jobs-apply")]/span[1]'
-                        )
-            #if button[0].text in "Easy Apply" :
-            EasyApplyButton = button [0]
-        except :
+                '//button[contains(@class, "jobs-apply")]/span[1]'
+            )
+            # if button[0].text in "Easy Apply" :
+            EasyApplyButton = button[0]
+        except:
             EasyApplyButton = False
 
         return EasyApplyButton
@@ -253,7 +252,7 @@ class EasyApplyBot:
         list_of_words = button_inner_html.split()
         next_word = [word for word in list_of_words if "ember" in word and "id" in word]
         ember = next_word[0][:-1]
-        xpath = '//*[@'+ember+']/button'
+        xpath = '//*[@' + ember + ']/button'
         return xpath
 
     def click_button(self, xpath):
@@ -265,33 +264,34 @@ class EasyApplyBot:
     def send_resume(self):
         def is_present(button_locator):
             return len(self.browser.find_elements(button_locator[0],
-                                                     button_locator[1])) > 0
+                                                  button_locator[1])) > 0
 
         try:
             time.sleep(3)
-            #print(f"Navigating... ")
+            # print(f"Navigating... ")
             next_locater = (By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
             review_locater = (By.CSS_SELECTOR, "button[aria-label='Review your application']")
             submit_locater = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
             submit_application_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
             error_locator = (By.CSS_SELECTOR, "p[data-test-form-element-error-message='true']")
-            
+
             submitted = False
             while True:
                 button = None
-                for i, button_locator in enumerate([next_locater, review_locater, submit_locater, submit_application_locator]):
-                    #print(i)
+                for i, button_locator in enumerate(
+                        [next_locater, review_locater, submit_locater, submit_application_locator]):
+                    # print(i)
                     if is_present(button_locator):
-                        #print("button found")
+                        # print("button found")
                         button = self.wait.until(EC.element_to_be_clickable(button_locator))
-                    
+
                     if is_present(error_locator):
                         for element in self.browser.find_elements(error_locator[0],
-                                                 error_locator[1]):
+                                                                  error_locator[1]):
                             text = element.text
                             if "Please enter a valid answer" in text:
-                                #print("Error Found")
-                                #print(element.get_attribute('class'))
+                                # print("Error Found")
+                                # print(element.get_attribute('class'))
                                 button = None
                                 break
                     if button:
@@ -309,7 +309,7 @@ class EasyApplyBot:
 
             time.sleep(random.uniform(1.5, 2.5))
 
-            #After submiting the application, a dialog shows up, we need to close this dialog
+            # After submiting the application, a dialog shows up, we need to close this dialog
             close_button_locator = (By.CSS_SELECTOR, "button[aria-label='Dismiss']")
             if is_present(close_button_locator):
                 close_button = self.wait.until(EC.element_to_be_clickable(close_button_locator))
@@ -318,14 +318,14 @@ class EasyApplyBot:
         except Exception as e:
             print(e)
             print("cannot apply to this job")
-            raise(e)
+            raise (e)
 
         return submitted
 
     def load_page(self, sleep=1):
         scroll_page = 0
         while scroll_page < 4000:
-            self.browser.execute_script("window.scrollTo(0,"+str(scroll_page)+" );")
+            self.browser.execute_script("window.scrollTo(0," + str(scroll_page) + " );")
             scroll_page += 200
             time.sleep(sleep)
 
@@ -349,7 +349,7 @@ class EasyApplyBot:
     def next_jobs_page(self, position, location, jobs_per_page):
         self.browser.get(
             "https://www.linkedin.com/jobs/search/?f_LF=f_AL&keywords=" +
-            position + location + "&start="+str(jobs_per_page))
+            position + location + "&start=" + str(jobs_per_page))
         self.avoid_lock()
         self.load_page()
         return (self.browser, jobs_per_page)
@@ -357,12 +357,13 @@ class EasyApplyBot:
     def finish_apply(self):
         self.browser.close()
 
+
 if __name__ == '__main__':
 
     # set use of gui (T/F)
 
     useGUI = True
-    #useGUI = False
+    # useGUI = False
 
     # use gui
     if useGUI == True:
@@ -370,25 +371,24 @@ if __name__ == '__main__':
         app = loginGUI.LoginGUI()
         app.mainloop()
 
-        #get user info info
-        username=app.frames["StartPage"].username
-        password=app.frames["StartPage"].password
-        language=app.frames["PageOne"].language
-        position=app.frames["PageTwo"].position
-        location_code=app.frames["PageThree"].location_code
+        # get user info info
+        username = app.frames["StartPage"].username
+        password = app.frames["StartPage"].password
+        language = app.frames["PageOne"].language
+        position = app.frames["PageTwo"].position
+        location_code = app.frames["PageThree"].location_code
         if location_code == 1:
-            location=app.frames["PageThree"].location
+            location = app.frames["PageThree"].location
         else:
             location = app.frames["PageFour"].location
-        resumeloctn=app.frames["PageFive"].resumeloctn
+        resumeloctn = app.frames["PageFive"].resumeloctn
 
     # no gui
     if useGUI == False:
-
         username = ''
         password = ''
         language = 'en'
-        position = 'marketing'
+        position = ''
         location = ''
         resumeloctn = ''
 
@@ -396,12 +396,12 @@ if __name__ == '__main__':
     print("\nThese is your input:")
 
     print(
-        "\nUsername:  "+ username,
-        "\nPassword:  "+ password,
-        "\nLanguage:  "+ language,
-        "\nPosition:  "+ position,
-        "\nLocation:  "+ location
-        )
+        "\nUsername:  " + username,
+        "\nPassword:  " + password,
+        "\nLanguage:  " + language,
+        "\nPosition:  " + position,
+        "\nLocation:  " + location
+    )
 
     print("\nLet's scrape some jobs!\n")
 
@@ -409,7 +409,7 @@ if __name__ == '__main__':
     filename = 'joblist.csv'
     try:
         df = pd.read_csv(filename, header=None)
-        appliedJobIDs = list (df.iloc[:,1])
+        appliedJobIDs = list(df.iloc[:, 1])
     except:
         appliedJobIDs = []
 
