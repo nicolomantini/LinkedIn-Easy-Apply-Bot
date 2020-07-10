@@ -143,3 +143,4 @@ output.csv
 venv8/
 quickstart.py
 config.yaml
+states.json
