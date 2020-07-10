@@ -1,18 +1,38 @@
 # Linkedin EasyApply Bot
 Automate the application process on LinkedIn
 
-# Usage
-1. download all the files
-2. if you want to use the GUI, input your preference in quickstart.py
-3. Run "easyapplybot.py"
-4. follow the steps through the GUI
-5. GUI switch is at line 315 in easyapplybot.py
-6. if GUI off add your data to line 332-337 in easyapplybot.py
-
-* Make sure you have chromedriver installed in the assets folder!
-
-more info here: https://medium.com/xplor8/how-to-apply-for-1-000-jobs-while-you-are-sleeping-da27edc3b703
-
+Medium Write-up: https://medium.com/xplor8/how-to-apply-for-1-000-jobs-while-you-are-sleeping-da27edc3b703
 Video: https://www.youtube.com/watch?v=4R4E304fEAs
 
-** We have integrated this code as an API of https://github.com/socialbotspy/LinkedinPy **
+## Setup 
+
+The run the bot install requirements
+```bash
+pip install -r requirements.txt
+```
+
+Enter your username, password, and search settings into the `config.yaml` file
+
+```yaml
+username: # Insert your username here
+password: # Insert your password here
+
+positions:
+- # Position you want to search for
+- # Another position you want to search for
+- # A third position you want to search for
+
+locations:
+- # Location you want to search in 
+- # A second location you want to search in 
+```
+__NOTE: AFTER EDITING SAVE FILE, DO NOT COMMIT FILE__
+
+
+## Execute
+
+To execute the bot run the following in your terminal
+```
+python3 easyapplybot.py
+```
+
