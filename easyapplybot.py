@@ -10,18 +10,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import pandas as pd
 import pyautogui
-#from tkinter import filedialog, Tk
-#import tkinter.messagebox as tm
+
 from urllib.request import urlopen
-import loginGUI
-from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 import re
 import yaml
 
 driver = webdriver.Chrome(ChromeDriverManager().install())
 
-# pyinstaller --onefile --windowed --icon=app.ico easyapplybot.py
 
 class EasyApplyBot:
 
