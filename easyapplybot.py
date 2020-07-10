@@ -29,7 +29,7 @@ class EasyApplyBot:
     blacklist = ["Staffigo"]
 
 
-    def __init__(self,username,password, language, resumeloctn,  filename='error.csv'):
+    def __init__(self, username, password, language, resumeloctn, filename='output.csv'):
 
         print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
@@ -81,12 +81,7 @@ class EasyApplyBot:
             print("TimeoutException! Username/password field or login button not found")
 
     def wait_for_login(self):
-        if language == "en":
-             title = "Sign In to LinkedIn"
-        elif language == "es":
-             title = "Inicia sesión"
-        elif language == "pt":
-             title = "Entrar no LinkedIn"
+
 
         time.sleep(1)
 
@@ -260,14 +255,14 @@ class EasyApplyBot:
             return EasyApplyButton
         else :
             return False
-        #return len(str(button)) > 4
+
 
     def get_easy_apply_button(self):
         try :
             button = self.browser.find_elements_by_xpath(
                         '//button[contains(@class, "jobs-apply")]/span[1]'
                         )
-            #if button[0].text in "Easy Apply" :
+
             EasyApplyButton = button [0]
         except :
             EasyApplyButton = False
@@ -346,7 +341,7 @@ class EasyApplyBot:
         except Exception as e:
             print(e)
             print("cannot apply to this job")
-            raise(e)
+            #raise(e)
 
         return submitted
 
@@ -381,6 +376,7 @@ class EasyApplyBot:
         self.avoid_lock()
         self.load_page()
         return (self.browser, jobs_per_page)
+
 
     def finish_apply(self):
         self.browser.close()
