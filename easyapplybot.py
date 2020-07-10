@@ -29,7 +29,7 @@ class EasyApplyBot:
     blacklist = ["Staffigo"]
 
 
-    def __init__(self,username,password, language, resumeloctn,  filename='output.csv'):
+    def __init__(self,username,password, language, resumeloctn,  filename='error.csv'):
 
         print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
@@ -46,21 +46,21 @@ class EasyApplyBot:
 
 
     def get_appliedIDs(self, filename):
+        try:
+            df = pd.read_csv(filename,
+                            header=None,
+                            names=['timestamp', 'jobID', 'job', 'company', 'attempted', 'result'])
+            return list(df.jobID)
+        except Exception as e:
+            print(str(e) + "   jobIDs could not be loaded from CSV {}".format(filename))
+            return None
 
-        df = pd.read_csv(filename,
-                        header=None,
-                        names=['timestamp', 'jobID', 'job', 'company', 'attempted', 'result'])
-        return list(df.jobID)
 
     def browser_options(self):
         options = Options()
         options.add_argument("--start-maximized")
         options.add_argument("--ignore-certificate-errors")
-        #options.add_argument("user-agent=Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393")
-        #options.add_argument('--headless')
         options.add_argument('--no-sandbox')
-        #options.add_argument('--disable-gpu')
-        #options.add_argument('disable-infobars')
         options.add_argument("--disable-extensions")
         return options
 
@@ -101,7 +101,6 @@ class EasyApplyBot:
     def fill_data(self):
         self.browser.set_window_size(0, 0)
         self.browser.set_window_position(2000, 2000)
-        os.system("reset")
 
         print(self.resumeloctn)
 
@@ -124,7 +123,6 @@ class EasyApplyBot:
         jobs_per_page = 0
         start_time = time.time()
 
-        os.system("reset")
 
         print("\nLooking for jobs.. Please wait..\n")
 
@@ -132,10 +130,6 @@ class EasyApplyBot:
         self.browser.maximize_window()
         self.browser, _ = self.next_jobs_page(position, location, jobs_per_page)
         print("\nLooking for jobs.. Please wait..\n")
-        #below was causing issues, and not sure what they are for.
-        #self.browser.find_element_by_class_name("jobs-search-dropdown__trigger-icon").click()
-        #self.browser.find_element_by_class_name("jobs-search-dropdown__option").click()
-        #self.job_page = self.load_page(sleep=0.5)
 
         while time.time() - start_time < self.MAX_SEARCH_TIME:
             print(f"{(self.MAX_SEARCH_TIME - (time.time() - start_time))//60} minutes left in this search")
@@ -390,63 +384,3 @@ class EasyApplyBot:
 
     def finish_apply(self):
         self.browser.close()
-
-if __name__ == '__main__':
-
-    # set use of gui (T/F)
-
-    useGUI = True
-    #useGUI = False
-
-    # use gui
-    if useGUI == True:
-
-        app = loginGUI.LoginGUI()
-        app.mainloop()
-
-        #get user info info
-        username=app.frames["StartPage"].username
-        password=app.frames["StartPage"].password
-        language=app.frames["PageOne"].language
-        position=app.frames["PageTwo"].position
-        location_code=app.frames["PageThree"].location_code
-        if location_code == 1:
-            location=app.frames["PageThree"].location
-        else:
-            location = app.frames["PageFour"].location
-        resumeloctn=app.frames["PageFive"].resumeloctn
-
-    # no gui
-    if useGUI == False:
-
-        username = ''
-        password = ''
-        language = 'en'
-        position = 'marketing'
-        location = ''
-        resumeloctn = ''
-
-    # print input
-    print("\nThese is your input:")
-
-    print(
-        "\nUsername:  "+ username,
-        "\nPassword:  "+ password,
-        "\nLanguage:  "+ language,
-        "\nPosition:  "+ position,
-        "\nLocation:  "+ location
-        )
-
-    print("\nLet's scrape some jobs!\n")
-
-    # get list of already applied jobs
-    filename = 'joblist.csv'
-    try:
-        df = pd.read_csv(filename, header=None)
-        appliedJobIDs = list (df.iloc[:,1])
-    except:
-        appliedJobIDs = []
-
-    # start bot
-    bot = EasyApplyBot(username, password, language, position, location, resumeloctn, appliedJobIDs, filename)
-    bot.start_apply()
