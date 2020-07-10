@@ -16,6 +16,7 @@ from urllib.request import urlopen
 import loginGUI
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
+import re
 
 driver = webdriver.Chrome(ChromeDriverManager().install())
 
@@ -23,20 +24,20 @@ driver = webdriver.Chrome(ChromeDriverManager().install())
 
 class EasyApplyBot:
 
-    MAX_APPLICATIONS = 5
 
-    def __init__(self,username,password, language, positions, locations, resumeloctn, appliedJobIDs=[], filename='output.csv'):
+    MAX_SEARCH_TIME = 10*60
+    blacklist = ["Staffigo"]
+
+
+    def __init__(self,username,password, language, resumeloctn,  filename='error.csv'):
 
         print("\nWelcome to Easy Apply Bot\n")
         dirpath = os.getcwd()
         print("current directory is : " + dirpath)
 
-
-        self.positions = positions
-        self.locations = locations
         self.resumeloctn = resumeloctn
         self.language = language
-        self.appliedJobIDs = appliedJobIDs
+        self.appliedJobIDs = self.get_appliedIDs(filename)
         self.filename = filename
         self.options = self.browser_options()
         self.browser = driver
@@ -44,15 +45,22 @@ class EasyApplyBot:
         self.start_linkedin(username,password)
 
 
+    def get_appliedIDs(self, filename):
+        try:
+            df = pd.read_csv(filename,
+                            header=None,
+                            names=['timestamp', 'jobID', 'job', 'company', 'attempted', 'result'])
+            return list(df.jobID)
+        except Exception as e:
+            print(str(e) + "   jobIDs could not be loaded from CSV {}".format(filename))
+            return None
+
+
     def browser_options(self):
         options = Options()
         options.add_argument("--start-maximized")
         options.add_argument("--ignore-certificate-errors")
-        #options.add_argument("user-agent=Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393")
-        #options.add_argument('--headless')
         options.add_argument('--no-sandbox')
-        #options.add_argument('--disable-gpu')
-        #options.add_argument('disable-infobars')
         options.add_argument("--disable-extensions")
         return options
 
@@ -93,18 +101,19 @@ class EasyApplyBot:
     def fill_data(self):
         self.browser.set_window_size(0, 0)
         self.browser.set_window_position(2000, 2000)
-        os.system("reset")
 
         print(self.resumeloctn)
 
-    def start_apply(self):
+    def start_apply(self, positions, locations):
         #self.wait_for_login()
+        start = time.time()
         self.fill_data()
-        for position in self.positions:
-            for location in self.locations:
-                print(f"Applying to {position}: {location}")
-                location = "&location=" + location
-                self.applications_loop(position, location)
+        while True:
+            position = positions[random.randint(0, len(positions) - 1)]
+            location = locations[random.randint(0, len(locations) - 1)]
+            print(f"Applying to {position}: {location}")
+            location = "&location=" + location
+            self.applications_loop(position, location)
         self.finish_apply()
 
     def applications_loop(self, position, location):
@@ -112,8 +121,8 @@ class EasyApplyBot:
         count_application = 0
         count_job = 0
         jobs_per_page = 0
+        start_time = time.time()
 
-        os.system("reset")
 
         print("\nLooking for jobs.. Please wait..\n")
 
@@ -121,12 +130,9 @@ class EasyApplyBot:
         self.browser.maximize_window()
         self.browser, _ = self.next_jobs_page(position, location, jobs_per_page)
         print("\nLooking for jobs.. Please wait..\n")
-        #below was causing issues, and not sure what they are for.
-        #self.browser.find_element_by_class_name("jobs-search-dropdown__trigger-icon").click()
-        #self.browser.find_element_by_class_name("jobs-search-dropdown__option").click()
-        #self.job_page = self.load_page(sleep=0.5)
 
-        while count_application < self.MAX_APPLICATIONS:
+        while time.time() - start_time < self.MAX_SEARCH_TIME:
+            print(f"{(self.MAX_SEARCH_TIME - (time.time() - start_time))//60} minutes left in this search")
 
             # sleep to make sure everything loads, add random to make us look human.
             time.sleep(random.uniform(3.5, 6.9))
@@ -137,12 +143,20 @@ class EasyApplyBot:
                     '//div[@data-job-id]'
                     )
 
+            if len(links) == 0:
+                break
+
             # get job ID of each job link
             IDs = []
             for link in links :
-                temp = link.get_attribute("data-job-id")
-                jobID = temp.split(":")[-1]
-                IDs.append(int(jobID))
+                children = link.find_elements_by_xpath(
+                    './/a[@data-control-name]'
+                    )
+                for child in children:
+                    if child.text not in self.blacklist:
+                        temp = link.get_attribute("data-job-id")
+                        jobID = temp.split(":")[-1]
+                        IDs.append(int(jobID))
             IDs = set(IDs)
 
             # remove already applied jobs
@@ -157,7 +171,7 @@ class EasyApplyBot:
                                                                     jobs_per_page)
 
             # loop over IDs to apply
-            for jobID in jobIDs:
+            for i, jobID in enumerate(jobIDs):
                 count_job += 1
                 self.get_job_page(jobID)
 
@@ -176,12 +190,7 @@ class EasyApplyBot:
                 position_number = str(count_job + jobs_per_page)
                 print(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
 
-                # append applied job ID to csv file
-                timestamp = datetime.datetime.now()
-                toWrite = [timestamp, jobID, str(self.browser.title).split(' | ')[0], str(self.browser.title).split(' | ')[1], button, result]
-                with open(self.filename,'a') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(toWrite)
+                self.write_to_file(button, jobID, self.browser.title, result)
 
                 # sleep every 20 applications
                 if count_application != 0  and count_application % 20 == 0:
@@ -202,8 +211,26 @@ class EasyApplyBot:
                     self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                         location,
                                                                         jobs_per_page)
+            if len(jobIDs) == 0 or i == (len(jobIDs) - 1):
+                break
 
-        
+    def write_to_file(self, button, jobID, browserTitle, result):
+        def re_extract(text, pattern):
+            target = re.search(pattern, text)
+            if target:
+                target = target.group(1)
+            return target
+
+        timestamp = datetime.datetime.now()
+        attempted = False if button == False else True
+        #job = re.search(r"\(?\d?\)?\s?(\w.*)", browserTitle.split(' | ')[0]).group(1)
+        job = re_extract(browserTitle.split(' | ')[0], r"\(?\d?\)?\s?(\w.*)")
+        #company = re.search(r"(\w.*)", browserTitle.split(' | ')[1]).group(1)
+        company = re_extract(browserTitle.split(' | ')[1], r"(\w.*)" )
+        toWrite = [timestamp, jobID, job, company, attempted, result]
+        with open(self.filename,'a') as f:
+            writer = csv.writer(f)
+            writer.writerow(toWrite)
 
     def get_job_links(self, page):
         links = []
@@ -279,6 +306,7 @@ class EasyApplyBot:
             submitted = False
             while True:
                 button = None
+                #self.browser.find_element_by_xpath('//*[@id="file-browse-input"]').send_keys(self.resumeloctn)
                 for i, button_locator in enumerate([next_locater, review_locater, submit_locater, submit_application_locator]):
                     #print(i)
                     if is_present(button_locator):
@@ -356,63 +384,3 @@ class EasyApplyBot:
 
     def finish_apply(self):
         self.browser.close()
-
-if __name__ == '__main__':
-
-    # set use of gui (T/F)
-
-    useGUI = True
-    #useGUI = False
-
-    # use gui
-    if useGUI == True:
-
-        app = loginGUI.LoginGUI()
-        app.mainloop()
-
-        #get user info info
-        username=app.frames["StartPage"].username
-        password=app.frames["StartPage"].password
-        language=app.frames["PageOne"].language
-        position=app.frames["PageTwo"].position
-        location_code=app.frames["PageThree"].location_code
-        if location_code == 1:
-            location=app.frames["PageThree"].location
-        else:
-            location = app.frames["PageFour"].location
-        resumeloctn=app.frames["PageFive"].resumeloctn
-
-    # no gui
-    if useGUI == False:
-
-        username = ''
-        password = ''
-        language = 'en'
-        position = 'marketing'
-        location = ''
-        resumeloctn = ''
-
-    # print input
-    print("\nThese is your input:")
-
-    print(
-        "\nUsername:  "+ username,
-        "\nPassword:  "+ password,
-        "\nLanguage:  "+ language,
-        "\nPosition:  "+ position,
-        "\nLocation:  "+ location
-        )
-
-    print("\nLet's scrape some jobs!\n")
-
-    # get list of already applied jobs
-    filename = 'joblist.csv'
-    try:
-        df = pd.read_csv(filename, header=None)
-        appliedJobIDs = list (df.iloc[:,1])
-    except:
-        appliedJobIDs = []
-
-    # start bot
-    bot = EasyApplyBot(username, password, language, position, location, resumeloctn, appliedJobIDs, filename)
-    bot.start_apply()
