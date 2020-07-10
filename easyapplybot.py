@@ -100,15 +100,19 @@ class EasyApplyBot:
         print(self.resumeloctn)
 
     def start_apply(self, positions, locations):
-        #self.wait_for_login()
         start = time.time()
         self.fill_data()
-        while True:
+
+        combos = []
+        while len(combos) < len(positions) * len(locations):
             position = positions[random.randint(0, len(positions) - 1)]
             location = locations[random.randint(0, len(locations) - 1)]
-            print(f"Applying to {position}: {location}")
-            location = "&location=" + location
-            self.applications_loop(position, location)
+            combo = (position, location)
+            if combo not in combos:
+                combos.append(combo)
+                print(f"Applying to {position}: {location}")
+                location = "&location=" + location
+                self.applications_loop(position, location)
         self.finish_apply()
 
     def applications_loop(self, position, location):
@@ -218,10 +222,9 @@ class EasyApplyBot:
 
         timestamp = datetime.datetime.now()
         attempted = False if button == False else True
-        #job = re.search(r"\(?\d?\)?\s?(\w.*)", browserTitle.split(' | ')[0]).group(1)
         job = re_extract(browserTitle.split(' | ')[0], r"\(?\d?\)?\s?(\w.*)")
-        #company = re.search(r"(\w.*)", browserTitle.split(' | ')[1]).group(1)
         company = re_extract(browserTitle.split(' | ')[1], r"(\w.*)" )
+
         toWrite = [timestamp, jobID, job, company, attempted, result]
         with open(self.filename,'a') as f:
             writer = csv.writer(f)
