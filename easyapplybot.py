@@ -110,6 +110,8 @@ class EasyApplyBot:
 				print(f"Applying to {position}: {location}")
 				location = "&location=" + location
 				self.applications_loop(position, location)
+			if len(combos) > 20:
+				break
 		self.finish_apply()
 
 	def applications_loop(self, position, location):
