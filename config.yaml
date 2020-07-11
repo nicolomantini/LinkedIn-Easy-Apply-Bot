@@ -1,0 +1,11 @@
+username: # Insert your username here
+password: # Insert your password here
+
+positions:
+- # Position you want to search for
+- # Another position you want to search for
+- # A third position you want to search for
+
+locations:
+- # Location you want to search in 
+- # A second location you want to search in 
