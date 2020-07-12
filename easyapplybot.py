@@ -256,7 +256,7 @@ class EasyApplyBot:
 		self.browser.get(job)
 		self.job_page = self.load_page(sleep=0.5)
 		return self.job_page
-
+	'''
 	def got_easy_apply(self, page):
 		#button = page.find("button", class_="jobs-apply-button artdeco-button jobs-apply-button--top-card artdeco-button--3 ember-view")
 
@@ -268,7 +268,7 @@ class EasyApplyBot:
 			return EasyApplyButton
 		else :
 			return False
-
+	'''
 
 	def get_easy_apply_button(self):
 		try :
