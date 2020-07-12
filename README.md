@@ -18,13 +18,19 @@ username: # Insert your username here
 password: # Insert your password here
 
 positions:
-- # Position you want to search for
+- # positions you want to search for
 - # Another position you want to search for
 - # A third position you want to search for
 
 locations:
-- # Location you want to search in 
+- # Location you want to search for
 - # A second location you want to search in 
+
+cover_letter_loctn:
+- # '/home/PATH_TO_FILE' 
+
+output_filename:
+- # PATH TO OUTPUT FILE (default output.csv)
 ```
 __NOTE: AFTER EDITING SAVE FILE, DO NOT COMMIT FILE__
 
