@@ -374,9 +374,17 @@ if __name__ == '__main__':
 	assert parameters['username'] is not None
 	assert parameters['password'] is not None
 
+
+	print(parameters)
+	cover_letter_loctn = parameters.get('cover_letter_loctn', [None])[0]
+	output_filename = parameters.get('output_filename', ['output.csv'])[0]
+
 	bot = EasyApplyBot(parameters['username'],
 						parameters['password'],
-						parameters['locations']
+						cover_letter_loctn=cover_letter_loctn,
+						filename=output_filename
 						)
 
-	bot.start_apply(parameters['positions'], parameters['locations'])
+	locations = [l for l in parameters['locations'] if l != None]
+	positions = [p for p in parameters['positions'] if p != None]
+	bot.start_apply(positions, locations)
