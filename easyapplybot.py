@@ -303,7 +303,7 @@ class EasyApplyBot:
 													 button_locator[1])) > 0
 
 		try:
-			time.sleep(3)
+			time.sleep(random.uniform(1.5, 2.5))
 			#print(f"Navigating... ")
 			next_locater = (By.CSS_SELECTOR,
 							"button[aria-label='Continue to next step']")
@@ -319,20 +319,21 @@ class EasyApplyBot:
 
 			submitted = False
 			while True:
+
+				# Upload Cover Letter if possible
+				if is_present(cover_letter):
+					input_button = self.browser.find_elements(cover_letter[0],
+															 cover_letter[1])
+
+					input_button[0].send_keys(self.cover_letter_loctn)
+					time.sleep(random.uniform(4.5, 6.5))
+
+				# Click Next or submitt button if possible
 				button = None
-
-
-				for i, button_locator in enumerate([next_locater, review_locater, submit_locater, submit_application_locator]):
-
-					if is_present(cover_letter):
-						input_button = self.browser.find_elements(cover_letter[0],
-																 cover_letter[1])
-
-						input_button[0].send_keys(self.cover_letter_loctn)
-						time.sleep(6)
-
+				buttons = [next_locater, review_locater,
+							 submit_locater, submit_application_locator]
+				for i, button_locator in enumerate(buttons):
 					if is_present(button_locator):
-						#print("button found")
 						button = self.wait.until(EC.element_to_be_clickable(button_locator))
 
 					if is_present(error_locator):
@@ -340,8 +341,6 @@ class EasyApplyBot:
 												 error_locator[1]):
 							text = element.text
 							if "Please enter a valid answer" in text:
-								#print("Error Found")
-								#print(element.get_attribute('class'))
 								button = None
 								break
 					if button:
