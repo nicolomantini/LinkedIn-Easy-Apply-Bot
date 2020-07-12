@@ -34,7 +34,7 @@ class EasyApplyBot:
 		print("current directory is : " + dirpath)
 
 		self.cover_letter_loctn = cover_letter_loctn
-		self.appliedJobIDs = self.get_appliedIDs(filename)#if self.get_appliedIDs(filename) != None else []
+		self.appliedJobIDs = self.get_appliedIDs(filename) if self.get_appliedIDs(filename) != None else []
 		self.filename = filename
 		self.options = self.browser_options()
 		self.browser = driver
