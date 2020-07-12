@@ -85,16 +85,6 @@ class EasyApplyBot:
 		except TimeoutException:
 			print("TimeoutException! Username/password field or login button not found")
 
-	def wait_for_login(self):
-		time.sleep(1)
-
-		while True:
-			if self.browser.title != title:
-				print("\nStarting LinkedIn bot\n")
-				break
-			else:
-				time.sleep(1)
-				print("\nPlease Login to your LinkedIn account\n")
 
 	def fill_data(self):
 		self.browser.set_window_size(0, 0)
@@ -167,9 +157,7 @@ class EasyApplyBot:
 			before = len(IDs)
 			jobIDs = [x for x in IDs if x not in self.appliedJobIDs]
 			after = len(jobIDs)
-			print(f"""There were {before} jobIDs found 
-				but {before - after} were removed because they were found on the
-				appliedJobsID list""")
+
 
 			if len(jobIDs) == 0 and len(IDs) > 24:
 				jobs_per_page = jobs_per_page + 25
@@ -262,20 +250,6 @@ class EasyApplyBot:
 
 		return EasyApplyButton
 
-	def easy_apply_xpath(self):
-		button = self.get_easy_apply_button()
-		button_inner_html = str(button)
-		list_of_words = button_inner_html.split()
-		next_word = [word for word in list_of_words if "ember" in word and "id" in word]
-		ember = next_word[0][:-1]
-		xpath = '//*[@'+ember+']/button'
-		return xpath
-
-	def click_button(self, xpath):
-		triggerDropDown = self.browser.find_element_by_xpath(xpath)
-		time.sleep(0.5)
-		triggerDropDown.click()
-		time.sleep(1)
 
 	def send_resume(self):
 		def is_present(button_locator):
