@@ -1,4 +1,4 @@
-import time, random, os, csv, datetime, platform
+import time, random, os, csv, platform
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
@@ -15,6 +15,7 @@ from urllib.request import urlopen
 from webdriver_manager.chrome import ChromeDriverManager
 import re
 import yaml
+from datetime import datetime, timedelta
 
 driver = webdriver.Chrome(ChromeDriverManager().install())
 
@@ -26,28 +27,35 @@ class EasyApplyBot:
 	blacklist = ["Staffigo"]
 
 
-	def __init__(self, username, password, language, resumeloctn=None, filename='output.csv'):
+	def __init__(self, username, password, cover_letter_loctn=None, filename='output.csv'):
 
 		print("\nWelcome to Easy Apply Bot\n")
 		dirpath = os.getcwd()
 		print("current directory is : " + dirpath)
 
-		self.resumeloctn = resumeloctn
-		self.language = language
-		self.appliedJobIDs = self.get_appliedIDs(filename)
+		self.cover_letter_loctn = cover_letter_loctn
+		self.appliedJobIDs = self.get_appliedIDs(filename)#if self.get_appliedIDs(filename) != None else []
 		self.filename = filename
 		self.options = self.browser_options()
 		self.browser = driver
 		self.wait = WebDriverWait(self.browser, 30)
-		self.start_linkedin(username,password)
+		self.start_linkedin(username, password)
 
 
 	def get_appliedIDs(self, filename):
+		print(filename)
 		try:
 			df = pd.read_csv(filename,
 							header=None,
-							names=['timestamp', 'jobID', 'job', 'company', 'attempted', 'result'])
-			return list(df.jobID)
+							names=['timestamp', 'jobID', 'job', 'company', 'attempted', 'result'],
+							lineterminator='\n',
+							encoding = 'utf-8')
+
+			df['timestamp'] = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S.%f")
+			df = df[df['timestamp'] > (datetime.now() - timedelta(days=2))]
+			jobIDs = list(df.jobID)
+			print(f"{len(jobIDs)} jobIDs found")
+			return jobIDs
 		except Exception as e:
 			print(str(e) + "   jobIDs could not be loaded from CSV {}".format(filename))
 			return None
@@ -78,8 +86,6 @@ class EasyApplyBot:
 			print("TimeoutException! Username/password field or login button not found")
 
 	def wait_for_login(self):
-
-
 		time.sleep(1)
 
 		while True:
@@ -94,7 +100,7 @@ class EasyApplyBot:
 		self.browser.set_window_size(0, 0)
 		self.browser.set_window_position(2000, 2000)
 
-		print(self.resumeloctn)
+		print(self.cover_letter_loctn)
 
 	def start_apply(self, positions, locations):
 		start = time.time()
@@ -158,16 +164,20 @@ class EasyApplyBot:
 			IDs = set(IDs)
 
 			# remove already applied jobs
+			before = len(IDs)
 			jobIDs = [x for x in IDs if x not in self.appliedJobIDs]
+			after = len(jobIDs)
+			print(f"""There were {before} jobIDs found 
+				but {before - after} were removed because they were found on the
+				appliedJobsID list""")
 
-			if len(jobIDs) == 0:
+			if len(jobIDs) == 0 and len(IDs) > 24:
 				jobs_per_page = jobs_per_page + 25
 				count_job = 0
 				self.avoid_lock()
 				self.browser, jobs_per_page = self.next_jobs_page(position,
 																	location,
 																	jobs_per_page)
-
 			# loop over IDs to apply
 			for i, jobID in enumerate(jobIDs):
 				count_job += 1
@@ -196,7 +206,7 @@ class EasyApplyBot:
 					print(f'\n\n********count_application: {count_application}************\n\n')
 					print(f"Time for a nap - see you in:{int(sleepTime/60)} min")
 					print('\n\n****************************************\n\n')
-					time.sleep (sleepTime)
+					time.sleep(sleepTime)
 
 				# go to new page if all jobs are done
 				if count_job == len(jobIDs):
@@ -212,6 +222,7 @@ class EasyApplyBot:
 			if len(jobIDs) == 0 or i == (len(jobIDs) - 1):
 				break
 
+
 	def write_to_file(self, button, jobID, browserTitle, result):
 		def re_extract(text, pattern):
 			target = re.search(pattern, text)
@@ -219,7 +230,7 @@ class EasyApplyBot:
 				target = target.group(1)
 			return target
 
-		timestamp = datetime.datetime.now()
+		timestamp = datetime.now()
 		attempted = False if button == False else True
 		job = re_extract(browserTitle.split(' | ')[0], r"\(?\d?\)?\s?(\w.*)")
 		company = re_extract(browserTitle.split(' | ')[1], r"(\w.*)" )
@@ -294,22 +305,36 @@ class EasyApplyBot:
 		try:
 			time.sleep(3)
 			#print(f"Navigating... ")
-			next_locater = (By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
-			review_locater = (By.CSS_SELECTOR, "button[aria-label='Review your application']")
-			submit_locater = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
-			submit_application_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
-			error_locator = (By.CSS_SELECTOR, "p[data-test-form-element-error-message='true']")
-			
+			next_locater = (By.CSS_SELECTOR,
+							"button[aria-label='Continue to next step']")
+			review_locater = (By.CSS_SELECTOR,
+							"button[aria-label='Review your application']")
+			submit_locater = (By.CSS_SELECTOR,
+								"button[aria-label='Submit application']")
+			submit_application_locator = (By.CSS_SELECTOR,
+									"button[aria-label='Submit application']")
+			error_locator = (By.CSS_SELECTOR,
+							"p[data-test-form-element-error-message='true']")
+			cover_letter = (By.CSS_SELECTOR, "input[name='file']")
+
 			submitted = False
 			while True:
 				button = None
-				#self.browser.find_element_by_xpath('//*[@id="file-browse-input"]').send_keys(self.resumeloctn)
+
+
 				for i, button_locator in enumerate([next_locater, review_locater, submit_locater, submit_application_locator]):
-					#print(i)
+
+					if is_present(cover_letter):
+						input_button = self.browser.find_elements(cover_letter[0],
+																 cover_letter[1])
+
+						input_button[0].send_keys(self.cover_letter_loctn)
+						time.sleep(6)
+
 					if is_present(button_locator):
 						#print("button found")
 						button = self.wait.until(EC.element_to_be_clickable(button_locator))
-					
+
 					if is_present(error_locator):
 						for element in self.browser.find_elements(error_locator[0],
 												 error_locator[1]):
@@ -343,7 +368,7 @@ class EasyApplyBot:
 		except Exception as e:
 			print(e)
 			print("cannot apply to this job")
-			#raise(e)
+			raise(e)
 
 		return submitted
 
