@@ -44,6 +44,7 @@ class EasyApplyBot:
 		self.options = self.browser_options()
 		self.browser = driver
 		self.wait = WebDriverWait(self.browser, 30)
+		self.blacklist = blacklist
 		self.start_linkedin(username, password)
 
 
