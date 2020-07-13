@@ -24,10 +24,15 @@ class EasyApplyBot:
 
 
 	MAX_SEARCH_TIME = 10*60
-	blacklist = ["Staffigo"]
 
 
-	def __init__(self, username, password, cover_letter_loctn=None, filename='output.csv'):
+
+	def __init__(self,
+				 username,
+				 password,
+				 cover_letter_loctn=None,
+				 filename='output.csv',
+				 blacklist=[]):
 
 		print("\nWelcome to Easy Apply Bot\n")
 		dirpath = os.getcwd()
@@ -378,11 +383,13 @@ if __name__ == '__main__':
 	print(parameters)
 	cover_letter_loctn = parameters.get('cover_letter_loctn', [None])[0]
 	output_filename = parameters.get('output_filename', ['output.csv'])[0]
+	blacklist = parameters.get('blacklist', [])
 
 	bot = EasyApplyBot(parameters['username'],
 						parameters['password'],
 						cover_letter_loctn=cover_letter_loctn,
-						filename=output_filename
+						filename=output_filename,
+						blacklist=blacklist
 						)
 
 	locations = [l for l in parameters['locations'] if l != None]

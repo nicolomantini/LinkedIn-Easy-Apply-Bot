@@ -31,6 +31,9 @@ cover_letter_loctn:
 
 output_filename:
 - # PATH TO OUTPUT FILE (default output.csv)
+
+blacklist:
+- # Company names you want to ignore
 ```
 __NOTE: AFTER EDITING SAVE FILE, DO NOT COMMIT FILE__
 
