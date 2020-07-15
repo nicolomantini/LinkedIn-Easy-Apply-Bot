@@ -1,35 +1,25 @@
 import time, random, os, csv, datetime, platform
-from selenium import webdriver
+
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.relative_locator import RelativeBy
-from selenium.webdriver.support.relative_locator import with_tag_name
+
 from bs4 import BeautifulSoup
 import pandas as pd
 import pyautogui
-from tkinter import filedialog, Tk
-import tkinter.messagebox as tm
-from urllib.request import urlopen
+
 import loginGUI
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 import json
 from datetime import datetime
 import logging
-import re
-from windowfinder import WindowFinder
 
 import win32com.client as comctl
 wsh =comctl.Dispatch("WScript.Shell")
-
-
-
-
 
 log = logging.getLogger(__name__)
 driver = webdriver.Chrome(ChromeDriverManager().install())
