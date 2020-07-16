@@ -356,7 +356,7 @@ class EasyApplyBot:
 											text = testLabelElement.text
 											log.info("test element text: %s", text)
 											#assuming this question is asking if I am authorized to work in the US
-											if ("Are you" in text and "authorized" in text) or ("Have You" in text and "eduation" in text):
+											if ("Are you" in text and "authorized" in text) or ("Have You" in text and "education" in text):
 												#Be sure to find the child element of the current test question section
 												yesRadio = testLabelElement.find_element(By.XPATH, yes_locator[1])
 												time.sleep(1)
@@ -372,7 +372,7 @@ class EasyApplyBot:
 												self.browser.execute_script("arguments[0].click()", noRadio)
 												log.info("Clicked the radio button %s", no_locator)
 
-											# assuming this question is asking if I require sponsorship
+											# assuming this question is asking if I have a Bachelor's degree
 											if "you have" in text and "Bachelor's" in text:
 												yesRadio = testLabelElement.find_element(By.XPATH, yes_locator[1])
 												time.sleep(1)
