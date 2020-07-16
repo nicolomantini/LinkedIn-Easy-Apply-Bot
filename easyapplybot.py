@@ -383,7 +383,8 @@ if __name__ == '__main__':
 
 	print(parameters)
 	cover_letter_loctn = parameters.get('cover_letter_loctn', [None])[0]
-	output_filename = parameters.get('output_filename', ['output.csv'])[0]
+	output_filename = [f for f in parameters.get('output_filename', ['output.csv']) if f != None]
+	output_filename = output_filename[0] if len(output_filename) > 0 else 'output.csv'
 	blacklist = parameters.get('blacklist', [])
 
 	bot = EasyApplyBot(parameters['username'],
