@@ -322,7 +322,7 @@ class EasyApplyBot:
 				if is_present(cover_letter):
 					input_button = self.browser.find_elements(cover_letter[0],
 															  cover_letter[1])
-
+				#TODO is this cover letter the same thing as the resume upload locator?
 					input_button[0].send_keys(self.cover_letter_loctn)
 					time.sleep(random.uniform(4.5, 6.5))
 
