@@ -31,10 +31,7 @@ driver = webdriver.Chrome(ChromeDriverManager().install())
 
 class EasyApplyBot:
 
-
 	MAX_SEARCH_TIME = 10*60
-
-
 
 	def __init__(self,
 				 username,
@@ -105,7 +102,7 @@ class EasyApplyBot:
 		self.browser.set_window_size(0, 0)
 		self.browser.set_window_position(2000, 2000)
 
-		log.info(self.cover_letter_loctn)
+
 
 	def start_apply(self, positions, locations):
 		start = time.time()
@@ -179,24 +176,42 @@ class EasyApplyBot:
 			if len(jobIDs) == 0 and len(IDs) > 24:
 				jobs_per_page = jobs_per_page + 25
 				count_job = 0
-				#self.avoid_lock() #TODO Need t
+				# TODO avoid lock function disabled during debugging.
+				#  Turn back on with major release and running while sleeping.
+				#self.avoid_lock()
 				self.browser, jobs_per_page = self.next_jobs_page(position,
 																	location,
 																	jobs_per_page)
 			# loop over IDs to apply
 			for i, jobID in enumerate(jobIDs):
 				count_job += 1
-				self.get_job_page(jobID)
+				tabs = len(self.browser.window_handles)
+				job, jobPage = self.get_job_page(jobID)
 
 				# get easy apply button
 				button = self.get_easy_apply_button()
 				if button is not False:
+					log.info("It appears that the apply button is considered an EASY apply")
+					#TODO Need to confirm that its an easy apply button by checking the URL is still linkedin URL and not a redirect
 					string_easy = "* has Easy Apply Button"
+					log.info("Clicking the EASY apply button")
 					button.click()
+					log.info("Wait for page to load")
 					time.sleep(3)
-					result = self.send_resume()
-					count_application += 1
+					log.info("Checking to see if the current URL is the same as the job URL")
+					log.info(self.browser.current_url)
+					log.info(job)
+					newTabs = len(self.browser.window_handles)
+					if self.browser.current_url == job and (newTabs == tabs):
+						log.info("The URLs match; Attempting to apply")
+						result = self.send_resume()
+						count_application += 1
+					else:
+						log.info("The URLs do not match")
+						string_easy = "* Doesn't have Easy Apply Button"
+						result = False
 				else:
+					log.info("The button does not exist.")
 					string_easy = "* Doesn't have Easy Apply Button"
 					result = False
 
@@ -248,11 +263,11 @@ class EasyApplyBot:
 	def get_job_page(self, jobID):
 		#root = 'www.linkedin.com'
 		#if root not in job:
-		job = 'https://www.linkedin.com/jobs/view/'+ str(jobID)
+		job = 'https://www.linkedin.com/jobs/view/'+ str(jobID) + '/'
 		log.info("Opening Job Page \n %s", job)
 		self.browser.get(job)
 		self.job_page = self.load_page(sleep=0.5)
-		return self.job_page
+		return job, self.job_page
 
 
 	def get_easy_apply_button(self):
@@ -403,7 +418,7 @@ class EasyApplyBot:
 							log.debug("Able to find file browser dialog: %s", status)
 							#Must sleep around sending the resume location so it has time to accept all keys submitted
 							time.sleep(1)
-							wsh.SendKeys(str(self.resumeloctn))
+							wsh.SendKeys(str(self.resume_loctn))
 							time.sleep(1)
 							wsh.SendKeys("{ENTER}")
 
@@ -476,15 +491,19 @@ class EasyApplyBot:
 		self.browser.close()
 
 def setupLogger():
-    dt = datetime.strftime(datetime.now(), "%m_%d_%y %H_%M_%S ")
-    logging.basicConfig(filename=('./logs/' + str(dt)+'applyJobs.log'), filemode='w', format='%(name)s::%(levelname)s::%(message)s', datefmt='./logs/%d-%b-%y %H:%M:%S') #TODO need to check if there is a log dir available or not
+	dt = datetime.strftime(datetime.now(), "%m_%d_%y %H_%M_%S ")
 
-    log.setLevel(logging.DEBUG)
-    c_handler = logging.StreamHandler()
-    c_handler.setLevel(logging.DEBUG)
-    c_format = logging.Formatter('%(name)s::%(levelname)s::%(lineno)d- %(message)s')
-    c_handler.setFormatter(c_format)
-    log.addHandler(c_handler)
+	if not os.path.isdir('./logs'):
+		os.mkdir('./logs')
+
+	logging.basicConfig(filename=('./logs/' + str(dt)+'applyJobs.log'), filemode='w', format='%(name)s::%(levelname)s::%(message)s', datefmt='./logs/%d-%b-%y %H:%M:%S') #TODO need to check if there is a log dir available or not
+
+	log.setLevel(logging.DEBUG)
+	c_handler = logging.StreamHandler()
+	c_handler.setLevel(logging.DEBUG)
+	c_format = logging.Formatter('%(name)s::%(levelname)s::%(lineno)d- %(message)s')
+	c_handler.setFormatter(c_format)
+	log.addHandler(c_handler)
 
 if __name__ == '__main__':
 
@@ -503,9 +522,16 @@ if __name__ == '__main__':
 
 
 	print(parameters)
-	cover_letter_loctn = parameters.get('cover_letter_loctn', [None])[0]
-	output_filename = parameters.get('output_filename', ['output.csv'])[0]
-	blacklist = parameters.get('blacklist', [])
+	resume_loctn = parameters.get('resume_loctn')
+	cover_letter_loctn = parameters.get('cover_letter_loctn')
+	output_filename = parameters.get('output_filename')
+	blacklist = parameters.get('blacklist')
+
+	#default to output file if nothing was given.
+	if output_filename == [None]:
+		output_filename = "./output.csv"
+		if not os.path.exists(output_filename):
+			with open(output_filename, 'w+'): pass
 
 	bot = EasyApplyBot(parameters['username'],
 						parameters['password'],
