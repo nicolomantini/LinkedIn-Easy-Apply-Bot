@@ -25,7 +25,7 @@ class EasyApplyBot:
 
 	MAX_SEARCH_TIME = 10*60
 
-
+	photo = '/home/kerri/Pictures/surfing.jpg'
 
 	def __init__(self,
 				 username,
@@ -164,7 +164,7 @@ class EasyApplyBot:
 			jobIDs = [x for x in IDs if x not in self.appliedJobIDs]
 			after = len(jobIDs)
 
-
+			jobIDs = [1943232413]
 			if len(jobIDs) == 0 and len(IDs) > 24:
 				jobs_per_page = jobs_per_page + 25
 				count_job = 0
@@ -275,17 +275,31 @@ class EasyApplyBot:
 									"button[aria-label='Submit application']")
 			error_locator = (By.CSS_SELECTOR,
 							"p[data-test-form-element-error-message='true']")
-			cover_letter = (By.CSS_SELECTOR, "input[name='file']")
+			upload_locator = (By.CSS_SELECTOR, "input[name='file']")
+
+
 
 			submitted = False
 			while True:
 
 				# Upload Cover Letter if possible
-				if is_present(cover_letter):
-					input_button = self.browser.find_elements(cover_letter[0],
-															 cover_letter[1])
+				if is_present(upload_locator):
 
-					input_button[0].send_keys(self.cover_letter_loctn)
+					input_buttons = self.browser.find_elements(upload_locator[0],
+															 upload_locator[1])
+					for input_button in input_buttons:
+						parent = input_button.find_element(By.XPATH, "..")
+						sibling = parent.find_element(By.XPATH, "preceding-sibling::*")
+						print(sibling)
+						print(sibling.text)
+						if 'Photo' in sibling.text:
+							input_button.send_keys(self.photo)
+							
+						grandparent = sibling.find_element(By.XPATH, "..")
+						print(grandparent)
+						print(grandparent.text)
+
+					#input_button[0].send_keys(self.cover_letter_loctn)
 					time.sleep(random.uniform(4.5, 6.5))
 
 				# Click Next or submitt button if possible
