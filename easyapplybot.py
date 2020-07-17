@@ -25,7 +25,6 @@ class EasyApplyBot:
 
 	MAX_SEARCH_TIME = 10*60
 
-	#photo = '/home/kerri/Pictures/surfing.jpg'
 
 	def __init__(self,
 				 username,
@@ -38,9 +37,9 @@ class EasyApplyBot:
 		dirpath = os.getcwd()
 		print("current directory is : " + dirpath)
 
-		#self.cover_letter_loctn = cover_letter_loctn
 		self.uploads = uploads
-		self.appliedJobIDs = self.get_appliedIDs(filename) if self.get_appliedIDs(filename) != None else []
+		past_ids = self.get_appliedIDs(filename)
+		self.appliedJobIDs = past_ids if past_ids != None else []
 		self.filename = filename
 		self.options = self.browser_options()
 		self.browser = driver
@@ -50,13 +49,12 @@ class EasyApplyBot:
 
 
 	def get_appliedIDs(self, filename):
-		print(filename)
 		try:
 			df = pd.read_csv(filename,
 							header=None,
 							names=['timestamp', 'jobID', 'job', 'company', 'attempted', 'result'],
 							lineterminator='\n',
-							encoding = 'utf-8')
+							encoding='utf-8')
 
 			df['timestamp'] = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S.%f")
 			df = df[df['timestamp'] > (datetime.now() - timedelta(days=2))]
@@ -92,11 +90,9 @@ class EasyApplyBot:
 		except TimeoutException:
 			print("TimeoutException! Username/password field or login button not found")
 
-
 	def fill_data(self):
 		self.browser.set_window_size(0, 0)
 		self.browser.set_window_position(2000, 2000)
-
 
 	def start_apply(self, positions, locations):
 		start = time.time()
@@ -235,8 +231,7 @@ class EasyApplyBot:
 
 
 	def get_job_page(self, jobID):
-		#root = 'www.linkedin.com'
-		#if root not in job:
+
 		job = 'https://www.linkedin.com/jobs/view/'+ str(jobID)
 		self.browser.get(job)
 		self.job_page = self.load_page(sleep=0.5)
@@ -263,7 +258,6 @@ class EasyApplyBot:
 
 		try:
 			time.sleep(random.uniform(1.5, 2.5))
-			#print(f"Navigating... ")
 			next_locater = (By.CSS_SELECTOR,
 							"button[aria-label='Continue to next step']")
 			review_locater = (By.CSS_SELECTOR,
@@ -395,7 +389,7 @@ if __name__ == '__main__':
 
 
 	print(parameters)
-	#cover_letter_loctn = parameters.get('cover_letter_loctn', [None])[0]
+
 	output_filename = [f for f in parameters.get('output_filename', ['output.csv']) if f != None]
 	output_filename = output_filename[0] if len(output_filename) > 0 else 'output.csv'
 	blacklist = parameters.get('blacklist', [])
