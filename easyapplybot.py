@@ -25,12 +25,12 @@ class EasyApplyBot:
 
 	MAX_SEARCH_TIME = 10*60
 
-	photo = '/home/kerri/Pictures/surfing.jpg'
+	#photo = '/home/kerri/Pictures/surfing.jpg'
 
 	def __init__(self,
 				 username,
 				 password,
-				 cover_letter_loctn=None,
+				 uploads={},
 				 filename='output.csv',
 				 blacklist=[]):
 
@@ -38,7 +38,8 @@ class EasyApplyBot:
 		dirpath = os.getcwd()
 		print("current directory is : " + dirpath)
 
-		self.cover_letter_loctn = cover_letter_loctn
+		#self.cover_letter_loctn = cover_letter_loctn
+		self.uploads = uploads
 		self.appliedJobIDs = self.get_appliedIDs(filename) if self.get_appliedIDs(filename) != None else []
 		self.filename = filename
 		self.options = self.browser_options()
@@ -96,7 +97,6 @@ class EasyApplyBot:
 		self.browser.set_window_size(0, 0)
 		self.browser.set_window_position(2000, 2000)
 
-		print(self.cover_letter_loctn)
 
 	def start_apply(self, positions, locations):
 		start = time.time()
@@ -164,7 +164,6 @@ class EasyApplyBot:
 			jobIDs = [x for x in IDs if x not in self.appliedJobIDs]
 			after = len(jobIDs)
 
-			jobIDs = [1943232413]
 			if len(jobIDs) == 0 and len(IDs) > 24:
 				jobs_per_page = jobs_per_page + 25
 				count_job = 0
@@ -290,14 +289,11 @@ class EasyApplyBot:
 					for input_button in input_buttons:
 						parent = input_button.find_element(By.XPATH, "..")
 						sibling = parent.find_element(By.XPATH, "preceding-sibling::*")
-						print(sibling)
-						print(sibling.text)
-						if 'Photo' in sibling.text:
-							input_button.send_keys(self.photo)
-							
 						grandparent = sibling.find_element(By.XPATH, "..")
-						print(grandparent)
-						print(grandparent.text)
+						for key in self.uploads.keys():
+							if key in sibling.text or key in grandparent.text:
+								input_button.send_keys(self.uploads[key])
+
 
 					#input_button[0].send_keys(self.cover_letter_loctn)
 					time.sleep(random.uniform(4.5, 6.5))
@@ -381,6 +377,9 @@ class EasyApplyBot:
 	def finish_apply(self):
 		self.browser.close()
 
+
+
+
 if __name__ == '__main__':
 
 	with open("config.yaml", 'r') as stream:
@@ -396,14 +395,17 @@ if __name__ == '__main__':
 
 
 	print(parameters)
-	cover_letter_loctn = parameters.get('cover_letter_loctn', [None])[0]
+	#cover_letter_loctn = parameters.get('cover_letter_loctn', [None])[0]
 	output_filename = [f for f in parameters.get('output_filename', ['output.csv']) if f != None]
 	output_filename = output_filename[0] if len(output_filename) > 0 else 'output.csv'
 	blacklist = parameters.get('blacklist', [])
+	uploads = parameters.get('uploads', {})
+	for key in uploads.keys():
+		assert uploads[key] != None
 
 	bot = EasyApplyBot(parameters['username'],
 						parameters['password'],
-						cover_letter_loctn=cover_letter_loctn,
+						uploads=uploads,
 						filename=output_filename,
 						blacklist=blacklist
 						)
