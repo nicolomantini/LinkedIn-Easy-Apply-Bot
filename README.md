@@ -26,8 +26,10 @@ locations:
 - # Location you want to search for
 - # A second location you want to search in 
 
-cover_letter_loctn:
-- # '/home/PATH_TO_FILE' 
+uploads:
+ Resume: # PATH TO Resume 
+ Cover Letter: # PATH TO cover letter
+ Photo: # PATH TO photo
 
 output_filename:
 - # PATH TO OUTPUT FILE (default output.csv)
@@ -37,6 +39,11 @@ blacklist:
 ```
 __NOTE: AFTER EDITING SAVE FILE, DO NOT COMMIT FILE__
 
+### Uploads
+
+There is no limit to the number of files you can list in the uploads section. 
+The program takes the titles from the input boxes and tries to match them with 
+list in the config file.
 
 ## Execute
 
