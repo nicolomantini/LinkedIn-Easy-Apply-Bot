@@ -79,6 +79,10 @@ class EasyApplyBot:
 		options.add_argument("--ignore-certificate-errors")
 		options.add_argument('--no-sandbox')
 		options.add_argument("--disable-extensions")
+
+		#Disable webdriver flags or you will be easily detectable
+		options.add_argument("--disable-blink-features")
+		options.add_argument("--disable-blink-features=AutomationControlled")
 		return options
 
 	def start_linkedin(self,username,password):
@@ -310,7 +314,7 @@ class EasyApplyBot:
 			testLabel_locator = (By.XPATH, "//span[@data-test-form-element-label-title='true']")
 			yes_locator = (By.XPATH, "//input[@value='Yes']")
 			no_locator = (By.XPATH, "//input[@value='No']")
-			textInput_locator = (By.XPATH, "//div[@data-test-single-line-text-input-wrap='true']")
+			textInput_locator = (By.XPATH, "//input[@type='text']")
 
 
 			submitted = False
@@ -392,6 +396,23 @@ class EasyApplyBot:
 												log.info("Attempting to send keys to the text field %s", textInput_locator)
 												textField.send_keys("10")
 												log.info("Sent keys to the text field %s", textInput_locator)
+
+											#This should be updated to match the language you speak.
+											if "Do you" in text and "speak" in text:
+												if "English" in text:
+													yesRadio = testLabelElement.find_element(By.XPATH, yes_locator[1])
+													time.sleep(1)
+													log.info("Attempting to click the radio button for %s", yes_locator)
+													self.browser.execute_script("arguments[0].click()", yesRadio)
+													log.info("Clicked the radio button %s", yes_locator)
+												#if not english then say no.
+												else:
+													noRadio = testLabelElement.find_element(By.XPATH, no_locator[1])
+													time.sleep(1)
+													log.info("Attempting to click the radio button for %s", no_locator)
+													self.browser.execute_script("arguments[0].click()", noRadio)
+													log.info("Clicked the radio button %s", no_locator)
+
 
 
 										except Exception as e:
@@ -531,7 +552,9 @@ if __name__ == '__main__':
 	if output_filename == [None]:
 		output_filename = "./output.csv"
 		if not os.path.exists(output_filename):
-			with open(output_filename, 'w+'): pass
+			with open(output_filename, 'w+') as f:
+				writer = csv.writer(f)
+				writer.writerow(['DateTime', 'JobID', 'Title', 'Company', 'Attempted', 'Success'])
 
 	bot = EasyApplyBot(parameters['username'],
 						parameters['password'],
