@@ -2,19 +2,23 @@ username:
 password: 
 
 positions:
-- # positions you want to search for
+- Data Scientist
 - # Another position you want to search for
 - # A third position you want to search for
 
 locations:
-- # Location you want to search for
+- Remote
 - # A second location you want to search in 
 
-cover_letter_loctn:
-- # '/home/PATH_TO_FILE' 
+# --------- Optional Parameters -------
+# uploads:
+#  Resume: # PATH TO Resume 
+#  Cover Letter: # PATH TO cover letter
+#  Photo: # PATH TO photo
 
-output_filename:
-- # PATH TO OUTPUT FILE (default output.csv)
 
-blacklist:
-- # Company names you want to ignore
+# output_filename:
+# - # PATH TO OUTPUT FILE (default output.csv)
+
+# blacklist:
+# - # Company names you want to ignore

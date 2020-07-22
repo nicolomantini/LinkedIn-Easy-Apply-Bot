@@ -31,12 +31,10 @@ driver = webdriver.Chrome(ChromeDriverManager().install())
 
 class EasyApplyBot:
 
-	MAX_SEARCH_TIME = 10*60
-
 	def __init__(self,
 				 username,
 				 password,
-				 cover_letter_loctn=None,
+				 uploads={},
 				 filename='output.csv',
 				 blacklist=[]):
 
@@ -44,8 +42,9 @@ class EasyApplyBot:
 		dirpath = os.getcwd()
 		log.info("current directory is : " + dirpath)
 
-		self.cover_letter_loctn = cover_letter_loctn
-		self.appliedJobIDs = self.get_appliedIDs(filename) if self.get_appliedIDs(filename) != None else []
+		self.uploads = uploads
+		past_ids = self.get_appliedIDs(filename)
+		self.appliedJobIDs = past_ids if past_ids != None else []
 		self.filename = filename
 		self.options = self.browser_options()
 		self.browser = driver
@@ -55,13 +54,12 @@ class EasyApplyBot:
 
 
 	def get_appliedIDs(self, filename):
-		print(filename)
 		try:
 			df = pd.read_csv(filename,
 							header=None,
 							names=['timestamp', 'jobID', 'job', 'company', 'attempted', 'result'],
 							lineterminator='\n',
-							encoding = 'utf-8')
+							encoding='utf-8')
 
 			df['timestamp'] = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S.%f")
 			df = df[df['timestamp'] > (datetime.now() - timedelta(days=2))]
@@ -101,11 +99,9 @@ class EasyApplyBot:
 		except TimeoutException:
 			log.info("TimeoutException! Username/password field or login button not found")
 
-
 	def fill_data(self):
 		self.browser.set_window_size(0, 0)
 		self.browser.set_window_position(2000, 2000)
-
 
 
 	def start_apply(self, positions, locations):
@@ -175,7 +171,6 @@ class EasyApplyBot:
 			before = len(IDs)
 			jobIDs = [x for x in IDs if x not in self.appliedJobIDs]
 			after = len(jobIDs)
-
 
 			if len(jobIDs) == 0 and len(IDs) > 24:
 				jobs_per_page = jobs_per_page + 25
@@ -265,10 +260,9 @@ class EasyApplyBot:
 
 
 	def get_job_page(self, jobID):
-		#root = 'www.linkedin.com'
-		#if root not in job:
-		job = 'https://www.linkedin.com/jobs/view/'+ str(jobID) + '/'
-		log.info("Opening Job Page \n %s", job)
+
+		job = 'https://www.linkedin.com/jobs/view/'+ str(jobID)
+
 		self.browser.get(job)
 		self.job_page = self.load_page(sleep=0.5)
 		return job, self.job_page
@@ -299,6 +293,7 @@ class EasyApplyBot:
 			return (len(self.browser.find_elements(button_locator[0], button_locator[1])) > 0)
 
 		try:
+
 			time.sleep(3)
 			log.info("Attempting to send resume")
 			#TODO These locators are not future proof. These labels could easily change. Ideally we would search for contained text;
@@ -310,6 +305,7 @@ class EasyApplyBot:
 			submit_application_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
 			error_locator = (By.CSS_SELECTOR, "p[data-test-form-element-error-message='true']")
 			cover_letter = (By.CSS_SELECTOR, "input[name='file']")
+
 
 			testLabel_locator = (By.XPATH, "//span[@data-test-form-element-label-title='true']")
 			yes_locator = (By.XPATH, "//input[@value='Yes']")
@@ -323,11 +319,22 @@ class EasyApplyBot:
 				button = None
 
 				# Upload Cover Letter if possible
-				if is_present(cover_letter):
-					input_button = self.browser.find_elements(cover_letter[0],
-															  cover_letter[1])
-				#TODO is this cover letter the same thing as the resume upload locator?
-					input_button[0].send_keys(self.cover_letter_loctn)
+
+				if is_present(upload_locator):
+
+					input_buttons = self.browser.find_elements(upload_locator[0],
+															 upload_locator[1])
+					for input_button in input_buttons:
+						parent = input_button.find_element(By.XPATH, "..")
+						sibling = parent.find_element(By.XPATH, "preceding-sibling::*")
+						grandparent = sibling.find_element(By.XPATH, "..")
+						for key in self.uploads.keys():
+							if key in sibling.text or key in grandparent.text:
+								input_button.send_keys(self.uploads[key])
+
+
+					#input_button[0].send_keys(self.cover_letter_loctn)
+
 					time.sleep(random.uniform(4.5, 6.5))
 
 				for i, button_locator in enumerate(
@@ -511,6 +518,7 @@ class EasyApplyBot:
 	def finish_apply(self):
 		self.browser.close()
 
+
 def setupLogger():
 	dt = datetime.strftime(datetime.now(), "%m_%d_%y %H_%M_%S ")
 
@@ -525,6 +533,7 @@ def setupLogger():
 	c_format = logging.Formatter('%(name)s::%(levelname)s::%(lineno)d- %(message)s')
 	c_handler.setFormatter(c_format)
 	log.addHandler(c_handler)
+
 
 if __name__ == '__main__':
 
@@ -543,22 +552,18 @@ if __name__ == '__main__':
 
 
 	print(parameters)
-	resume_loctn = parameters.get('resume_loctn')
-	cover_letter_loctn = parameters.get('cover_letter_loctn')
-	output_filename = parameters.get('output_filename')
-	blacklist = parameters.get('blacklist')
 
-	#default to output file if nothing was given.
-	if output_filename == [None]:
-		output_filename = "./output.csv"
-		if not os.path.exists(output_filename):
-			with open(output_filename, 'w+') as f:
-				writer = csv.writer(f)
-				writer.writerow(['DateTime', 'JobID', 'Title', 'Company', 'Attempted', 'Success'])
+	output_filename = [f for f in parameters.get('output_filename', ['output.csv']) if f != None]
+	output_filename = output_filename[0] if len(output_filename) > 0 else 'output.csv'
+	blacklist = parameters.get('blacklist', [])
+	uploads = parameters.get('uploads', {})
+	for key in uploads.keys():
+		assert uploads[key] != None
+
 
 	bot = EasyApplyBot(parameters['username'],
 						parameters['password'],
-						cover_letter_loctn=cover_letter_loctn,
+						uploads=uploads,
 						filename=output_filename,
 						blacklist=blacklist
 						)
