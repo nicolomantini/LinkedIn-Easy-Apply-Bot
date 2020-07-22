@@ -30,6 +30,7 @@ driver = webdriver.Chrome(ChromeDriverManager().install())
 # pyinstaller --onefile --windowed --icon=app.ico easyapplybot.py
 
 class EasyApplyBot:
+	MAX_SEARCH_TIME = 30 * 60
 
 	def __init__(self,
 				 username,
@@ -261,7 +262,7 @@ class EasyApplyBot:
 
 	def get_job_page(self, jobID):
 
-		job = 'https://www.linkedin.com/jobs/view/'+ str(jobID)
+		job = 'https://www.linkedin.com/jobs/view/'+ str(jobID) + '/'
 
 		self.browser.get(job)
 		self.job_page = self.load_page(sleep=0.5)
@@ -298,10 +299,10 @@ class EasyApplyBot:
 			log.info("Attempting to send resume")
 			#TODO These locators are not future proof. These labels could easily change. Ideally we would search for contained text;
 			# was unable to get it to work using XPATH and searching for contained text
-			upload_locater = (By.CSS_SELECTOR, "label[aria-label='DOC, DOCX, PDF formats only (2 MB).']")
-			next_locater = (By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
-			review_locater = (By.CSS_SELECTOR, "button[aria-label='Review your application']")
-			submit_locater = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
+			upload_locator = (By.CSS_SELECTOR, "label[aria-label='DOC, DOCX, PDF formats only (2 MB).']")
+			next_locator = (By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
+			review_locator = (By.CSS_SELECTOR, "button[aria-label='Review your application']")
+			submit_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
 			submit_application_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
 			error_locator = (By.CSS_SELECTOR, "p[data-test-form-element-error-message='true']")
 			cover_letter = (By.CSS_SELECTOR, "input[name='file']")
@@ -338,7 +339,7 @@ class EasyApplyBot:
 					time.sleep(random.uniform(4.5, 6.5))
 
 				for i, button_locator in enumerate(
-						[upload_locater, next_locater, review_locater, submit_locater, submit_application_locator]):
+						[upload_locator, next_locator, review_locator, submit_locator, submit_application_locator]):
 
 					log.info("Searching for button locator: %s", str(button_locator))
 					if is_present(button_locator):
@@ -391,6 +392,8 @@ class EasyApplyBot:
 												self.browser.execute_script("arguments[0].click()", yesRadio)
 												log.info("Clicked the radio button %s", yes_locator)
 
+											#TODO Issue where if there are multiple lines that ask for number of years experience then years experience will be written twice
+											#TODO Need to add a configuration file with all the answer for these questions versus having them hardcoded.
 											#Some questions are asking how many years of experience you have in a specific skill
 											#Automatically put the number of years that I have worked.
 											if "How many years" in text and "experience" in text:
@@ -434,7 +437,7 @@ class EasyApplyBot:
 
 
 					if button:
-						if button_locator == upload_locater:
+						if button_locator == upload_locator:
 							log.info("Uploading resume now")
 
 							time.sleep(2)
@@ -454,14 +457,14 @@ class EasyApplyBot:
 							try:
 								log.info("attempting to click button: %s", str(button_locator))
 								response = button.click()
-								if (button_locator == submit_locater) or (button_locator == submit_application_locator):
+								if (button_locator == submit_locator) or (button_locator == submit_application_locator):
 									log.info("Clicked the submit button. RESPONSE: %s", str(response))
 									submitted = True
 									return submitted
 							except EC.StaleElementReferenceException:
 								log.warning("Button was stale. Couldnt click")
 					else:
-						if (button_locator == submit_locater) or (button_locator == submit_application_locator):
+						if (button_locator == submit_locator) or (button_locator == submit_application_locator):
 							log.warning("Unable to submit. It appears none of the buttons were found.")
 							break
 
