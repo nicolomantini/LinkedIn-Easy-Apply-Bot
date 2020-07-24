@@ -296,18 +296,17 @@ class EasyApplyBot:
 		try:
 
 			time.sleep(random.uniform(2.2, 4.3))
-			log.info("Attempting to send resume")
+			log.info("Attempting to apply")
 			#TODO These locators are not future proof. These labels could easily change.
 			# Ideally we would search for contained text;
 			# was unable to get it to work using XPATH and searching for contained text
-			upload_locator = (By.CSS_SELECTOR, "input[name='file']")
+			upload_locator = (By.CSS_SELECTOR, "label[aria-label='DOC, DOCX, PDF formats only (2 MB).']")
 			next_locator = (By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
 			review_locator = (By.CSS_SELECTOR, "button[aria-label='Review your application']")
 			submit_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
 			submit_application_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
 			error_locator = (By.CSS_SELECTOR, "p[data-test-form-element-error-message='true']")
 			cover_letter = (By.CSS_SELECTOR, "input[name='file']")
-
 
 			question_locator = (By.XPATH, ".//div[@class='jobs-easy-apply-form-section__grouping']")
 			yes_locator = (By.XPATH, ".//input[@value='Yes']")
@@ -320,14 +319,14 @@ class EasyApplyBot:
 			while not submitted:
 				button = None
 
-				# Upload Cover Letter if possible
+				# Upload  if possible
 
 				#TODO Should check if there is already a resume that is saved from the last time the application was attempted.
 				# If so, then remove and re upload it in case there is new version.
 				if is_present(upload_locator):
-
-					input_buttons = self.browser.find_elements(upload_locator[0],
-															 upload_locator[1])
+					log.info("Resume upload option available. Attempting to upload.")
+					input_buttons = self.browser.find_elements(cover_letter[0],
+															 cover_letter[1])
 					for input_button in input_buttons:
 						parent = input_button.find_element(By.XPATH, "..")
 						sibling = parent.find_element(By.XPATH, "preceding-sibling::*")
@@ -335,9 +334,6 @@ class EasyApplyBot:
 						for key in self.uploads.keys():
 							if key in sibling.text or key in grandparent.text:
 								input_button.send_keys(self.uploads[key])
-
-
-					#input_button[0].send_keys(self.cover_letter_loctn)
 
 				for i, button_locator in enumerate(
 						[upload_locator, next_locator, review_locator, submit_locator, submit_application_locator]):
