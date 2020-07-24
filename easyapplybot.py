@@ -1,25 +1,25 @@
-import time, random, os, csv, platform
-from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium import webdriver
+import csv
+import json
+import logging
+import os
+import random
+import re
+import time
+from datetime import datetime, timedelta
 
-from bs4 import BeautifulSoup
 import pandas as pd
 import pyautogui
-
-from urllib.request import urlopen
-from webdriver_manager.chrome import ChromeDriverManager
-import re
-import yaml
-import json
-from datetime import datetime, timedelta
-import logging
-
 import win32com.client as comctl
+import yaml
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
 
 wsh = comctl.Dispatch("WScript.Shell")
 
@@ -309,10 +309,10 @@ class EasyApplyBot:
 			cover_letter = (By.CSS_SELECTOR, "input[name='file']")
 
 
-			testLabel_locator = (By.XPATH, "//span[@data-test-form-element-label-title='true']")
-			yes_locator = (By.XPATH, "//input[@value='Yes']")
-			no_locator = (By.XPATH, "//input[@value='No']")
-			textInput_locator = (By.XPATH, "//input[@type='text']")
+			question_locator = (By.XPATH, ".//div[@class='jobs-easy-apply-form-section__grouping']")
+			yes_locator = (By.XPATH, ".//input[@value='Yes']")
+			no_locator = (By.XPATH, ".//input[@value='No']")
+			textInput_locator = (By.XPATH, ".//input[@type='text']")
 
 
 			submitted = False
@@ -368,17 +368,17 @@ class EasyApplyBot:
 
 								#TODO these questions will need to be logged so that way, individuals can look through the logs and add them at the end of an application run.
 								#Required question expects an answer. Search through possible questions/answer combos
-								if is_present(testLabel_locator) and attemptQuestions:
-									for testLabelElement in self.browser.find_elements(testLabel_locator[0],
-																			  testLabel_locator[1]):
+								if is_present(question_locator) and attemptQuestions:
+									questionSections = self.browser.find_elements(question_locator[0], question_locator[1])
+									for questionElement in questionSections:
 										try:
-											log.info("Found test element %s", testLabel_locator)
-											text = testLabelElement.text
+											log.info("Found test element %s", questionElement)
+											text = questionElement.text
 											log.warning("Question Text: %s", text)
 											#assuming this question is asking if I am authorized to work in the US
 											if ("Are you" in text and "authorized" in text) or ("Have You" in text and "education" in text):
 												#Be sure to find the child element of the current test question section
-												yesRadio = testLabelElement.find_element(By.XPATH, yes_locator[1])
+												yesRadio = questionElement.find_element(By.XPATH, yes_locator[1])
 												time.sleep(1)
 												log.info("Attempting to click the radio button for %s", yes_locator)
 												self.browser.execute_script("arguments[0].click()", yesRadio)
@@ -386,7 +386,7 @@ class EasyApplyBot:
 
 											#assuming this question is asking if I require sponsorship
 											elif "require" in text and "sponsorship" in text:
-												noRadio = testLabelElement.find_element(By.XPATH, no_locator[1])
+												noRadio = questionElement.find_element(By.XPATH, no_locator[1])
 												time.sleep(1)
 												log.info("Attempting to click the radio button for %s", no_locator)
 												self.browser.execute_script("arguments[0].click()", noRadio)
@@ -394,7 +394,7 @@ class EasyApplyBot:
 
 											# assuming this question is asking if I have a Bachelor's degree
 											elif (("You have" in text) or ("Have you" in text)) and "Bachelor's" in text:
-												yesRadio = testLabelElement.find_element(By.XPATH, yes_locator[1])
+												yesRadio = questionElement.find_element(By.XPATH, yes_locator[1])
 												time.sleep(1)
 												log.info("Attempting to click the radio button for %s", yes_locator)
 												self.browser.execute_script("arguments[0].click()", yesRadio)
@@ -402,7 +402,7 @@ class EasyApplyBot:
 
 											# assuming this question is asking if I have a Master's degree
 											elif (("You have" in text) or ("Have you" in text)) and "Master's" in text:
-												yesRadio = testLabelElement.find_element(By.XPATH, yes_locator[1])
+												yesRadio = questionElement.find_element(By.XPATH, yes_locator[1])
 												time.sleep(1)
 												log.info("Attempting to click the radio button for %s", yes_locator)
 												self.browser.execute_script("arguments[0].click()", yesRadio)
@@ -413,7 +413,7 @@ class EasyApplyBot:
 											#Some questions are asking how many years of experience you have in a specific skill
 											#Automatically put the number of years that I have worked.
 											elif "How many years" in text and "experience" in text:
-												textField = testLabelElement.find_element(By.XPATH, textInput_locator[1])
+												textField = questionElement.find_element(By.XPATH, textInput_locator[1])
 												time.sleep(1)
 												log.info("Attempting to click the text field for %s", textInput_locator)
 												self.browser.execute_script("arguments[0].click()", textField)
@@ -426,14 +426,14 @@ class EasyApplyBot:
 											#This should be updated to match the language you speak.
 											elif "Do you" in text and "speak" in text:
 												if "English" in text:
-													yesRadio = testLabelElement.find_element(By.XPATH, yes_locator[1])
+													yesRadio = questionElement.find_element(By.XPATH, yes_locator[1])
 													time.sleep(1)
 													log.info("Attempting to click the radio button for %s", yes_locator)
 													self.browser.execute_script("arguments[0].click()", yesRadio)
 													log.info("Clicked the radio button %s", yes_locator)
 												#if not english then say no.
 												else:
-													noRadio = testLabelElement.find_element(By.XPATH, no_locator[1])
+													noRadio = questionElement.find_element(By.XPATH, no_locator[1])
 													time.sleep(1)
 													log.info("Attempting to click the radio button for %s", no_locator)
 													self.browser.execute_script("arguments[0].click()", noRadio)
