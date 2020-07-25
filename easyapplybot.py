@@ -22,10 +22,25 @@ from datetime import datetime, timedelta
 log = logging.getLogger(__name__)
 driver = webdriver.Chrome(ChromeDriverManager().install())
 
+def setupLogger():
+	dt = datetime.strftime(datetime.now(), "%m_%d_%y %H_%M_%S ")
+
+	if not os.path.isdir('./logs'):
+		os.mkdir('./logs')
+
+	# TODO need to check if there is a log dir available or not
+	logging.basicConfig(filename=('./logs/' + str(dt)+'applyJobs.log'), filemode='w', format='%(asctime)s::%(name)s::%(levelname)s::%(message)s', datefmt='./logs/%d-%b-%y %H:%M:%S')
+	log.setLevel(logging.DEBUG)
+	c_handler = logging.StreamHandler()
+	c_handler.setLevel(logging.DEBUG)
+	c_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', '%H:%M:%S')
+	c_handler.setFormatter(c_format)
+	log.addHandler(c_handler)
+
 
 class EasyApplyBot:
 
-
+	setupLogger()
 	MAX_SEARCH_TIME = 10*60
 
 
@@ -383,25 +398,12 @@ class EasyApplyBot:
 		self.browser.close()
 
 
-def setupLogger():
-	dt = datetime.strftime(datetime.now(), "%m_%d_%y %H_%M_%S ")
 
-	if not os.path.isdir('./logs'):
-		os.mkdir('./logs')
-
-	# TODO need to check if there is a log dir available or not
-	logging.basicConfig(filename=('./logs/' + str(dt)+'applyJobs.log'), filemode='w', format='%(asctime)s::%(name)s::%(levelname)s::%(message)s', datefmt='./logs/%d-%b-%y %H:%M:%S')
-	log.setLevel(logging.DEBUG)
-	c_handler = logging.StreamHandler()
-	c_handler.setLevel(logging.DEBUG)
-	c_format = logging.Formatter('%(asctime)s::%(name)s::%(levelname)s::%(lineno)d- %(message)s')
-	c_handler.setFormatter(c_format)
-	log.addHandler(c_handler)
 
 
 if __name__ == '__main__':
 
-	setupLogger()
+	
 
 	with open("config.yaml", 'r') as stream:
 		try:
