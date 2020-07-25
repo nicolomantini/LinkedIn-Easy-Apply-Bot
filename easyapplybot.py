@@ -77,10 +77,10 @@ class EasyApplyBot:
 			df['timestamp'] = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S.%f")
 			df = df[df['timestamp'] > (datetime.now() - timedelta(days=2))]
 			jobIDs = list(df.jobID)
-			print(f"{len(jobIDs)} jobIDs found")
+			log.info(f"{len(jobIDs)} jobIDs found")
 			return jobIDs
 		except Exception as e:
-			print(str(e) + "   jobIDs could not be loaded from CSV {}".format(filename))
+			log.info(str(e) + "   jobIDs could not be loaded from CSV {}".format(filename))
 			return None
 
 
