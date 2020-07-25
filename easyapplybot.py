@@ -1,4 +1,5 @@
 import time, random, os, csv, platform
+import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
@@ -17,12 +18,29 @@ import re
 import yaml
 from datetime import datetime, timedelta
 
+
+log = logging.getLogger(__name__)
 driver = webdriver.Chrome(ChromeDriverManager().install())
+
+def setupLogger():
+	dt = datetime.strftime(datetime.now(), "%m_%d_%y %H_%M_%S ")
+
+	if not os.path.isdir('./logs'):
+		os.mkdir('./logs')
+
+	# TODO need to check if there is a log dir available or not
+	logging.basicConfig(filename=('./logs/' + str(dt)+'applyJobs.log'), filemode='w', format='%(asctime)s::%(name)s::%(levelname)s::%(message)s', datefmt='./logs/%d-%b-%y %H:%M:%S')
+	log.setLevel(logging.DEBUG)
+	c_handler = logging.StreamHandler()
+	c_handler.setLevel(logging.DEBUG)
+	c_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', '%H:%M:%S')
+	c_handler.setFormatter(c_format)
+	log.addHandler(c_handler)
 
 
 class EasyApplyBot:
 
-
+	setupLogger()
 	MAX_SEARCH_TIME = 10*60
 
 
@@ -33,9 +51,9 @@ class EasyApplyBot:
 				 filename='output.csv',
 				 blacklist=[]):
 
-		print("\nWelcome to Easy Apply Bot\n")
+		log.info("Welcome to Easy Apply Bot\n")
 		dirpath = os.getcwd()
-		print("current directory is : " + dirpath)
+		log.info("current directory is : " + dirpath)
 
 		self.uploads = uploads
 		past_ids = self.get_appliedIDs(filename)
@@ -59,10 +77,10 @@ class EasyApplyBot:
 			df['timestamp'] = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S.%f")
 			df = df[df['timestamp'] > (datetime.now() - timedelta(days=2))]
 			jobIDs = list(df.jobID)
-			print(f"{len(jobIDs)} jobIDs found")
+			log.info(f"{len(jobIDs)} jobIDs found")
 			return jobIDs
 		except Exception as e:
-			print(str(e) + "   jobIDs could not be loaded from CSV {}".format(filename))
+			log.info(str(e) + "   jobIDs could not be loaded from CSV {}".format(filename))
 			return None
 
 
@@ -72,10 +90,14 @@ class EasyApplyBot:
 		options.add_argument("--ignore-certificate-errors")
 		options.add_argument('--no-sandbox')
 		options.add_argument("--disable-extensions")
+
+		#Disable webdriver flags or you will be easily detectable
+		options.add_argument("--disable-blink-features")
+		options.add_argument("--disable-blink-features=AutomationControlled")
 		return options
 
 	def start_linkedin(self,username,password):
-		print("\nLogging in.....\n \nPlease wait :) \n ")
+		log.info("Logging in.....Please wait :)  ")
 		self.browser.get("https://www.linkedin.com/login?trk=guest_homepage-basic_nav-header-signin")
 		try:
 			user_field = self.browser.find_element_by_id("username")
@@ -88,7 +110,7 @@ class EasyApplyBot:
 			time.sleep(1)
 			login_button.click()
 		except TimeoutException:
-			print("TimeoutException! Username/password field or login button not found")
+			log.info("TimeoutException! Username/password field or login button not found")
 
 	def fill_data(self):
 		self.browser.set_window_size(0, 0)
@@ -105,7 +127,7 @@ class EasyApplyBot:
 			combo = (position, location)
 			if combo not in combos:
 				combos.append(combo)
-				print(f"Applying to {position}: {location}")
+				log.info(f"Applying to {position}: {location}")
 				location = "&location=" + location
 				self.applications_loop(position, location)
 			if len(combos) > 20:
@@ -120,18 +142,20 @@ class EasyApplyBot:
 		start_time = time.time()
 
 
-		print("\nLooking for jobs.. Please wait..\n")
+		log.info("Looking for jobs.. Please wait..")
 
 		self.browser.set_window_position(0, 0)
 		self.browser.maximize_window()
 		self.browser, _ = self.next_jobs_page(position, location, jobs_per_page)
-		print("\nLooking for jobs.. Please wait..\n")
+		log.info("Looking for jobs.. Please wait..")
 
 		while time.time() - start_time < self.MAX_SEARCH_TIME:
-			print(f"{(self.MAX_SEARCH_TIME - (time.time() - start_time))//60} minutes left in this search")
+			log.info(f"{(self.MAX_SEARCH_TIME - (time.time() - start_time))//60} minutes left in this search")
 
 			# sleep to make sure everything loads, add random to make us look human.
-			time.sleep(random.uniform(3.5, 6.9))
+			randoTime = random.uniform(3.5, 4.9)
+			log.debug(f"Sleeping for {round(randoTime, 1)}")
+			time.sleep(randoTime)
 			self.load_page(sleep=1)
 
 			# get job links
@@ -144,7 +168,7 @@ class EasyApplyBot:
 
 			# get job ID of each job link
 			IDs = []
-			for link in links :
+			for link in links:
 				children = link.find_elements_by_xpath(
 					'.//a[@data-control-name]'
 					)
@@ -176,34 +200,36 @@ class EasyApplyBot:
 				button = self.get_easy_apply_button ()
 				if button is not False:
 					string_easy = "* has Easy Apply Button"
+					log.info("Clicking the EASY apply button")
 					button.click()
 					time.sleep (3)
 					result = self.send_resume()
 					count_application += 1
 				else:
+					log.info("The button does not exist.")
 					string_easy = "* Doesn't have Easy Apply Button"
 					result = False
 
 				position_number = str(count_job + jobs_per_page)
-				print(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
+				log.info(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
 
 				self.write_to_file(button, jobID, self.browser.title, result)
 
 				# sleep every 20 applications
 				if count_application != 0  and count_application % 20 == 0:
 					sleepTime = random.randint(500, 900)
-					print(f'\n\n********count_application: {count_application}************\n\n')
-					print(f"Time for a nap - see you in:{int(sleepTime/60)} min")
-					print('\n\n****************************************\n\n')
+					log.info(f"""********count_application: {count_application}************\n\n
+								Time for a nap - see you in:{int(sleepTime/60)} min
+							****************************************\n\n""")
 					time.sleep(sleepTime)
 
 				# go to new page if all jobs are done
 				if count_job == len(jobIDs):
 					jobs_per_page = jobs_per_page + 25
 					count_job = 0
-					print('\n\n****************************************\n\n')
-					print('Going to next jobs page, YEAAAHHH!!')
-					print('\n\n****************************************\n\n')
+					log.info("""****************************************\n\n
+					Going to next jobs page, YEAAAHHH!!
+					****************************************\n\n""")
 					self.avoid_lock()
 					self.browser, jobs_per_page = self.next_jobs_page(position,
 																		location,
@@ -314,10 +340,10 @@ class EasyApplyBot:
 							submitted = True
 						break
 				if button == None:
-					print("Could not complete submission")
+					log.info("Could not complete submission")
 					break
 				elif submitted:
-					print("Application Submitted")
+					log.info("Application Submitted")
 					break
 
 			time.sleep(random.uniform(1.5, 2.5))
@@ -329,8 +355,8 @@ class EasyApplyBot:
 				close_button.click()
 
 		except Exception as e:
-			print(e)
-			print("cannot apply to this job")
+			log.info(e)
+			log.info("cannot apply to this job")
 			raise(e)
 
 		return submitted
@@ -374,7 +400,10 @@ class EasyApplyBot:
 
 
 
+
 if __name__ == '__main__':
+
+	
 
 	with open("config.yaml", 'r') as stream:
 		try:
