@@ -150,11 +150,11 @@ class EasyApplyBot:
 		log.info("Looking for jobs.. Please wait..")
 
 		while time.time() - start_time < self.MAX_SEARCH_TIME:
-			log.warning(f"{(self.MAX_SEARCH_TIME - (time.time() - start_time))//60} minutes left in this search")
+			log.info(f"{(self.MAX_SEARCH_TIME - (time.time() - start_time))//60} minutes left in this search")
 
 			# sleep to make sure everything loads, add random to make us look human.
-			randoTime = random.uniform(3.5, 6.9)
-			log.info("Sleeping for %s", randoTime)
+			randoTime = random.uniform(3.5, 4.9)
+			log.debug(f"Sleeping for {round(randoTime, 1)}")
 			time.sleep(randoTime)
 			self.load_page(sleep=1)
 
@@ -218,19 +218,19 @@ class EasyApplyBot:
 				# sleep every 20 applications
 				if count_application != 0  and count_application % 20 == 0:
 					sleepTime = random.randint(500, 900)
-					log.info(f'********count_application: {count_application}************\n\n')
-					log.info(f"Time for a nap - see you in:{int(sleepTime/60)} min")
-					log.info('****************************************\n\n')
+					log.info(f"""********count_application: {count_application}************\n\n
+								Time for a nap - see you in:{int(sleepTime/60)} min
+							****************************************\n\n""")
 					time.sleep(sleepTime)
 
 				# go to new page if all jobs are done
 				if count_job == len(jobIDs):
 					jobs_per_page = jobs_per_page + 25
 					count_job = 0
-					log.info('****************************************\n\n')
-					log.info('Going to next jobs page, YEAAAHHH!!')
-					log.info('****************************************\n\n')
-					#self.avoid_lock()
+					log.info("""****************************************\n\n
+					Going to next jobs page, YEAAAHHH!!
+					****************************************\n\n""")
+					self.avoid_lock()
 					self.browser, jobs_per_page = self.next_jobs_page(position,
 																		location,
 																		jobs_per_page)
