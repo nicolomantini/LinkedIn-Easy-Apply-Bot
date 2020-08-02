@@ -130,7 +130,7 @@ class EasyApplyBot:
 				log.info(f"Applying to {position}: {location}")
 				location = "&location=" + location
 				self.applications_loop(position, location)
-			if len(combos) > 20:
+			if len(combos) > 50:
 				break
 		self.finish_apply()
 
@@ -311,7 +311,9 @@ class EasyApplyBot:
 						sibling = parent.find_element(By.XPATH, "preceding-sibling::*")
 						grandparent = sibling.find_element(By.XPATH, "..")
 						for key in self.uploads.keys():
-							if key in sibling.text or key in grandparent.text:
+							sibling_text = sibling.text
+							gparent_text = grandparent.text
+							if key.lower() in sibling_text.lower() or key in gparent_text.lower():
 								input_button.send_keys(self.uploads[key])
 
 
