@@ -350,11 +350,6 @@ class EasyApplyBot:
 
 			time.sleep(random.uniform(1.5, 2.5))
 
-			#After submiting the application, a dialog shows up, we need to close this dialog
-			close_button_locator = (By.CSS_SELECTOR, "button[aria-label='Dismiss']")
-			if is_present(close_button_locator):
-				close_button = self.wait.until(EC.element_to_be_clickable(close_button_locator))
-				close_button.click()
 
 		except Exception as e:
 			log.info(e)
