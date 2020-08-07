@@ -15,11 +15,11 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
+
+from application import application
 
 wsh = comctl.Dispatch("WScript.Shell")
 
@@ -204,7 +204,7 @@ class EasyApplyBot:
 					newTabs = len(self.browser.window_handles)
 					if self.browser.current_url == job and (newTabs == tabs):
 						log.info("The URLs match; Attempting to apply")
-						result = self.send_resume()
+						result = self.apply(job)
 						count_application += 1
 					else:
 						log.info("The URLs do not match")
@@ -289,213 +289,13 @@ class EasyApplyBot:
 		except:
 			return False
 
-	def send_resume(self):
-		def is_present(button_locator):
-			return (len(self.browser.find_elements(button_locator[0], button_locator[1])) > 0)
-
-		try:
-
-			time.sleep(random.uniform(2.2, 4.3))
-			log.info("Attempting to apply")
-			#TODO These locators are not future proof. These labels could easily change.
-			# Ideally we would search for contained text;
-			# was unable to get it to work using XPATH and searching for contained text
-			upload_locator = (By.CSS_SELECTOR, "label[aria-label='DOC, DOCX, PDF formats only (2 MB).']")
-			next_locator = (By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
-			review_locator = (By.CSS_SELECTOR, "button[aria-label='Review your application']")
-			submit_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
-			submit_application_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
-			error_locator = (By.CSS_SELECTOR, "p[data-test-form-element-error-message='true']")
-			cover_letter = (By.CSS_SELECTOR, "input[name='file']")
-
-			question_locator = (By.XPATH, ".//div[@class='jobs-easy-apply-form-section__grouping']")
-			yes_locator = (By.XPATH, ".//input[@value='Yes']")
-			no_locator = (By.XPATH, ".//input[@value='No']")
-			textInput_locator = (By.XPATH, ".//input[@type='text']")
-
-
-			submitted = False
-			attemptQuestions = True
-			while not submitted:
-				button = None
-
-				# Upload  if possible
-
-				#TODO Should check if there is already a resume that is saved from the last time the application was attempted.
-				# If so, then remove and re upload it in case there is new version.
-				if is_present(upload_locator):
-					log.info("Resume upload option available. Attempting to upload.")
-					input_buttons = self.browser.find_elements(cover_letter[0],
-															 cover_letter[1])
-					for input_button in input_buttons:
-						parent = input_button.find_element(By.XPATH, "..")
-						sibling = parent.find_element(By.XPATH, "preceding-sibling::*")
-						grandparent = sibling.find_element(By.XPATH, "..")
-						for key in self.uploads.keys():
-							if key in sibling.text or key in grandparent.text:
-								input_button.send_keys(self.uploads[key])
-
-				for i, button_locator in enumerate(
-						[upload_locator, next_locator, review_locator, submit_locator, submit_application_locator]):
-
-					#Sleep every iteration so that the bot is harded to detect.
-					time.sleep(random.uniform(2.2, 4.3))
-
-					log.info("Searching for button locator: %s", str(button_locator))
-					if is_present(button_locator):
-						log.info("button found with this locator: %s", str(button_locator))
-						try:
-							button = self.wait.until(EC.element_to_be_clickable(button_locator))
-						except TimeoutException:
-							log.exception("Timed out waiting for button %s ", button_locator)
-							continue
-					else:
-						log.info("Unable to find button locator: %s", str(button_locator))
-						continue
-
-					if is_present(error_locator):
-						log.info("Checking for errors")
-						for errorElement in self.browser.find_elements(error_locator[0],
-																  error_locator[1]):
-							text = errorElement.text
-							if "Please enter a valid answer" in text:
-								log.warning("Warning message received: %s", text)
-								log.info("Attempting to resolve by finding test questions")
-
-								#TODO these questions will need to be logged so that way, individuals can look through the logs and add them at the end of an application run.
-								#Required question expects an answer. Search through possible questions/answer combos
-								if is_present(question_locator) and attemptQuestions:
-									questionSections = self.browser.find_elements(question_locator[0], question_locator[1])
-									for questionElement in questionSections:
-										try:
-											log.info("Found test element %s", questionElement)
-											text = questionElement.text
-											log.warning("Question Text: %s", text)
-											#assuming this question is asking if I am authorized to work in the US
-											if ("Are you" in text and "authorized" in text) or ("Have You" in text and "education" in text):
-												#Be sure to find the child element of the current test question section
-												yesRadio = questionElement.find_element(By.XPATH, yes_locator[1])
-												time.sleep(1)
-												log.info("Attempting to click the radio button for %s", yes_locator)
-												self.browser.execute_script("arguments[0].click()", yesRadio)
-												log.info("Clicked the radio button %s", yes_locator)
-
-											#assuming this question is asking if I require sponsorship
-											elif "require" in text and "sponsorship" in text:
-												noRadio = questionElement.find_element(By.XPATH, no_locator[1])
-												time.sleep(1)
-												log.info("Attempting to click the radio button for %s", no_locator)
-												self.browser.execute_script("arguments[0].click()", noRadio)
-												log.info("Clicked the radio button %s", no_locator)
-
-											# assuming this question is asking if I have a Bachelor's degree
-											elif (("You have" in text) or ("Have you" in text)) and "Bachelor's" in text:
-												yesRadio = questionElement.find_element(By.XPATH, yes_locator[1])
-												time.sleep(1)
-												log.info("Attempting to click the radio button for %s", yes_locator)
-												self.browser.execute_script("arguments[0].click()", yesRadio)
-												log.info("Clicked the radio button %s", yes_locator)
-
-											# assuming this question is asking if I have a Master's degree
-											elif (("You have" in text) or ("Have you" in text)) and "Master's" in text:
-												yesRadio = questionElement.find_element(By.XPATH, yes_locator[1])
-												time.sleep(1)
-												log.info("Attempting to click the radio button for %s", yes_locator)
-												self.browser.execute_script("arguments[0].click()", yesRadio)
-												log.info("Clicked the radio button %s", yes_locator)
-
-											#TODO Issue where if there are multiple lines that ask for number of years experience then years experience will be written twice
-											#TODO Need to add a configuration file with all the answer for these questions versus having them hardcoded.
-											#Some questions are asking how many years of experience you have in a specific skill
-											#Automatically put the number of years that I have worked.
-											elif "How many years" in text and "experience" in text:
-												textField = questionElement.find_element(By.XPATH, textInput_locator[1])
-												time.sleep(1)
-												log.info("Attempting to click the text field for %s", textInput_locator)
-												self.browser.execute_script("arguments[0].click()", textField)
-												log.info("Clicked the text field %s", textInput_locator)
-												time.sleep(1)
-												log.info("Attempting to send keys to the text field %s", textInput_locator)
-												textField.send_keys("10")
-												log.info("Sent keys to the text field %s", textInput_locator)
-
-											#This should be updated to match the language you speak.
-											elif "Do you" in text and "speak" in text:
-												if "English" in text:
-													yesRadio = questionElement.find_element(By.XPATH, yes_locator[1])
-													time.sleep(1)
-													log.info("Attempting to click the radio button for %s", yes_locator)
-													self.browser.execute_script("arguments[0].click()", yesRadio)
-													log.info("Clicked the radio button %s", yes_locator)
-												#if not english then say no.
-												else:
-													noRadio = questionElement.find_element(By.XPATH, no_locator[1])
-													time.sleep(1)
-													log.info("Attempting to click the radio button for %s", no_locator)
-													self.browser.execute_script("arguments[0].click()", noRadio)
-													log.info("Clicked the radio button %s", no_locator)
-
-											else:
-												log.warning("Unable to find question in my tiny database")
-
-										except Exception as e:
-											log.exception("Could not answer additional questions: %s", e)
-											log.error("Unable to submit due to error with no solution")
-											return submitted
-									attemptQuestions = False
-									log.info("no longer going to try and answer questions, since we have now tried")
-								else:
-									log.error("Unable to submit due to error with no solution")
-									return submitted
-
-
-					if button:
-						if button_locator == upload_locator:
-							log.info("Uploading resume now")
-
-							time.sleep(random.uniform(2.2, 4.3))
-							driver.execute_script("arguments[0].click()", button)
-
-							#TODO This can only handle Chrome right now. Firefox or other browsers will need to be handled separately
-							# Chrome opens the file browser window with the title "Open"
-							status = wsh.AppActivate("Open")
-							log.debug("Able to find file browser dialog: %s", status)
-							#Must sleep around sending the resume location so it has time to accept all keys submitted
-							time.sleep(1)
-							wsh.SendKeys(str(self.resume_loctn))
-							time.sleep(1)
-							wsh.SendKeys("{ENTER}")
-							log.info("Just finished using button %s ", button_locator)
-
-						else:
-							try:
-								log.info("attempting to click button: %s", str(button_locator))
-								response = button.click()
-								if (button_locator == submit_locator) or (button_locator == submit_application_locator):
-									log.info("Clicked the submit button.")
-									submitted = True
-									return submitted
-							except EC.StaleElementReferenceException:
-								log.warning("Button was stale. Couldnt click")
-					else:
-						if (button_locator == submit_locator) or (button_locator == submit_application_locator):
-							log.warning("Unable to submit. It appears none of the buttons were found.")
-							break
-
-
-
-			# After submitting the application, a dialog shows up, we need to close this dialog
-			close_button_locator = (By.CSS_SELECTOR, "button[aria-label='Dismiss']")
-			if is_present(close_button_locator):
-				close_button = self.wait.until(EC.element_to_be_clickable(close_button_locator))
-				close_button.click()
-
-		except Exception as e:
-			log.info(e)
-			log.warning("cannot apply to this job")
-			raise(e)
-
-		return submitted
+	def apply(self, job):
+		app = application.Application(job, self.browser)
+		log.info("State: %s", app)
+		app.next()
+		log.info("State: %s", app)
+		app.next()
+		log.info("State: %s", app)
 
 	def load_page(self, sleep=1):
 		scroll_page = 0
