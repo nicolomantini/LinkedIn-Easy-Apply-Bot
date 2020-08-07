@@ -18,6 +18,11 @@ log = logging.getLogger(__name__)
 wsh = comctl.Dispatch("WScript.Shell")
 
 class Application(Machine):
+    """
+    This class is meant to handle the application popup that only occurs when a company has an EASY APPLY button
+    It is intended to be a self driven machine that only needs to be kicked off by the easy apply bot.
+    :arg
+    """
     class States(enum.Enum):
         NONE = 0
         INFO = 1        #Screen where basic applicant info is entered (manually or automatically)
@@ -37,7 +42,7 @@ class Application(Machine):
         {'trigger': 'next', 'source': States.QUESTIONS1, 'dest': States.REVIEW, 'conditions':'go_to_review', 'unless': 'check_for_error', 'after':'submit_app'},
         {'trigger': 'next', 'source': States.QUESTIONS2, 'dest': States.REVIEW, 'conditions': 'go_to_review','unless': 'check_for_error', 'after': 'submit_app'},
         {'trigger': 'next', 'source': States.REVIEW, 'dest': States.CLOSE, 'conditions':'go_to_submit', 'unless': 'check_for_error'},
-        {'trigger': 'next', 'source': '*', 'dest': States.ERROR, 'conditions':'check_for_error'}
+        {'trigger': 'next', 'source': '*', 'dest': States.ERROR, 'conditions':'check_for_error', 'after':'determine_error'}
     ]
 
 
@@ -50,15 +55,17 @@ class Application(Machine):
         self.uploads = uploads
         self.wait = WebDriverWait(self.browser, 30)
 
-        # TODO These locators are not future proof. These labels could easily change.
+        #TODO These locators are not future proof. These labels could easily change.
         # Ideally we would search for contained text;
         # was unable to get it to work using XPATH and searching for contained text
+        #TODO Should change these locators to namedtuples for easier readibility
         self.upload_locator = (By.CSS_SELECTOR, "label[aria-label='DOC, DOCX, PDF formats only (2 MB).']")
         self.next_locator = (By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
         self.review_locator = (By.CSS_SELECTOR, "button[aria-label='Review your application']")
         self.submit_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
         self.submit_application_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
         self.error_locator = (By.CSS_SELECTOR, "p[data-test-form-element-error-message='true']")
+        self.error_locator_hidden = (By.CSS_SELECTOR, "p[class='fb-form-element__error-text t-12 visually-hidden']")
         self.cover_letter = (By.CSS_SELECTOR, "input[name='file']")
 
         self.question_locator = (By.XPATH, ".//div[@class='jobs-easy-apply-form-section__grouping']")
@@ -72,6 +79,12 @@ class Application(Machine):
         return len(self.browser.find_elements(button_locator[0], button_locator[1])) > 0
 
     def answer_questions(self):
+        """
+        This function is used in any of the question states to answer custom questions requested by the company being applied to.
+        This function is to be used by all questions states, since there currently isnt a way to determine which questions
+        are in which questions state.
+        :arg
+        """
         # TODO these questions will need to be logged so that way, individuals can look through the logs and add them at the end of an application run.
         # Required question expects an answer. Search through possible questions/answer combos
         if self.is_present(self.question_locator):# and attemptQuestions:
@@ -160,6 +173,10 @@ class Application(Machine):
             #return submitted
 
     def upload(self):
+        """
+        This function is used to upload either a resume and/or cover letter.
+        :arg
+        """
         # if self.is_present(self.upload_locator):
         #     log.info("Resume upload option available. Attempting to upload.")
         #     input_buttons = self.browser.find_elements(self.cover_letter[0],
@@ -172,6 +189,10 @@ class Application(Machine):
         #             if key in sibling.text or key in grandparent.text:
         #                 input_button.send_keys(self.uploads[key])
 
+        #TODO Should check if there is a class called "attachment-filename" b/c that means that a resume is already uploaded.
+        # Should always upload new resume since you never know when a user may prefer their latest. Also, simply removing the
+        # already uploaded resume will show you that you have a history of resumes that you have uploaded. The application will
+        # automatically use the latest, regardless if you remove the previous one and push next button.
         if self.is_present(self.upload_locator):
             button = self.wait.until(EC.element_to_be_clickable(self.upload_locator))
             log.info("Uploading resume now")
@@ -201,17 +222,31 @@ class Application(Machine):
             log.warning("Button was stale. Couldnt click")
 
     def determine_error(self):
+        """
+        This function is intended to detect errors on any screen, but as of August 7, 2020, it only detects errors related
+        to the question states.
+        :arg
+        """
+        #we should already know that the error element does exist, so go ahead and iterate through the locators.
         for errorElement in self.browser.find_elements(self.error_locator[0],
                                                        self.error_locator[1]):
             text = errorElement.text
+            #TODO This is not the best way to determine if there is an error, but it might be the only way
+            # What if there is an error in another state? Just search for the text?
             if "Please enter a valid answer" in text:
-                log.warning("Warning message received: %s", text)
-                log.info("Attempting to resolve by finding test questions")
+                log.warning("Error detected; Current state should be the questions state; Changing state")
+                self.to_QUESTIONS1()
 
     def check_for_error(self):
         if self.is_present(self.error_locator):
-            log.warning("Errors detected")
-            return True
+            #error locator is often on element in the window but the error locator hidden element is only in the window
+            #when there is potential for error, but not an error yet. If the hidden element does not exist, then but the
+            #error element does, then there must be an error - return True in the else statement
+            if self.is_present(self.error_locator_hidden):
+                return False
+            else:
+                log.warning("Error detected")
+                return True
         else:
             return False
 
