@@ -291,11 +291,11 @@ class EasyApplyBot:
 
 	def apply(self, job):
 		app = application.Application(job, self.browser)
-		log.info("State: %s", app)
-		app.next()
-		log.info("State: %s", app)
-		app.next()
-		log.info("State: %s", app)
+		while(app.state != app.States.CLOSE):
+			log.info("State: %s", app.state)
+			app.next()
+
+		log.info("Exited the application pop up")
 
 	def load_page(self, sleep=1):
 		scroll_page = 0

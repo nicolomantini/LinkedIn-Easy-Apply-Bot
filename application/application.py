@@ -40,6 +40,7 @@ class Application(Machine):
         {'trigger': 'next', 'source': States.UPLOAD, 'dest': States.QUESTIONS1, 'conditions':'go_to_next', 'unless': 'check_for_error', 'after':'answer_questions'},
         {'trigger': 'next', 'source': States.UPLOAD, 'dest': States.REVIEW, 'conditions': 'go_to_review','unless': 'check_for_error', 'after': 'answer_questions', },
         {'trigger': 'next', 'source': States.QUESTIONS1, 'dest': States.REVIEW, 'conditions':'go_to_review', 'unless': 'check_for_error', 'after':'submit_app'},
+        {'trigger': 'next', 'source': States.QUESTIONS1, 'dest': States.QUESTIONS2, 'conditions': 'go_to_next','unless': 'check_for_error', 'after': 'answer_questions'},
         {'trigger': 'next', 'source': States.QUESTIONS2, 'dest': States.REVIEW, 'conditions': 'go_to_review','unless': 'check_for_error', 'after': 'submit_app'},
         {'trigger': 'next', 'source': States.REVIEW, 'dest': States.CLOSE, 'conditions':'go_to_submit', 'unless': 'check_for_error'},
         {'trigger': 'next', 'source': '*', 'dest': States.ERROR, 'conditions':'check_for_error', 'after':'determine_error'}
