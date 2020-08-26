@@ -10,7 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from transitions import Machine
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 # Set transitions' log level to INFO; DEBUG messages will be omitted
 logging.getLogger('transitions').setLevel(logging.INFO)
 log = logging.getLogger(__name__)
@@ -30,20 +30,25 @@ class Application(Machine):
         QUESTIONS1 = 3   #Screen where user is asked additional questions. EX: Do you have a Bachelor's degree
         QUESTIONS2 = 4  # Sometimes there are multiple pages of questions.
         REVIEW = 5      #Screen where user verifies all application information is correct
-        CLOSE = 6       #Confirmation screen that declares if application was submitted correctly or not
+        SUBMITTED = 6       #Confirmation screen that declares if application was submitted correctly or not
         ERROR = 7       #State of any screen where an error has occurred
+        SUSPENDED = 8   #State if in infinite error loop and cannot exit
 
+    # Order matters on the transitions. As the higher up on the list the transition is for that state, the earlier it is in the application popup
+    # Order and transition must be in the order below since error is expected, while suspended is an all out failure
     transitions = [
         {'trigger': 'next', 'source': States.INFO, 'dest': States.UPLOAD, 'conditions':'go_to_next', 'unless': 'check_for_error', 'after':'upload'},
         {'trigger': 'next', 'source': States.INFO, 'dest': States.QUESTIONS1, 'conditions': 'go_to_next','unless': 'check_for_error', 'after': 'upload'},
         {'trigger': 'next', 'source': States.INFO, 'dest': States.REVIEW, 'conditions': 'go_to_next','unless': 'check_for_error', 'after': 'upload'},
+        {'trigger': 'next', 'source': States.INFO, 'dest': States.SUBMITTED, 'conditions': 'submit_app', 'unless': 'check_for_error'},
         {'trigger': 'next', 'source': States.UPLOAD, 'dest': States.QUESTIONS1, 'conditions':'go_to_next', 'unless': 'check_for_error', 'after':'answer_questions'},
         {'trigger': 'next', 'source': States.UPLOAD, 'dest': States.REVIEW, 'conditions': 'go_to_review','unless': 'check_for_error', 'after': 'answer_questions', },
-        {'trigger': 'next', 'source': States.QUESTIONS1, 'dest': States.REVIEW, 'conditions':'go_to_review', 'unless': 'check_for_error', 'after':'submit_app'},
+        {'trigger': 'next', 'source': States.QUESTIONS1, 'dest': States.REVIEW, 'conditions':'go_to_review', 'unless': 'check_for_error'},
         {'trigger': 'next', 'source': States.QUESTIONS1, 'dest': States.QUESTIONS2, 'conditions': 'go_to_next','unless': 'check_for_error', 'after': 'answer_questions'},
-        {'trigger': 'next', 'source': States.QUESTIONS2, 'dest': States.REVIEW, 'conditions': 'go_to_review','unless': 'check_for_error', 'after': 'submit_app'},
-        {'trigger': 'next', 'source': States.REVIEW, 'dest': States.CLOSE, 'conditions':'go_to_submit', 'unless': 'check_for_error'},
-        {'trigger': 'next', 'source': '*', 'dest': States.ERROR, 'conditions':'check_for_error', 'after':'determine_error'}
+        {'trigger': 'next', 'source': States.QUESTIONS2, 'dest': States.REVIEW, 'conditions': 'go_to_review','unless': 'check_for_error'},
+        {'trigger': 'next', 'source': States.REVIEW, 'dest': States.SUBMITTED, 'conditions':'submit_app', 'unless': 'check_for_error'},
+        {'trigger': 'next', 'source': '*', 'dest': States.ERROR, 'conditions':'check_for_error', 'after':'determine_error'},
+        {'trigger': 'next', 'source': '*', 'dest': States.SUSPENDED, 'after': 'shout_suspension'}
     ]
 
 
@@ -61,18 +66,24 @@ class Application(Machine):
         # was unable to get it to work using XPATH and searching for contained text
         #TODO Should change these locators to namedtuples for easier readibility
         self.upload_locator = (By.CSS_SELECTOR, "label[aria-label='DOC, DOCX, PDF formats only (2 MB).']")
+        self.cover_letter = (By.CSS_SELECTOR, "input[name='file']")
+
         self.next_locator = (By.CSS_SELECTOR, "button[aria-label='Continue to next step']")
         self.review_locator = (By.CSS_SELECTOR, "button[aria-label='Review your application']")
         self.submit_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
         self.submit_application_locator = (By.CSS_SELECTOR, "button[aria-label='Submit application']")
+
+        self.button_locators = [self.next_locator, self.review_locator, self.submit_locator, self.submit_application_locator]
+
         self.error_locator = (By.CSS_SELECTOR, "p[data-test-form-element-error-message='true']")
         self.error_locator_hidden = (By.CSS_SELECTOR, "p[class='fb-form-element__error-text t-12 visually-hidden']")
-        self.cover_letter = (By.CSS_SELECTOR, "input[name='file']")
 
         self.question_locator = (By.XPATH, ".//div[@class='jobs-easy-apply-form-section__grouping']")
         self.yes_locator = (By.XPATH, ".//input[@value='Yes']")
         self.no_locator = (By.XPATH, ".//input[@value='No']")
         self.textInput_locator = (By.XPATH, ".//input[@type='text']")
+
+
 
        # self.machine = Machine(model=self, states=States )
 
@@ -88,90 +99,102 @@ class Application(Machine):
         """
         # TODO these questions will need to be logged so that way, individuals can look through the logs and add them at the end of an application run.
         # Required question expects an answer. Search through possible questions/answer combos
-        if self.is_present(self.question_locator):# and attemptQuestions:
-            questionSections = self.browser.find_elements(self.question_locator[0], self.question_locator[1])
-            for questionElement in questionSections:
-                try:
-                    log.info("Found test element %s", questionElement)
-                    text = questionElement.text
-                    log.warning("Question Text: %s", text)
-                    # assuming this question is asking if I am authorized to work in the US
-                    if ("Are you" in text and "authorized" in text) or (
-                            "Have You" in text and "education" in text):
-                        # Be sure to find the child element of the current test question section
-                        yesRadio = questionElement.find_element(By.XPATH, self.yes_locator[1])
-                        time.sleep(1)
-                        log.info("Attempting to click the radio button for %s", self.yes_locator)
-                        self.browser.execute_script("arguments[0].click()", yesRadio)
-                        log.info("Clicked the radio button %s", self.yes_locator)
+        try:
+            log.info("Attempting to answer questions")
+            if self.is_present(self.question_locator):# and attemptQuestions:
+                questionSections = self.browser.find_elements(self.question_locator[0], self.question_locator[1])
+                for questionElement in questionSections:
+                    try:
+                        log.info("Found test element %s", questionElement)
+                        text = questionElement.text
+                        log.warning("Question Text: %s", text)
 
-                    # assuming this question is asking if I require sponsorship
-                    elif "require" in text and "sponsorship" in text:
-                        noRadio = questionElement.find_element(By.XPATH, self.no_locator[1])
-                        time.sleep(1)
-                        log.info("Attempting to click the radio button for %s", self.no_locator)
-                        self.browser.execute_script("arguments[0].click()", noRadio)
-                        log.info("Clicked the radio button %s", self.no_locator)
-
-                    # assuming this question is asking if I have a Bachelor's degree
-                    elif (("You have" in text) or ("Have you" in text)) and "Bachelor's" in text:
-                        yesRadio = questionElement.find_element(By.XPATH, self.yes_locator[1])
-                        time.sleep(1)
-                        log.info("Attempting to click the radio button for %s", self.yes_locator)
-                        self.browser.execute_script("arguments[0].click()", yesRadio)
-                        log.info("Clicked the radio button %s", self.yes_locator)
-
-                    # assuming this question is asking if I have a Master's degree
-                    elif (("You have" in text) or ("Have you" in text)) and "Master's" in text:
-                        yesRadio = questionElement.find_element(By.XPATH, self.yes_locator[1])
-                        time.sleep(1)
-                        log.info("Attempting to click the radio button for %s", self.yes_locator)
-                        self.browser.execute_script("arguments[0].click()", yesRadio)
-                        log.info("Clicked the radio button %s", self.yes_locator)
-
-                    # TODO Issue where if there are multiple lines that ask for number of years experience then years experience will be written twice
-                    # TODO Need to add a configuration file with all the answer for these questions versus having them hardcoded.
-                    # Some questions are asking how many years of experience you have in a specific skill
-                    # Automatically put the number of years that I have worked.
-                    elif "How many years" in text and "experience" in text:
-                        textField = questionElement.find_element(By.XPATH, self.textInput_locator[1])
-                        time.sleep(1)
-                        log.info("Attempting to click the text field for %s", self.textInput_locator)
-                        self.browser.execute_script("arguments[0].click()", textField)
-                        log.info("Clicked the text field %s", self.textInput_locator)
-                        time.sleep(1)
-                        log.info("Attempting to send keys to the text field %s", self.textInput_locator)
-                        textField.send_keys("10")
-                        log.info("Sent keys to the text field %s", self.textInput_locator)
-
-                    # This should be updated to match the language you speak.
-                    elif "Do you" in text and "speak" in text:
-                        if "English" in text:
+                        # assuming this question is asking if I am authorized to work in the US
+                        if ("Are you" in text and "authorized" in text) or (
+                                "Have You" in text and "education" in text):
+                            # Be sure to find the child element of the current test question section
                             yesRadio = questionElement.find_element(By.XPATH, self.yes_locator[1])
                             time.sleep(1)
                             log.info("Attempting to click the radio button for %s", self.yes_locator)
                             self.browser.execute_script("arguments[0].click()", yesRadio)
                             log.info("Clicked the radio button %s", self.yes_locator)
-                        # if not english then say no.
-                        else:
+
+                        # assuming this question is asking if I require sponsorship
+                        elif "require" in text and "sponsorship" in text:
                             noRadio = questionElement.find_element(By.XPATH, self.no_locator[1])
                             time.sleep(1)
                             log.info("Attempting to click the radio button for %s", self.no_locator)
                             self.browser.execute_script("arguments[0].click()", noRadio)
                             log.info("Clicked the radio button %s", self.no_locator)
 
-                    else:
-                        log.warning("Unable to find question in my tiny database")
+                        # assuming this question is asking if I have a Bachelor's degree
+                        elif (("You have" in text) or ("Have you" in text)) and "Bachelor's" in text:
+                            yesRadio = questionElement.find_element(By.XPATH, self.yes_locator[1])
+                            time.sleep(1)
+                            log.info("Attempting to click the radio button for %s", self.yes_locator)
+                            self.browser.execute_script("arguments[0].click()", yesRadio)
+                            log.info("Clicked the radio button %s", self.yes_locator)
 
-                except Exception as e:
-                    log.exception("Could not answer additional questions: %s", e)
-                    log.error("Unable to submit due to error with no solution")
-                    #return submitted
-            attemptQuestions = False
-            log.info("no longer going to try and answer questions, since we have now tried")
-        else:
-            log.error("Unable to submit due to error with no solution")
-            #return submitted
+                        # assuming this question is asking if I have a Master's degree
+                        elif (("You have" in text) or ("Have you" in text)) and "Master's" in text:
+                            yesRadio = questionElement.find_element(By.XPATH, self.yes_locator[1])
+                            time.sleep(1)
+                            log.info("Attempting to click the radio button for %s", self.yes_locator)
+                            self.browser.execute_script("arguments[0].click()", yesRadio)
+                            log.info("Clicked the radio button %s", self.yes_locator)
+
+                        # TODO Issue where if there are multiple lines that ask for number of years experience then years experience will be written twice
+                        # TODO Need to add a configuration file with all the answer for these questions versus having them hardcoded.
+                        # Some questions are asking how many years of experience you have in a specific skill
+                        # Automatically put the number of years that I have worked.
+                        elif "How many years" in text and "experience" in text:
+                            textField = questionElement.find_element(By.XPATH, self.textInput_locator[1])
+                            textField.clear()
+                            textFieldValue = textField.get_attribute("value")
+                            if not textFieldValue:
+                                time.sleep(1)
+                                log.info("Attempting to click the text field for %s", self.textInput_locator)
+                                self.browser.execute_script("arguments[0].click()", textField)
+                                log.info("Clicked the text field %s", self.textInput_locator)
+                                time.sleep(1)
+                                log.info("Attempting to send keys to the text field %s", self.textInput_locator)
+                                textField.send_keys("10")
+                                log.info("Sent keys to the text field %s", self.textInput_locator)
+
+                            textFieldValue = textField.get_attribute("value")
+                            log.info("Current text field input value is %s", textFieldValue)
+
+                        # This should be updated to match the language you speak.
+                        elif "Do you" in text and "speak" in text:
+                            if "English" in text:
+                                yesRadio = questionElement.find_element(By.XPATH, self.yes_locator[1])
+                                time.sleep(1)
+                                log.info("Attempting to click the radio button for %s", self.yes_locator)
+                                self.browser.execute_script("arguments[0].click()", yesRadio)
+                                log.info("Clicked the radio button %s", self.yes_locator)
+                            # if not english then say no.
+                            else:
+                                noRadio = questionElement.find_element(By.XPATH, self.no_locator[1])
+                                time.sleep(1)
+                                log.info("Attempting to click the radio button for %s", self.no_locator)
+                                self.browser.execute_script("arguments[0].click()", noRadio)
+                                log.info("Clicked the radio button %s", self.no_locator)
+
+                        else:
+                            log.warning("Unable to find question in my tiny database")
+
+                    except Exception as e:
+                        log.exception("Could not answer additional questions: %s", e)
+                        log.error("Unable to submit due to error with no solution")
+                        #return submitted
+                attemptQuestions = False
+                log.info("no longer going to try and answer questions, since we have now tried")
+            else:
+                log.error("Unable to submit due to error with no solution")
+                #return submitted
+        except Exception as e:
+            log.exception("Unable to answer questions")
+            log.error(e)
 
     def upload(self):
         """
@@ -194,33 +217,25 @@ class Application(Machine):
         # Should always upload new resume since you never know when a user may prefer their latest. Also, simply removing the
         # already uploaded resume will show you that you have a history of resumes that you have uploaded. The application will
         # automatically use the latest, regardless if you remove the previous one and push next button.
-        if self.is_present(self.upload_locator):
-            button = self.wait.until(EC.element_to_be_clickable(self.upload_locator))
-            log.info("Uploading resume now")
-            time.sleep(random.uniform(2.2, 4.3))
-            self.browser.execute_script("arguments[0].click()", button)
-            # TODO This can only handle Chrome right now. Firefox or other browsers will need to be handled separately
-            # Chrome opens the file browser window with the title "Open"
-            status = wsh.AppActivate("Open")
-            log.debug("Able to find file browser dialog: %s", status)
-            # Must sleep around sending the resume location so it has time to accept all keys submitted
-            time.sleep(1)
-            wsh.SendKeys(str(self.resume_loctn))
-            time.sleep(1)
-            wsh.SendKeys("{ENTER}")
-            log.info("Just finished using button %s ", self.upload_locator)
-
-    def submit_app(self):
         try:
-            #if self.is_present(self.submit_locator):
-            button = self.wait.until(EC.element_to_be_clickable(self.submit_locator))
-            log.info("attempting to click button: %s", str(self.button_locator))
-            response = button.click()
-            log.info("Clicked the submit button.")
-            submitted = True
-            return submitted
-        except EC.StaleElementReferenceException:
-            log.warning("Button was stale. Couldnt click")
+            if self.is_present(self.upload_locator):
+                button = self.wait.until(EC.element_to_be_clickable(self.upload_locator))
+                log.info("Uploading resume now")
+                time.sleep(random.uniform(2.2, 4.3))
+                self.browser.execute_script("arguments[0].click()", button)
+                # TODO This can only handle Chrome right now. Firefox or other browsers will need to be handled separately
+                # Chrome opens the file browser window with the title "Open"
+                status = wsh.AppActivate("Open")
+                log.debug("Able to find file browser dialog: %s", status)
+                # Must sleep around sending the resume location so it has time to accept all keys submitted
+                time.sleep(1)
+                wsh.SendKeys(str(self.resume_loctn))
+                time.sleep(1)
+                wsh.SendKeys("{ENTER}")
+                log.info("Just finished using button %s ", self.upload_locator)
+        except Exception as e:
+            log.exception("Unable to upload")
+            log.error(e)
 
     def determine_error(self):
         """
@@ -229,29 +244,45 @@ class Application(Machine):
         :arg
         """
         #we should already know that the error element does exist, so go ahead and iterate through the locators.
-        for errorElement in self.browser.find_elements(self.error_locator[0],
-                                                       self.error_locator[1]):
-            text = errorElement.text
-            #TODO This is not the best way to determine if there is an error, but it might be the only way
-            # What if there is an error in another state? Just search for the text?
-            if "Please enter a valid answer" in text:
-                log.warning("Error detected; Current state should be the questions state; Changing state")
-                self.to_QUESTIONS1()
+        try:
+            log.info("Trying to determining possible error")
+            for errorElement in self.browser.find_elements(self.error_locator[0],
+                                                           self.error_locator[1]):
+                text = errorElement.text
+                #TODO This is not the best way to determine if there is an error, but it might be the only way
+                # What if there is an error in another state? Just search for the text?
+                if "Please enter a valid answer" in text:
+                    log.warning("Determined error; Current state should be the QUESTIONS state; Changing state")
+                    self.to_QUESTIONS1()
+                else:
+                    log.error("Unknown error. Should go to SUSPENDED state since there is no way to solve")
+                    self.to_SUSPENDED()
+        except Exception as e:
+            log.exception("Problem with determining error")
+            log.error(e)
 
     def check_for_error(self):
-        if self.is_present(self.error_locator):
-            #error locator is often on element in the window but the error locator hidden element is only in the window
-            #when there is potential for error, but not an error yet. If the hidden element does not exist, then but the
-            #error element does, then there must be an error - return True in the else statement
-            if self.is_present(self.error_locator_hidden):
-                return False
+        try:
+            log.info("Checking for errors...")
+            if self.is_present(self.error_locator):
+                #error locator is often on element in the window but the error locator hidden element is only in the window
+                #when there is potential for error, but not an error yet. If the hidden element does not exist, then but the
+                #error element does, then there must be an error - return True in the else statement
+                if self.is_present(self.error_locator_hidden):
+                    log.warning("No errors found")
+                    return False
+                else:
+                    log.warning("Error detected")
+                    self.to_ERROR()
+                    return True
             else:
-                log.warning("Error detected")
-                return True
-        else:
-            return False
+                return False
+        except Exception as e:
+            log.exception("Problem with checking for errors")
+            log.error(e)
 
     def go_to_next(self):
+
         if self.is_present(self.next_locator):
             try:
                 next_button = self.wait.until(EC.element_to_be_clickable(self.next_locator))
@@ -264,16 +295,34 @@ class Application(Machine):
             return False
 
     def go_to_review(self):
+        log.info("Attempting to go to the REVIEW state")
         if self.is_present(self.review_locator):
             try:
                 review_button = self.wait.until(EC.element_to_be_clickable(self.review_locator))
                 review_button.click()
-                return True
+                errorFound = self.check_for_error()
+                return not errorFound
             except Exception as e:
                 log.exception("Unable to click review button from TBD state to TBD state")
                 return False
         else:
             return False
+
+    def submit_app(self):
+        try:
+            #if self.is_present(self.submit_locator):
+            button = self.wait.until(EC.element_to_be_clickable(self.submit_locator))
+            log.info("attempting to click button: %s", str(self.submit_locator))
+            response = button.click()
+            log.info("Clicked the submit button.")
+            submitted = True
+            return submitted
+        except EC.StaleElementReferenceException:
+            log.error("Button was stale. Couldnt click")
+        except Exception as e:
+            log.exception("Unable to submit app")
+            log.error(e)
+
 
     def go_to_submit(self):
         if self.is_present(self.submit_locator):
@@ -286,6 +335,9 @@ class Application(Machine):
                 return False
         else:
             return False
+
+    def shout_suspension(self):
+        log.warning("In Suspension state")
 
     def go_to_upload(self):
         if self.is_present(self.upload_locator):
@@ -300,8 +352,12 @@ class Application(Machine):
             return False
 
     def app_sleep(self):
-        log.info("Going to sleep for a little bit... (u.u) zZzZ")
-        time.sleep(random.uniform(2.2, 4.3))
+        try:
+            log.info("Going to sleep for a little bit... (u.u) zZzZ")
+            time.sleep(random.uniform(2.2, 4.3))
+        except Exception as e:
+            log.exception("Unable to sleep")
+            log.error(e)
 
 
 if __name__ == '__main__':

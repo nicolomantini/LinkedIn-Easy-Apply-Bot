@@ -30,7 +30,7 @@ driver = webdriver.Chrome(ChromeDriverManager().install())
 # pyinstaller --onefile --windowed --icon=app.ico easyapplybot.py
 
 class EasyApplyBot:
-	MAX_SEARCH_TIME = 30 * 60
+	MAX_SEARCH_TIME = 90 * 60
 
 	def __init__(self,
 				 username,
@@ -173,6 +173,8 @@ class EasyApplyBot:
 			jobIDs = [x for x in IDs if x not in self.appliedJobIDs]
 			after = len(jobIDs)
 
+			log.info("Number of total IDs in search %s; Number of total jobs we can apply to %s;", len(IDs), len(jobIDs))
+
 			if len(jobIDs) == 0 and len(IDs) > 24:
 				jobs_per_page = jobs_per_page + 25
 				count_job = 0
@@ -239,8 +241,10 @@ class EasyApplyBot:
 					self.browser, jobs_per_page = self.next_jobs_page(position,
 																		location,
 																		jobs_per_page)
-			if len(jobIDs) == 0 or i == (len(jobIDs) - 1):
-				break
+			#if len(jobIDs) == 0 or i == (len(jobIDs) - 1):
+			#	log.warning("We have run out of Jobs to apply to. Stopping applying early")
+			#	break
+		log.warning("We have run out of time applying for jobs. You will need to adjust the number of minutes next time")
 
 	def write_to_file(self, button, jobID, browserTitle, result):
 		def re_extract(text, pattern):
@@ -254,7 +258,7 @@ class EasyApplyBot:
 		job = re_extract(browserTitle.split(' | ')[0], r"\(?\d?\)?\s?(\w.*)")
 		company = re_extract(browserTitle.split(' | ')[1], r"(\w.*)" )
 
-		toWrite = [timestamp, jobID, job, company, attempted, result]
+		toWrite = [timestamp, jobID, job, company, attempted, result, ('https://www.linkedin.com/jobs/view/'+ str(jobID) + '/')]
 		with open(self.filename,'a') as f:
 			writer = csv.writer(f)
 			writer.writerow(toWrite)
@@ -291,9 +295,21 @@ class EasyApplyBot:
 
 	def apply(self, job):
 		app = application.Application(job, self.browser)
-		while(app.state != app.States.CLOSE):
+		while(app.state != app.States.SUBMITTED and app.state != app.States.SUSPENDED):
 			log.info("State: %s", app.state)
 			app.next()
+
+		if app.state == app.States.SUSPENDED:
+			del app
+			return False
+		elif app.state == app.States.SUBMITTED:
+			del app
+			return True
+		else:
+			del app
+			return False
+
+
 
 		log.info("Exited the application pop up")
 
@@ -342,9 +358,9 @@ def setupLogger():
 
 	# TODO need to check if there is a log dir available or not
 	logging.basicConfig(filename=('./logs/' + str(dt)+'applyJobs.log'), filemode='w', format='%(asctime)s::%(name)s::%(levelname)s::%(message)s', datefmt='./logs/%d-%b-%y %H:%M:%S')
-	log.setLevel(logging.DEBUG)
+	log.setLevel(logging.INFO)
 	c_handler = logging.StreamHandler()
-	c_handler.setLevel(logging.DEBUG)
+	c_handler.setLevel(logging.INFO)
 	c_format = logging.Formatter('%(asctime)s::%(name)s::%(levelname)s::%(lineno)d- %(message)s')
 	c_handler.setFormatter(c_format)
 	log.addHandler(c_handler)
@@ -370,6 +386,14 @@ if __name__ == '__main__':
 
 	output_filename = [f for f in parameters.get('output_filename', ['output.csv']) if f != None]
 	output_filename = output_filename[0] if len(output_filename) > 0 else 'output.csv'
+
+	# Prepare header for CSV file
+	if not os.path.exists('./'+output_filename):
+		toWrite = ['timestamp', 'jobID', 'job', 'company', 'attempted', 'success', 'joburl']
+		with open(output_filename, 'a') as f:
+			writer = csv.writer(f)
+			writer.writerow(toWrite)
+
 	blacklist = parameters.get('blacklist', [])
 	uploads = parameters.get('uploads', {})
 	for key in uploads.keys():
