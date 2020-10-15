@@ -51,7 +51,7 @@ class EasyApplyBot:
 				 filename='output.csv',
 				 blacklist=[]):
 
-		log.info("Welcome to Easy Apply Bot\n")
+		log.info("Welcome to Easy Apply Bot")
 		dirpath = os.getcwd()
 		log.info("current directory is : " + dirpath)
 
@@ -74,7 +74,7 @@ class EasyApplyBot:
 							lineterminator='\n',
 							encoding='utf-8')
 
-			df['timestamp'] = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S.%f")
+			df['timestamp'] = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S")
 			df = df[df['timestamp'] > (datetime.now() - timedelta(days=2))]
 			jobIDs = list(df.jobID)
 			log.info(f"{len(jobIDs)} jobIDs found")
@@ -245,7 +245,7 @@ class EasyApplyBot:
 				target = target.group(1)
 			return target
 
-		timestamp = datetime.now()
+		timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 		attempted = False if button == False else True
 		job = re_extract(browserTitle.split(' | ')[0], r"\(?\d?\)?\s?(\w.*)")
 		company = re_extract(browserTitle.split(' | ')[1], r"(\w.*)" )
