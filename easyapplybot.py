@@ -41,7 +41,8 @@ def setupLogger():
 class EasyApplyBot:
 
 	setupLogger()
-	MAX_SEARCH_TIME = 10*60
+	#MAX_SEARCH_TIME is 10 hours by default, feel free to modify it
+	MAX_SEARCH_TIME = 10*60*60
 
 
 	def __init__(self,
@@ -105,10 +106,11 @@ class EasyApplyBot:
 			login_button = self.browser.find_element_by_css_selector(".btn__primary--large")
 			user_field.send_keys(username)
 			user_field.send_keys(Keys.TAB)
-			time.sleep(1)
+			time.sleep(2)
 			pw_field.send_keys(password)
-			time.sleep(1)
+			time.sleep(2)
 			login_button.click()
+			time.sleep(3)
 		except TimeoutException:
 			log.info("TimeoutException! Username/password field or login button not found")
 
@@ -130,15 +132,15 @@ class EasyApplyBot:
 				log.info(f"Applying to {position}: {location}")
 				location = "&location=" + location
 				self.applications_loop(position, location)
-			if len(combos) > 50:
+			if len(combos) > 500:
 				break
-		self.finish_apply()
+		# self.finish_apply() --> this does seem to cause more harm than good, since it closes the browser which we usually don't want, other conditions will stop the loop and just break out
 
 	def applications_loop(self, position, location):
 
 		count_application = 0
 		count_job = 0
-		jobs_per_page = 0
+		jobs_per_page = 550
 		start_time = time.time()
 
 
@@ -157,7 +159,18 @@ class EasyApplyBot:
 			log.debug(f"Sleeping for {round(randoTime, 1)}")
 			time.sleep(randoTime)
 			self.load_page(sleep=1)
-
+			
+			#LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom, as well
+			
+			scrollresults = self.browser.find_element_by_class_name(
+					"jobs-search-results"
+					)
+			
+			
+			self.browser.execute_script("arguments[0].scrollTo(0, 3000)", scrollresults)
+			
+			time.sleep(3)
+			
 			# get job links
 			links = self.browser.find_elements_by_xpath(
 					'//div[@data-job-id]'
@@ -183,11 +196,13 @@ class EasyApplyBot:
 			before = len(IDs)
 			jobIDs = [x for x in IDs if x not in self.appliedJobIDs]
 			after = len(jobIDs)
-
-			if len(jobIDs) == 0 and len(IDs) > 24:
-				jobs_per_page = jobs_per_page + 25
+			
+			# it assumed that 25 jobs are listed in the results window, but it does not seem to be true in 2020
+			if len(jobIDs) == 0 and len(IDs) > 8:
+				jobs_per_page = jobs_per_page + 9
 				count_job = 0
 				self.avoid_lock()
+				print('lock avoided')
 				self.browser, jobs_per_page = self.next_jobs_page(position,
 																	location,
 																	jobs_per_page)
@@ -234,8 +249,8 @@ class EasyApplyBot:
 					self.browser, jobs_per_page = self.next_jobs_page(position,
 																		location,
 																		jobs_per_page)
-			if len(jobIDs) == 0 or i == (len(jobIDs) - 1):
-				break
+			# if len(jobIDs) == 0 or i == (len(jobIDs) - 1):
+				# break
 
 
 	def write_to_file(self, button, jobID, browserTitle, result):
@@ -310,11 +325,11 @@ class EasyApplyBot:
 						parent = input_button.find_element(By.XPATH, "..")
 						sibling = parent.find_element(By.XPATH, "preceding-sibling::*")
 						grandparent = sibling.find_element(By.XPATH, "..")
-						for key in self.uploads.keys():
+						for key in self.uploads[0].keys():
 							sibling_text = sibling.text
 							gparent_text = grandparent.text
 							if key.lower() in sibling_text.lower() or key in gparent_text.lower():
-								input_button.send_keys(self.uploads[key])
+								input_button.send_keys(self.uploads[0][key])
 
 
 					#input_button[0].send_keys(self.cover_letter_loctn)
@@ -420,8 +435,8 @@ if __name__ == '__main__':
 	output_filename = output_filename[0] if len(output_filename) > 0 else 'output.csv'
 	blacklist = parameters.get('blacklist', [])
 	uploads = parameters.get('uploads', {})
-	for key in uploads.keys():
-		assert uploads[key] != None
+	for key in uploads[0].keys():
+		assert uploads[0][key] != None
 
 	bot = EasyApplyBot(parameters['username'],
 						parameters['password'],
