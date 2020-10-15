@@ -140,7 +140,7 @@ class EasyApplyBot:
 
 		count_application = 0
 		count_job = 0
-		jobs_per_page = 550
+		jobs_per_page = 0
 		start_time = time.time()
 
 
@@ -240,7 +240,7 @@ class EasyApplyBot:
 
 				# go to new page if all jobs are done
 				if count_job == len(jobIDs):
-					jobs_per_page = jobs_per_page + 25
+					jobs_per_page = jobs_per_page + 9
 					count_job = 0
 					log.info("""****************************************\n\n
 					Going to next jobs page, YEAAAHHH!!
