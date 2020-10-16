@@ -160,16 +160,17 @@ class EasyApplyBot:
 			time.sleep(randoTime)
 			self.load_page(sleep=1)
 			
-			#LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom, as well
+			#LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom, and back to its top to make it visible to Selenium
 			
 			scrollresults = self.browser.find_element_by_class_name(
 					"jobs-search-results"
 					)
+			#Selenium only detects visible elements; if we scroll to the bottom too fast, only 8-9 results will be loaded into IDs list
+			for i in range(300, 3000, 100):
+				self.browser.execute_script("arguments[0].scrollTo(0, {})".format(i), scrollresults)
 			
 			
-			self.browser.execute_script("arguments[0].scrollTo(0, 3000)", scrollresults)
-			
-			time.sleep(3)
+			time.sleep(1)
 			
 			# get job links
 			links = self.browser.find_elements_by_xpath(
@@ -197,12 +198,11 @@ class EasyApplyBot:
 			jobIDs = [x for x in IDs if x not in self.appliedJobIDs]
 			after = len(jobIDs)
 			
-			# it assumed that 25 jobs are listed in the results window, but it does not seem to be true in 2020
-			if len(jobIDs) == 0 and len(IDs) > 8:
-				jobs_per_page = jobs_per_page + 9
+			# it assumed that 25 jobs are listed in the results window
+			if len(jobIDs) == 0 and len(IDs) > 23:
+				jobs_per_page = jobs_per_page + 25
 				count_job = 0
 				self.avoid_lock()
-				print('lock avoided')
 				self.browser, jobs_per_page = self.next_jobs_page(position,
 																	location,
 																	jobs_per_page)
@@ -240,7 +240,7 @@ class EasyApplyBot:
 
 				# go to new page if all jobs are done
 				if count_job == len(jobIDs):
-					jobs_per_page = jobs_per_page + 9
+					jobs_per_page = jobs_per_page + 25
 					count_job = 0
 					log.info("""****************************************\n\n
 					Going to next jobs page, YEAAAHHH!!
@@ -402,6 +402,7 @@ class EasyApplyBot:
 			"https://www.linkedin.com/jobs/search/?f_LF=f_AL&keywords=" +
 			position + location + "&start="+str(jobs_per_page))
 		self.avoid_lock()
+		log.info("Lock avoided.")
 		self.load_page()
 		return (self.browser, jobs_per_page)
 
