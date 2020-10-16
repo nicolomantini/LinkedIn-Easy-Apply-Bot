@@ -160,7 +160,7 @@ class EasyApplyBot:
 			time.sleep(randoTime)
 			self.load_page(sleep=1)
 			
-			#LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom, and back to its top to make it visible to Selenium
+			#LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom
 			
 			scrollresults = self.browser.find_element_by_class_name(
 					"jobs-search-results"
