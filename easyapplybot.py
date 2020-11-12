@@ -325,11 +325,11 @@ class EasyApplyBot:
 						parent = input_button.find_element(By.XPATH, "..")
 						sibling = parent.find_element(By.XPATH, "preceding-sibling::*")
 						grandparent = sibling.find_element(By.XPATH, "..")
-						for key in self.uploads[0].keys():
+						for key in self.uploads.keys():
 							sibling_text = sibling.text
 							gparent_text = grandparent.text
 							if key.lower() in sibling_text.lower() or key in gparent_text.lower():
-								input_button.send_keys(self.uploads[0][key])
+								input_button.send_keys(self.uploads[key])
 
 
 					#input_button[0].send_keys(self.cover_letter_loctn)
@@ -436,8 +436,8 @@ if __name__ == '__main__':
 	output_filename = output_filename[0] if len(output_filename) > 0 else 'output.csv'
 	blacklist = parameters.get('blacklist', [])
 	uploads = parameters.get('uploads', {})
-	for key in uploads[0].keys():
-		assert uploads[0][key] != None
+	for key in uploads.keys():
+		assert uploads[key] != None
 
 	bot = EasyApplyBot(parameters['username'],
 						parameters['password'],
