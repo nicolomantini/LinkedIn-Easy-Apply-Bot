@@ -41,7 +41,8 @@ def setupLogger():
 class EasyApplyBot:
 
 	setupLogger()
-	MAX_SEARCH_TIME = 10*60
+	#MAX_SEARCH_TIME is 10 hours by default, feel free to modify it
+	MAX_SEARCH_TIME = 10*60*60
 
 
 	def __init__(self,
@@ -105,10 +106,11 @@ class EasyApplyBot:
 			login_button = self.browser.find_element_by_css_selector(".btn__primary--large")
 			user_field.send_keys(username)
 			user_field.send_keys(Keys.TAB)
-			time.sleep(1)
+			time.sleep(2)
 			pw_field.send_keys(password)
-			time.sleep(1)
+			time.sleep(2)
 			login_button.click()
+			time.sleep(3)
 		except TimeoutException:
 			log.info("TimeoutException! Username/password field or login button not found")
 
@@ -130,9 +132,9 @@ class EasyApplyBot:
 				log.info(f"Applying to {position}: {location}")
 				location = "&location=" + location
 				self.applications_loop(position, location)
-			if len(combos) > 50:
+			if len(combos) > 500:
 				break
-		self.finish_apply()
+		# self.finish_apply() --> this does seem to cause more harm than good, since it closes the browser which we usually don't want, other conditions will stop the loop and just break out
 
 	def applications_loop(self, position, location):
 
@@ -157,7 +159,19 @@ class EasyApplyBot:
 			log.debug(f"Sleeping for {round(randoTime, 1)}")
 			time.sleep(randoTime)
 			self.load_page(sleep=1)
-
+			
+			#LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom
+			
+			scrollresults = self.browser.find_element_by_class_name(
+					"jobs-search-results"
+					)
+			#Selenium only detects visible elements; if we scroll to the bottom too fast, only 8-9 results will be loaded into IDs list
+			for i in range(300, 3000, 100):
+				self.browser.execute_script("arguments[0].scrollTo(0, {})".format(i), scrollresults)
+			
+			
+			time.sleep(1)
+			
 			# get job links
 			links = self.browser.find_elements_by_xpath(
 					'//div[@data-job-id]'
@@ -183,8 +197,9 @@ class EasyApplyBot:
 			before = len(IDs)
 			jobIDs = [x for x in IDs if x not in self.appliedJobIDs]
 			after = len(jobIDs)
-
-			if len(jobIDs) == 0 and len(IDs) > 24:
+			
+			# it assumed that 25 jobs are listed in the results window
+			if len(jobIDs) == 0 and len(IDs) > 23:
 				jobs_per_page = jobs_per_page + 25
 				count_job = 0
 				self.avoid_lock()
@@ -234,8 +249,8 @@ class EasyApplyBot:
 					self.browser, jobs_per_page = self.next_jobs_page(position,
 																		location,
 																		jobs_per_page)
-			if len(jobIDs) == 0 or i == (len(jobIDs) - 1):
-				break
+			# if len(jobIDs) == 0 or i == (len(jobIDs) - 1):
+				# break
 
 
 	def write_to_file(self, button, jobID, browserTitle, result):
@@ -387,6 +402,7 @@ class EasyApplyBot:
 			"https://www.linkedin.com/jobs/search/?f_LF=f_AL&keywords=" +
 			position + location + "&start="+str(jobs_per_page))
 		self.avoid_lock()
+		log.info("Lock avoided.")
 		self.load_page()
 		return (self.browser, jobs_per_page)
 
