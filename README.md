@@ -30,6 +30,7 @@ uploads:
  Resume: # PATH TO Resume 
  Cover Letter: # PATH TO cover letter
  Photo: # PATH TO photo
+# Note file_key:file_paths contained inside the uploads section should be writted without a dash ('-') 
 
 output_filename:
 - # PATH TO OUTPUT FILE (default output.csv)
