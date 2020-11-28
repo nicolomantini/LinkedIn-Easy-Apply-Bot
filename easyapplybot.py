@@ -440,7 +440,7 @@ if __name__ == '__main__':
 	output_filename = [f for f in parameters.get('output_filename', ['output.csv']) if f != None]
 	output_filename = output_filename[0] if len(output_filename) > 0 else 'output.csv'
 	blacklist = parameters.get('blacklist', [])
-	uploads = parameters.get('uploads', {})
+	uploads = {} if parameters.get('uploads', {}) == None else parameters.get('uploads', {})
 	for key in uploads.keys():
 		assert uploads[key] != None
 
