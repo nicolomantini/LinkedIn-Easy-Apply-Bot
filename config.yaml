@@ -22,3 +22,6 @@ locations:
 
 # blacklist:
 # - # Company names you want to ignore
+
+#blackListTitles:
+#- # Add job titles you want to ignore
