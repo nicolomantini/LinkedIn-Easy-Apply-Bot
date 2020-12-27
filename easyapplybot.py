@@ -421,7 +421,7 @@ if __name__ == '__main__':
     assert parameters['username'] is not None
     assert parameters['password'] is not None
 
-    if type(parameters['uploads']) == list:
+    if 'uploads' in parameters.keys() and type(parameters['uploads']) == list:
         raise Exception("uploads read from the config file appear to be in list format" +
                         " while should be dict. Try removing '-' from line containing" +
                         " filename & path")
