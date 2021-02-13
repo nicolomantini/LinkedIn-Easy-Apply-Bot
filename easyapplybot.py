@@ -19,7 +19,7 @@ import yaml
 from datetime import datetime, timedelta
 
 log = logging.getLogger(__name__)
-driver = webdriver.Chrome(ChromeDriverManager().install())
+# driver = webdriver.Chrome(ChromeDriverManager().install())
 
 
 def setupLogger():
@@ -61,7 +61,7 @@ class EasyApplyBot:
         self.appliedJobIDs = past_ids if past_ids != None else []
         self.filename = filename
         self.options = self.browser_options()
-        self.browser = driver
+        self.browser = webdriver.Chrome(ChromeDriverManager().install(), options=self.options)
         self.wait = WebDriverWait(self.browser, 30)
         self.blacklist = blacklist
         self.blackListTitles = blackListTitles
@@ -94,6 +94,9 @@ class EasyApplyBot:
         # Disable webdriver flags or you will be easily detectable
         options.add_argument("--disable-blink-features")
         options.add_argument("--disable-blink-features=AutomationControlled")
+        if "headless" in parameters.keys():
+                options.headless = parameters["headless"]
+        
         return options
 
     def start_linkedin(self, username, password):
