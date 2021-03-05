@@ -349,6 +349,13 @@ class EasyApplyBot:
                                 button = None
                                 break
                     if button:
+                        #if its the Submit Application page, which is the last page, unclick follow button.
+                        if button.text == 'Submit application':
+                            #find_elements_by_xpath is used for preventing null pointer exception, if the company is already followed.
+                            follow_buttons = self.browser.find_elements_by_xpath(
+                                "//*[text()=' to stay up to date with their page.']")
+                            if len(follow_buttons) > 0:
+                                follow_buttons[0].click()
                         button.click()
                         time.sleep(random.uniform(1.5, 2.5))
                         if i in (2, 3):
