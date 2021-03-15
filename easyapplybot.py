@@ -311,6 +311,7 @@ class EasyApplyBot:
             error_locator = (By.CSS_SELECTOR,
                              "p[data-test-form-element-error-message='true']")
             upload_locator = (By.CSS_SELECTOR, "input[name='file']")
+            follow_locator = (By.CSS_SELECTOR, "label[for='follow-company-checkbox']")
 
             submitted = False
             while True:
@@ -335,7 +336,7 @@ class EasyApplyBot:
 
                 # Click Next or submitt button if possible
                 button = None
-                buttons = [next_locater, review_locater,
+                buttons = [next_locater, review_locater, follow_locator,
                            submit_locater, submit_application_locator]
                 for i, button_locator in enumerate(buttons):
                     if is_present(button_locator):
@@ -353,7 +354,8 @@ class EasyApplyBot:
                         time.sleep(random.uniform(1.5, 2.5))
                         if i in (2, 3):
                             submitted = True
-                        break
+                        if i != 2:
+                            break
                 if button == None:
                     log.info("Could not complete submission")
                     break
