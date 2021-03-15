@@ -352,7 +352,7 @@ class EasyApplyBot:
                     if button:
                         button.click()
                         time.sleep(random.uniform(1.5, 2.5))
-                        if i in (2, 3):
+                        if i in (3, 4):
                             submitted = True
                         if i != 2:
                             break
