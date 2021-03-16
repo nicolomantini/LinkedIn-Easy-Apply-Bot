@@ -8,7 +8,7 @@ Video: https://www.youtube.com/watch?v=4R4E304fEAs
 
 The run the bot install requirements
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 Enter your username, password, and search settings into the `config.yaml` file
