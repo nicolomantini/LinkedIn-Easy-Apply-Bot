@@ -151,111 +151,112 @@ class EasyApplyBot:
         log.info("Looking for jobs.. Please wait..")
 
         while time.time() - start_time < self.MAX_SEARCH_TIME:
-            log.info(f"{(self.MAX_SEARCH_TIME - (time.time() - start_time)) // 60} minutes left in this search")
+            try:
+                log.info(f"{(self.MAX_SEARCH_TIME - (time.time() - start_time)) // 60} minutes left in this search")
 
-            # sleep to make sure everything loads, add random to make us look human.
-            randoTime = random.uniform(3.5, 4.9)
-            log.debug(f"Sleeping for {round(randoTime, 1)}")
-            time.sleep(randoTime)
-            self.load_page(sleep=1)
+                # sleep to make sure everything loads, add random to make us look human.
+                randoTime = random.uniform(3.5, 4.9)
+                log.debug(f"Sleeping for {round(randoTime, 1)}")
+                time.sleep(randoTime)
+                self.load_page(sleep=1)
 
-            # LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom
+                # LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom
 
-            scrollresults = self.browser.find_element_by_class_name(
-                "jobs-search-results"
-            )
-            # Selenium only detects visible elements; if we scroll to the bottom too fast, only 8-9 results will be loaded into IDs list
-            for i in range(300, 3000, 100):
-                self.browser.execute_script("arguments[0].scrollTo(0, {})".format(i), scrollresults)
-
-            time.sleep(1)
-
-            # get job links
-            links = self.browser.find_elements_by_xpath(
-                '//div[@data-job-id]'
-            )
-
-            if len(links) == 0:
-                break
-
-            # get job ID of each job link
-            IDs = []
-            for link in links:
-                children = link.find_elements_by_xpath(
-                    './/a[@data-control-name]'
+                scrollresults = self.browser.find_element_by_class_name(
+                    "jobs-search-results"
                 )
-                for child in children:
-                    if child.text not in self.blacklist:
-                        temp = link.get_attribute("data-job-id")
-                        jobID = temp.split(":")[-1]
-                        IDs.append(int(jobID))
-            IDs = set(IDs)
+                # Selenium only detects visible elements; if we scroll to the bottom too fast, only 8-9 results will be loaded into IDs list
+                for i in range(300, 3000, 100):
+                    self.browser.execute_script("arguments[0].scrollTo(0, {})".format(i), scrollresults)
 
-            # remove already applied jobs
-            before = len(IDs)
-            jobIDs = [x for x in IDs if x not in self.appliedJobIDs]
-            after = len(jobIDs)
+                time.sleep(1)
 
-            # it assumed that 25 jobs are listed in the results window
-            if len(jobIDs) == 0 and len(IDs) > 23:
-                jobs_per_page = jobs_per_page + 25
-                count_job = 0
-                self.avoid_lock()
-                self.browser, jobs_per_page = self.next_jobs_page(position,
-                                                                  location,
-                                                                  jobs_per_page)
-            # loop over IDs to apply
-            for i, jobID in enumerate(jobIDs):
-                count_job += 1
-                self.get_job_page(jobID)
+                # get job links
+                links = self.browser.find_elements_by_xpath(
+                    '//div[@data-job-id]'
+                )
 
-                # get easy apply button
-                button = self.get_easy_apply_button()
-                # word filter to skip positions not wanted
+                if len(links) == 0:
+                    break
 
-                if button is not False:
-                    if any(word in self.browser.title for word in blackListTitles):
-                        log.info('skipping this application, a blacklisted keyword was found in the job position')
-                        string_easy = "* Contains blacklisted keyword"
-                        result = False
-                    else:
-                        string_easy = "* has Easy Apply Button"
-                        log.info("Clicking the EASY apply button")
-                        button.click()
-                        time.sleep(3)
-                        result = self.send_resume()
-                        count_application += 1
-                else:
-                    log.info("The button does not exist.")
-                    string_easy = "* Doesn't have Easy Apply Button"
-                    result = False
+                # get job ID of each job link
+                IDs = []
+                for link in links:
+                    children = link.find_elements_by_xpath(
+                        './/a[@data-control-name]'
+                    )
+                    for child in children:
+                        if child.text not in self.blacklist:
+                            temp = link.get_attribute("data-job-id")
+                            jobID = temp.split(":")[-1]
+                            IDs.append(int(jobID))
+                IDs = set(IDs)
 
-                position_number = str(count_job + jobs_per_page)
-                log.info(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
+                # remove already applied jobs
+                before = len(IDs)
+                jobIDs = [x for x in IDs if x not in self.appliedJobIDs]
+                after = len(jobIDs)
 
-                self.write_to_file(button, jobID, self.browser.title, result)
-
-                # sleep every 20 applications
-                if count_application != 0 and count_application % 20 == 0:
-                    sleepTime = random.randint(500, 900)
-                    log.info(f"""********count_application: {count_application}************\n\n
-                                Time for a nap - see you in:{int(sleepTime / 60)} min
-                            ****************************************\n\n""")
-                    time.sleep(sleepTime)
-
-                # go to new page if all jobs are done
-                if count_job == len(jobIDs):
+                # it assumed that 25 jobs are listed in the results window
+                if len(jobIDs) == 0 and len(IDs) > 23:
                     jobs_per_page = jobs_per_page + 25
                     count_job = 0
-                    log.info("""****************************************\n\n
-                    Going to next jobs page, YEAAAHHH!!
-                    ****************************************\n\n""")
                     self.avoid_lock()
                     self.browser, jobs_per_page = self.next_jobs_page(position,
-                                                                      location,
-                                                                      jobs_per_page)
-        # if len(jobIDs) == 0 or i == (len(jobIDs) - 1):
-        # break
+                                                                    location,
+                                                                    jobs_per_page)
+                # loop over IDs to apply
+                for i, jobID in enumerate(jobIDs):
+                    count_job += 1
+                    self.get_job_page(jobID)
+
+                    # get easy apply button
+                    button = self.get_easy_apply_button()
+                    # word filter to skip positions not wanted
+
+                    if button is not False:
+                        if any(word in self.browser.title for word in blackListTitles):
+                            log.info('skipping this application, a blacklisted keyword was found in the job position')
+                            string_easy = "* Contains blacklisted keyword"
+                            result = False
+                        else:
+                            string_easy = "* has Easy Apply Button"
+                            log.info("Clicking the EASY apply button")
+                            button.click()
+                            time.sleep(3)
+                            result = self.send_resume()
+                            count_application += 1
+                    else:
+                        log.info("The button does not exist.")
+                        string_easy = "* Doesn't have Easy Apply Button"
+                        result = False
+
+                    position_number = str(count_job + jobs_per_page)
+                    log.info(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
+
+                    self.write_to_file(button, jobID, self.browser.title, result)
+
+                    # sleep every 20 applications
+                    if count_application != 0 and count_application % 20 == 0:
+                        sleepTime = random.randint(500, 900)
+                        log.info(f"""********count_application: {count_application}************\n\n
+                                    Time for a nap - see you in:{int(sleepTime / 60)} min
+                                ****************************************\n\n""")
+                        time.sleep(sleepTime)
+
+                    # go to new page if all jobs are done
+                    if count_job == len(jobIDs):
+                        jobs_per_page = jobs_per_page + 25
+                        count_job = 0
+                        log.info("""****************************************\n\n
+                        Going to next jobs page, YEAAAHHH!!
+                        ****************************************\n\n""")
+                        self.avoid_lock()
+                        self.browser, jobs_per_page = self.next_jobs_page(position,
+                                                                        location,
+                                                                        jobs_per_page)
+            except Exception as e:
+                print(e)
 
     def write_to_file(self, button, jobID, browserTitle, result):
         def re_extract(text, pattern):
