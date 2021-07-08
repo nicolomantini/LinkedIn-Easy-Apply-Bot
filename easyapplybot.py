@@ -271,7 +271,7 @@ class EasyApplyBot:
         company = re_extract(browserTitle.split(' | ')[1], r"(\w.*)")
 
         toWrite = [timestamp, jobID, job, company, attempted, result]
-        with open(self.filename, 'a') as f:
+        with open(self.filename, 'a',encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(toWrite)
 
