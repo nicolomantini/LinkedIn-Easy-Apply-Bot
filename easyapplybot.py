@@ -56,7 +56,9 @@ class EasyApplyBot:
                  uploads={},
                  filename='output.csv',
                  blacklist=[],
-                 blackListTitles=[]):
+                 blackListTitles=[],
+                 companysize=[]
+                 ):
 
         log.info("Welcome to Easy Apply Bot")
         dirpath = os.getcwd()
@@ -71,6 +73,7 @@ class EasyApplyBot:
         self.wait = WebDriverWait(self.browser, 30)
         self.blacklist = blacklist
         self.blackListTitles = blackListTitles
+        self.companysize=companysize
         self.start_linkedin(username, password)
 
     def get_appliedIDs(self, filename):
@@ -224,9 +227,9 @@ class EasyApplyBot:
                 for i, jobID in enumerate(jobIDs):
                     count_job += 1
                     self.get_job_page(jobID)
-                    companysize=self.get_company_employee_size()
-                    log.info("Company size "+str(companysize))
-                    if not "10,001" in companysize:
+                    textcompanysize=self.get_company_employee_size()
+                    log.info("Company size "+str(textcompanysize))
+                    if any(word in textcompanysize for word in self.companysize):                    
                         log.info('skipping as company size not matched')
                         continue
                     # get easy apply button
@@ -472,7 +475,7 @@ if __name__ == '__main__':
         output_filename) > 0 else 'output.csv'
     blacklist = parameters.get('blacklist', [])
     blackListTitles = parameters.get('blackListTitles', [])
-
+    companysize=parameters.get('companysize', [])
     uploads = {} if parameters.get(
         'uploads', {}) == None else parameters.get('uploads', {})
     for key in uploads.keys():
@@ -483,7 +486,8 @@ if __name__ == '__main__':
                        uploads=uploads,
                        filename=output_filename,
                        blacklist=blacklist,
-                       blackListTitles=blackListTitles
+                       blackListTitles=blackListTitles,
+                       companysize=companysize
                        )
 
     locations = [l for l in parameters['locations'] if l != None]
