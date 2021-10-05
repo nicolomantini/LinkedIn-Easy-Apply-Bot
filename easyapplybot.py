@@ -224,7 +224,11 @@ class EasyApplyBot:
                 for i, jobID in enumerate(jobIDs):
                     count_job += 1
                     self.get_job_page(jobID)
-
+                    companysize=self.get_company_employee_size()
+                    log.info("Company size "+str(companysize))
+                    if not "10,001" in companysize:
+                        log.info('skipping as company size not matched')
+                        continue
                     # get easy apply button
                     button = self.get_easy_apply_button()
                     # word filter to skip positions not wanted
@@ -299,7 +303,16 @@ class EasyApplyBot:
         self.browser.get(job)
         self.job_page = self.load_page(sleep=0.5)
         return self.job_page
-
+    def get_company_employee_size(self):
+        try:
+            companytext=""
+            cards=self.browser.find_elements_by_class_name(
+            'jobs-unified-top-card__job-insight')
+            for x in cards:
+                companytext=companytext + ' ' + x.text
+            return companytext
+        except:
+            return ''
     def get_easy_apply_button(self):
         try:
             button = self.browser.find_elements_by_xpath(
