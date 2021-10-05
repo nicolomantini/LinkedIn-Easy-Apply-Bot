@@ -34,6 +34,9 @@ uploads:
 
 output_filename:
 - # PATH TO OUTPUT FILE (default output.csv)
+companysize:
+- 5,001-10,000
+- 10,000
 
 blacklist:
 - # Company names you want to ignore
