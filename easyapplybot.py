@@ -229,7 +229,11 @@ class EasyApplyBot:
                     self.get_job_page(jobID)
                     textcompanysize=self.get_company_employee_size()
                     log.info("Company size "+str(textcompanysize))
-                    if any(word in textcompanysize for word in self.companysize):                    
+                    res=False
+                    for l in self.companysize:
+                        if  l in textcompanysize:
+                            res=True
+                    if not res:                    
                         log.info('skipping as company size not matched')
                         continue
                     # get easy apply button
