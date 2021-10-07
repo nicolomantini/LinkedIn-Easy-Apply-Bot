@@ -73,7 +73,7 @@ class EasyApplyBot:
         self.wait = WebDriverWait(self.browser, 30)
         self.blacklist = blacklist
         self.blackListTitles = blackListTitles
-        self.companysize=companysize
+        self.companysize = companysize
         self.start_linkedin(username, password)
 
     def get_appliedIDs(self, filename):
@@ -223,24 +223,25 @@ class EasyApplyBot:
                     self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                       location,
                                                                       jobs_per_page)
+                log.info(self.companysize)
                 # loop over IDs to apply
                 for i, jobID in enumerate(jobIDs):
                     count_job += 1
                     self.get_job_page(jobID)
-                    textcompanysize=self.get_company_employee_size()
+                    textcompanysize = self.get_company_employee_size()
                     log.info("Company size "+str(textcompanysize))
-                    res=False
+                    res = False
                     for l in self.companysize:
-                        if  l in textcompanysize:
-                            res=True
-                    if not res:                    
-                        log.info('skipping as company size not matched')
-                        continue
+                        if l in textcompanysize:
+                            res = True
+                    # if not res:
+                    #     log.info('skipping as company size not matched')
+                    #     continue
                     # get easy apply button
                     button = self.get_easy_apply_button()
                     # word filter to skip positions not wanted
-
-                    if button is not False:
+                    log.info("Match result "+str(res))
+                    if button is not False and res is True:
                         if any(word in self.browser.title for word in blackListTitles):
                             log.info(
                                 'skipping this application, a blacklisted keyword was found in the job position')
@@ -310,16 +311,18 @@ class EasyApplyBot:
         self.browser.get(job)
         self.job_page = self.load_page(sleep=0.5)
         return self.job_page
+
     def get_company_employee_size(self):
         try:
-            companytext=""
-            cards=self.browser.find_elements_by_class_name(
-            'jobs-unified-top-card__job-insight')
+            companytext = ""
+            cards = self.browser.find_elements_by_class_name(
+                'jobs-unified-top-card__job-insight')
             for x in cards:
-                companytext=companytext + ' ' + x.text
+                companytext = companytext + ' ' + x.text
             return companytext
         except:
             return ''
+
     def get_easy_apply_button(self):
         try:
             button = self.browser.find_elements_by_xpath(
@@ -479,7 +482,7 @@ if __name__ == '__main__':
         output_filename) > 0 else 'output.csv'
     blacklist = parameters.get('blacklist', [])
     blackListTitles = parameters.get('blackListTitles', [])
-    companysize=parameters.get('companysize', [])
+    companysize = parameters.get('companysize', [])
     uploads = {} if parameters.get(
         'uploads', {}) == None else parameters.get('uploads', {})
     for key in uploads.keys():
