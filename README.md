@@ -37,10 +37,10 @@ output_filename:
 companysize:
 - 10,001+
 - 5,001-10,000
-- 1,000-5,000
-- 500-1,000
+- 1,001-5,000
+- 501-1,000
 - 10,000  
-- 10,000+  
+- 10,000+ 
 
 blacklist:
 - # Company names you want to ignore
