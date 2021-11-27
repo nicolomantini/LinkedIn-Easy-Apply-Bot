@@ -1,10 +1,13 @@
-import time, random, os, csv, platform
+import time
+import random
+import os
+import csv
+
 import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -34,7 +37,8 @@ def setupLogger():
     log.setLevel(logging.DEBUG)
     c_handler = logging.StreamHandler()
     c_handler.setLevel(logging.DEBUG)
-    c_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', '%H:%M:%S')
+    c_format = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(message)s', '%H:%M:%S')
     c_handler.setFormatter(c_format)
     log.addHandler(c_handler)
 
@@ -71,17 +75,20 @@ class EasyApplyBot:
         try:
             df = pd.read_csv(filename,
                              header=None,
-                             names=['timestamp', 'jobID', 'job', 'company', 'attempted', 'result'],
+                             names=['timestamp', 'jobID', 'job',
+                                    'company', 'attempted', 'result'],
                              lineterminator='\n',
                              encoding='utf-8')
 
-            df['timestamp'] = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S")
+            df['timestamp'] = pd.to_datetime(
+                df['timestamp'], format="%Y-%m-%d %H:%M:%S")
             df = df[df['timestamp'] > (datetime.now() - timedelta(days=2))]
             jobIDs = list(df.jobID)
             log.info(f"{len(jobIDs)} jobIDs found")
             return jobIDs
         except Exception as e:
-            log.info(str(e) + "   jobIDs could not be loaded from CSV {}".format(filename))
+            log.info(
+                str(e) + "   jobIDs could not be loaded from CSV {}".format(filename))
             return None
 
     def browser_options(self):
@@ -98,11 +105,13 @@ class EasyApplyBot:
 
     def start_linkedin(self, username, password):
         log.info("Logging in.....Please wait :)  ")
-        self.browser.get("https://www.linkedin.com/login?trk=guest_homepage-basic_nav-header-signin")
+        self.browser.get(
+            "https://www.linkedin.com/login?trk=guest_homepage-basic_nav-header-signin")
         try:
-            user_field = self.browser.find_element_by_id("username")
-            pw_field = self.browser.find_element_by_id("password")
-            login_button = self.browser.find_element_by_css_selector(".btn__primary--large")
+            user_field = self.browser.find_element(By.ID, "username")
+            pw_field = self.browser.find_element(By.ID, "password")
+            login_button = self.browser.find_element(By.CSS_SELECTOR,
+                                                     ".btn__primary--large")
             user_field.send_keys(username)
             user_field.send_keys(Keys.TAB)
             time.sleep(2)
@@ -111,7 +120,8 @@ class EasyApplyBot:
             login_button.click()
             time.sleep(3)
         except TimeoutException:
-            log.info("TimeoutException! Username/password field or login button not found")
+            log.info(
+                "TimeoutException! Username/password field or login button not found")
 
     def fill_data(self):
         self.browser.set_window_size(0, 0)
@@ -147,12 +157,14 @@ class EasyApplyBot:
 
         self.browser.set_window_position(0, 0)
         self.browser.maximize_window()
-        self.browser, _ = self.next_jobs_page(position, location, jobs_per_page)
+        self.browser, _ = self.next_jobs_page(
+            position, location, jobs_per_page)
         log.info("Looking for jobs.. Please wait..")
 
         while time.time() - start_time < self.MAX_SEARCH_TIME:
             try:
-                log.info(f"{(self.MAX_SEARCH_TIME - (time.time() - start_time)) // 60} minutes left in this search")
+                log.info(
+                    f"{(self.MAX_SEARCH_TIME - (time.time() - start_time)) // 60} minutes left in this search")
 
                 # sleep to make sure everything loads, add random to make us look human.
                 randoTime = random.uniform(3.5, 4.9)
@@ -167,7 +179,8 @@ class EasyApplyBot:
                 )
                 # Selenium only detects visible elements; if we scroll to the bottom too fast, only 8-9 results will be loaded into IDs list
                 for i in range(300, 3000, 100):
-                    self.browser.execute_script("arguments[0].scrollTo(0, {})".format(i), scrollresults)
+                    self.browser.execute_script(
+                        "arguments[0].scrollTo(0, {})".format(i), scrollresults)
 
                 time.sleep(1)
 
@@ -203,8 +216,8 @@ class EasyApplyBot:
                     count_job = 0
                     self.avoid_lock()
                     self.browser, jobs_per_page = self.next_jobs_page(position,
-                                                                    location,
-                                                                    jobs_per_page)
+                                                                      location,
+                                                                      jobs_per_page)
                 # loop over IDs to apply
                 for i, jobID in enumerate(jobIDs):
                     count_job += 1
@@ -216,7 +229,8 @@ class EasyApplyBot:
 
                     if button is not False:
                         if any(word in self.browser.title for word in blackListTitles):
-                            log.info('skipping this application, a blacklisted keyword was found in the job position')
+                            log.info(
+                                'skipping this application, a blacklisted keyword was found in the job position')
                             string_easy = "* Contains blacklisted keyword"
                             result = False
                         else:
@@ -232,9 +246,11 @@ class EasyApplyBot:
                         result = False
 
                     position_number = str(count_job + jobs_per_page)
-                    log.info(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
+                    log.info(
+                        f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
 
-                    self.write_to_file(button, jobID, self.browser.title, result)
+                    self.write_to_file(
+                        button, jobID, self.browser.title, result)
 
                     # sleep every 20 applications
                     if count_application != 0 and count_application % 20 == 0:
@@ -253,8 +269,8 @@ class EasyApplyBot:
                         ****************************************\n\n""")
                         self.avoid_lock()
                         self.browser, jobs_per_page = self.next_jobs_page(position,
-                                                                        location,
-                                                                        jobs_per_page)
+                                                                          location,
+                                                                          jobs_per_page)
             except Exception as e:
                 print(e)
 
@@ -312,7 +328,8 @@ class EasyApplyBot:
             error_locator = (By.CSS_SELECTOR,
                              "p[data-test-form-element-error-message='true']")
             upload_locator = (By.CSS_SELECTOR, "input[name='file']")
-            follow_locator = (By.CSS_SELECTOR, "label[for='follow-company-checkbox']")
+            follow_locator = (
+                By.CSS_SELECTOR, "label[for='follow-company-checkbox']")
 
             submitted = False
             while True:
@@ -324,7 +341,8 @@ class EasyApplyBot:
                                                                upload_locator[1])
                     for input_button in input_buttons:
                         parent = input_button.find_element(By.XPATH, "..")
-                        sibling = parent.find_element(By.XPATH, "preceding-sibling::*")
+                        sibling = parent.find_element(
+                            By.XPATH, "preceding-sibling::*")
                         grandparent = sibling.find_element(By.XPATH, "..")
                         for key in self.uploads.keys():
                             sibling_text = sibling.text
@@ -341,7 +359,8 @@ class EasyApplyBot:
                            submit_locater, submit_application_locator]
                 for i, button_locator in enumerate(buttons):
                     if is_present(button_locator):
-                        button = self.wait.until(EC.element_to_be_clickable(button_locator))
+                        button = self.wait.until(
+                            EC.element_to_be_clickable(button_locator))
 
                     if is_present(error_locator):
                         for element in self.browser.find_elements(error_locator[0],
@@ -366,7 +385,6 @@ class EasyApplyBot:
 
             time.sleep(random.uniform(1.5, 2.5))
 
-
         except Exception as e:
             log.info(e)
             log.info("cannot apply to this job")
@@ -377,7 +395,8 @@ class EasyApplyBot:
     def load_page(self, sleep=1):
         scroll_page = 0
         while scroll_page < 4000:
-            self.browser.execute_script("window.scrollTo(0," + str(scroll_page) + " );")
+            self.browser.execute_script(
+                "window.scrollTo(0," + str(scroll_page) + " );")
             scroll_page += 200
             time.sleep(sleep)
 
@@ -429,14 +448,18 @@ if __name__ == '__main__':
                         " while should be dict. Try removing '-' from line containing" +
                         " filename & path")
 
-    log.info({k: parameters[k] for k in parameters.keys() if k not in ['username', 'password']})
+    log.info({k: parameters[k] for k in parameters.keys()
+             if k not in ['username', 'password']})
 
-    output_filename = [f for f in parameters.get('output_filename', ['output.csv']) if f != None]
-    output_filename = output_filename[0] if len(output_filename) > 0 else 'output.csv'
+    output_filename = [f for f in parameters.get(
+        'output_filename', ['output.csv']) if f != None]
+    output_filename = output_filename[0] if len(
+        output_filename) > 0 else 'output.csv'
     blacklist = parameters.get('blacklist', [])
     blackListTitles = parameters.get('blackListTitles', [])
 
-    uploads = {} if parameters.get('uploads', {}) == None else parameters.get('uploads', {})
+    uploads = {} if parameters.get(
+        'uploads', {}) == None else parameters.get('uploads', {})
     for key in uploads.keys():
         assert uploads[key] != None
 
