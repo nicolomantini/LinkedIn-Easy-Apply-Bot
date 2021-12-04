@@ -129,8 +129,9 @@ class EasyApplyBot:
                 "TimeoutException! Username/password field or login button not found")
 
     def fill_data(self):
-        self.browser.set_window_size(0, 0)
-        self.browser.set_window_position(2000, 2000)
+        # self.browser.set_window_size(0, 0)
+        # self.browser.set_window_position(2000, 2000)
+        self.browser.maximize_window()
 
     def start_apply(self, positions, locations):
         start = time.time()
