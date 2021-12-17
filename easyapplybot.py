@@ -70,6 +70,9 @@ class EasyApplyBot:
         self.filename = filename
         self.options = self.browser_options()
         self.browser = driver
+        #Remove navigator.webdriver Flag using JavaScript
+        self.browser.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+
         self.wait = WebDriverWait(self.browser, 30)
         self.blacklist = blacklist
         self.blackListTitles = blackListTitles
@@ -106,6 +109,8 @@ class EasyApplyBot:
         # Disable webdriver flags or you will be easily detectable
         options.add_argument("--disable-blink-features")
         options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("window-size=1280,800")
+        # options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36")
         return options
 
     def start_linkedin(self, username, password):
