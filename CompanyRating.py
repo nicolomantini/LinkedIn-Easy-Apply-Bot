@@ -1,5 +1,5 @@
 import requests
-
+from bs4 import BeautifulSoup
 url = "https://www.ambitionbox.com/search?CompanyName=Optimal%20Virtual%20Employee&Type=CompanyReview"
 
 payload = {}
@@ -15,4 +15,10 @@ headers = {
 
 response = requests.request("GET", url, headers=headers, data=payload)
 
-print(response.text)
+# print(response.text)
+
+soup = BeautifulSoup(response.text)
+ratingwrapper = soup.find("div", {"class": "rating-wrapper"})
+print(ratingwrapper.text)
+companydetails = soup.find("div", {"class": "content"})
+print(companydetails.text)
