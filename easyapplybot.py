@@ -22,7 +22,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 import re
 import yaml
 from datetime import datetime, timedelta
-
+from CompanyRating import GetCompanyRating
 log = logging.getLogger(__name__)
 driver = webdriver.Chrome(ChromeDriverManager().install())
 
@@ -70,8 +70,9 @@ class EasyApplyBot:
         self.filename = filename
         self.options = self.browser_options()
         self.browser = driver
-        #Remove navigator.webdriver Flag using JavaScript
-        self.browser.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        # Remove navigator.webdriver Flag using JavaScript
+        self.browser.execute_script(
+            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
         self.wait = WebDriverWait(self.browser, 30)
         self.blacklist = blacklist
@@ -240,6 +241,10 @@ class EasyApplyBot:
                     for l in self.companysize:
                         if l in textcompanysize:
                             res = True
+                    companyname = self.get_company_name()
+                    log.info("Company Name"+str(companyname))
+                    companyrating = GetCompanyRating(companyname)
+                    log.info("Company Rating"+str(companyrating))
                     # if not res:
                     #     log.info('skipping as company size not matched')
                     #     continue
@@ -326,6 +331,15 @@ class EasyApplyBot:
             for x in cards:
                 companytext = companytext + ' ' + x.text
             return companytext
+        except:
+            return ''
+
+    def get_company_name(self):
+        try:
+            companyname = ""
+            companyname = self.browser.find_element_by_class_name(
+                'ember-view t-black t-normal').text
+            return companyname
         except:
             return ''
 
