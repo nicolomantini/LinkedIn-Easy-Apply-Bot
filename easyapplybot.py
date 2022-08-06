@@ -119,10 +119,10 @@ class EasyApplyBot:
         self.browser.get(
             "https://www.linkedin.com/login?trk=guest_homepage-basic_nav-header-signin")
         try:
-            user_field = self.browser.find_element_by_id("username")
-            pw_field = self.browser.find_element_by_id("password")
-            login_button = self.browser.find_element_by_css_selector(
-                ".btn__primary--large")
+            user_field = self.browser.find_element(By.ID, "username")
+            pw_field = self.browser.find_element(By.ID, "password")
+            login_button = self.browser.find_element(By.CSS_SELECTOR,
+                                                     ".btn__primary--large")
             user_field.send_keys(username)
             user_field.send_keys(Keys.TAB)
             time.sleep(2)
@@ -186,9 +186,9 @@ class EasyApplyBot:
 
                 # LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom
 
-                scrollresults = self.browser.find_element_by_class_name(
-                    "jobs-search-results"
-                )
+                scrollresults = self.browser.find_element(By.CLASS_NAME,
+                                                          "jobs-search-results"
+                                                          )
                 # Selenium only detects visible elements; if we scroll to the bottom too fast, only 8-9 results will be loaded into IDs list
                 for i in range(300, 3000, 100):
                     self.browser.execute_script(
@@ -197,9 +197,9 @@ class EasyApplyBot:
                 time.sleep(1)
 
                 # get job links
-                links = self.browser.find_elements_by_xpath(
-                    '//div[@data-job-id]'
-                )
+                links = self.browser.find_element(By.XPATH,
+                                                  '//div[@data-job-id]'
+                                                  )
 
                 if len(links) == 0:
                     break
@@ -207,9 +207,9 @@ class EasyApplyBot:
                 # get job ID of each job link
                 IDs = []
                 for link in links:
-                    children = link.find_elements_by_xpath(
-                        './/a[@data-control-name]'
-                    )
+                    children = link.find_element(By.XPATH,
+                                                 './/a[@data-control-name]'
+                                                 )
                     for child in children:
                         if child.text not in self.blacklist:
                             temp = link.get_attribute("data-job-id")
@@ -337,17 +337,17 @@ class EasyApplyBot:
     def get_company_name(self):
         try:
             companyname = ""
-            companyname = self.browser.find_element_by_class_name(
-                'ember-view t-black t-normal').text
+            companyname = self.browser.find_element(By.CLASS_NAME,
+                                                    'ember-view t-black t-normal').text
             return companyname
         except:
             return ''
 
     def get_easy_apply_button(self):
         try:
-            button = self.browser.find_elements_by_xpath(
-                '//button[contains(@class, "jobs-apply")]/span[1]'
-            )
+            button = self.browser.find_element(By.XPATH,
+                                               '//button[contains(@class, "jobs-apply")]/span[1]'
+                                               )
 
             EasyApplyButton = button[0]
         except:
