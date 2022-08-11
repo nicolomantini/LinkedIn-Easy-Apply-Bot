@@ -298,6 +298,16 @@ class EasyApplyBot:
                                                                           jobs_per_page)
             except Exception as e:
                 print(e)
+                # go to new page if Exception
+                jobs_per_page = jobs_per_page + 25
+                count_job = 0
+                log.info("""****************************************\n\n
+                Going to next jobs page, YEAAAHHH!!
+                ****************************************\n\n""")
+                self.avoid_lock()
+                self.browser, jobs_per_page = self.next_jobs_page(position,
+                                                                  location,
+                                                                  jobs_per_page)
 
     def write_to_file(self, button, jobID, browserTitle, result):
         def re_extract(text, pattern):
@@ -397,7 +407,8 @@ class EasyApplyBot:
 
                     # input_button[0].send_keys(self.cover_letter_loctn)
                     time.sleep(random.uniform(4.5, 6.5))
-
+                self.additional_questions()
+                time.sleep(random.uniform(4.5, 6.5))
                 # Click Next or submitt button if possible
                 button = None
                 buttons = [next_locater, review_locater, follow_locator,
@@ -436,6 +447,51 @@ class EasyApplyBot:
             raise (e)
 
         return submitted
+
+    def additional_questions(self):
+        # pdb.set_trace()
+        frm_el = self.browser.find_elements_by_class_name(
+            'jobs-easy-apply-form-section__grouping')
+        if len(frm_el) > 0:
+            for el in frm_el:
+                try:
+                    question = el.find_element(By.CLASS_NAME,
+                                               'jobs-easy-apply-form-element')
+                    question_text = question.find_element(By.CLASS_NAME,
+                                                          'fb-form-element-label').text.lower()
+
+                    txt_field_visible = False
+                    txt_field = question
+                    try:
+                        txt_field = question.find_element_by_class_name(
+                            'fb-single-line-text__input')
+
+                        txt_field_visible = True
+                    except:
+                        try:
+                            txt_field = question.find_element_by_class_name(
+                                'fb-textarea')
+
+                            txt_field_visible = True
+                        except:
+                            pass
+
+                    # if txt_field_visible != True:
+                    #     txt_field = question.find_element_by_class_name(
+                    #         'multi-line-text__input')
+
+                    # text_field_type = txt_field.get_attribute('name').lower()
+                    # if 'numeric' in text_field_type:
+                    #     text_field_type = 'numeric'
+                    # elif 'text' in text_field_type:
+                    #     text_field_type = 'text'
+
+                    to_enter = '0'
+                    txt_field_text = txt_field.get_attribute('value')
+                    if txt_field_text == '':
+                        txt_field.send_keys(to_enter)
+                except:
+                    pass
 
     def load_page(self, sleep=1):
         scroll_page = 0
