@@ -407,7 +407,7 @@ class EasyApplyBot:
 
                     # input_button[0].send_keys(self.cover_letter_loctn)
                     time.sleep(random.uniform(4.5, 6.5))
-                self.additional_questions()
+
                 time.sleep(random.uniform(4.5, 6.5))
                 # Click Next or submitt button if possible
                 button = None
@@ -417,7 +417,7 @@ class EasyApplyBot:
                     if is_present(button_locator):
                         button = self.wait.until(
                             EC.element_to_be_clickable(button_locator))
-
+                    self.additional_questions()
                     if is_present(error_locator):
                         for element in self.browser.find_elements(error_locator[0],
                                                                   error_locator[1]):
