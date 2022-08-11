@@ -187,7 +187,7 @@ class EasyApplyBot:
                 # LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom
 
                 scrollresults = self.browser.find_element(By.CLASS_NAME,
-                                                          "jobs-search-results"
+                                                          "jobs-search-results-list"
                                                           )
                 # Selenium only detects visible elements; if we scroll to the bottom too fast, only 8-9 results will be loaded into IDs list
                 for i in range(300, 3000, 100):
@@ -197,9 +197,9 @@ class EasyApplyBot:
                 time.sleep(1)
 
                 # get job links
-                links = self.browser.find_element(By.XPATH,
-                                                  '//div[@data-job-id]'
-                                                  )
+                links = self.browser.find_elements(By.XPATH,
+                                                   '//div[@data-job-id]'
+                                                   )
 
                 if len(links) == 0:
                     break
@@ -207,9 +207,9 @@ class EasyApplyBot:
                 # get job ID of each job link
                 IDs = []
                 for link in links:
-                    children = link.find_element(By.XPATH,
-                                                 './/a[@data-control-name]'
-                                                 )
+                    children = link.find_elements(By.XPATH,
+                                                  './/a[@data-control-name]'
+                                                  )
                     for child in children:
                         if child.text not in self.blacklist:
                             temp = link.get_attribute("data-job-id")
