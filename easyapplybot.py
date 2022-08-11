@@ -59,7 +59,11 @@ class EasyApplyBot:
                  blackListTitles=[],
                  companysize=[]
                  ):
-
+        with open("config.yaml", 'r') as stream:
+            try:
+                parameters = yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                raise exc
         log.info("Welcome to Easy Apply Bot")
         dirpath = os.getcwd()
         log.info("current directory is : " + dirpath)
@@ -408,7 +412,6 @@ class EasyApplyBot:
                     # input_button[0].send_keys(self.cover_letter_loctn)
                     time.sleep(random.uniform(4.5, 6.5))
 
-                time.sleep(random.uniform(4.5, 6.5))
                 # Click Next or submitt button if possible
                 button = None
                 buttons = [next_locater, review_locater, follow_locator,
@@ -450,8 +453,8 @@ class EasyApplyBot:
 
     def additional_questions(self):
         # pdb.set_trace()
-        frm_el = self.browser.find_elements_by_class_name(
-            'jobs-easy-apply-form-section__grouping')
+        frm_el = self.browser.find_elements(By.CLASS_NAME,
+                                            'jobs-easy-apply-form-section__grouping')
         if len(frm_el) > 0:
             for el in frm_el:
                 try:
@@ -463,14 +466,14 @@ class EasyApplyBot:
                     txt_field_visible = False
                     txt_field = question
                     try:
-                        txt_field = question.find_element_by_class_name(
-                            'fb-single-line-text__input')
+                        txt_field = question.find_element(By.CLASS_NAME,
+                                                          'fb-single-line-text__input')
 
                         txt_field_visible = True
                     except:
                         try:
-                            txt_field = question.find_element_by_class_name(
-                                'fb-textarea')
+                            txt_field = question.find_element(By.CLASS_NAME,
+                                                              'fb-textarea')
 
                             txt_field_visible = True
                         except:
