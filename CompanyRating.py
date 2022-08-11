@@ -25,7 +25,7 @@ def GetCompanyRating(companyname):
 
         # print(response.text)
 
-        soup = BeautifulSoup(response.text)
+        soup = BeautifulSoup(response.text, features="lxml")
         time.sleep(3)
         ratingwrapper = soup.find("div", {"class": "rating-wrapper"})
         print(ratingwrapper.text)
