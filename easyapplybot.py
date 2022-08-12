@@ -227,7 +227,7 @@ class EasyApplyBot:
                 after = len(jobIDs)
 
                 # it assumed that 25 jobs are listed in the results window
-                if len(jobIDs) == 0 and len(IDs) > 23:
+                if len(jobIDs) == 0 and len(IDs) >= 23:
                     jobs_per_page = jobs_per_page + 25
                     count_job = 0
                     self.avoid_lock()
@@ -302,16 +302,6 @@ class EasyApplyBot:
                                                                           jobs_per_page)
             except Exception as e:
                 print(e)
-                # go to new page if Exception
-                jobs_per_page = jobs_per_page + 25
-                count_job = 0
-                log.info("""****************************************\n\n
-                Going to next jobs page, YEAAAHHH!!
-                ****************************************\n\n""")
-                self.avoid_lock()
-                self.browser, jobs_per_page = self.next_jobs_page(position,
-                                                                  location,
-                                                                  jobs_per_page)
 
     def write_to_file(self, button, jobID, browserTitle, result):
         def re_extract(text, pattern):
@@ -340,8 +330,8 @@ class EasyApplyBot:
     def get_company_employee_size(self):
         try:
             companytext = ""
-            cards = self.browser.find_elements_by_class_name(
-                'jobs-unified-top-card__job-insight')
+            cards = self.browser.find_elements(By.CLASS_NAME,
+                                               'jobs-unified-top-card__job-insight')
             for x in cards:
                 companytext = companytext + ' ' + x.text
             return companytext
@@ -523,7 +513,7 @@ class EasyApplyBot:
 
     def next_jobs_page(self, position, location, jobs_per_page):
         JObURL = "https://www.linkedin.com/jobs/search/?f_LF=f_AL&keywords=" + str(urllib.parse.quote(position)) + \
-            location + "&start=" + str(jobs_per_page)
+            location + "&start=" + str(jobs_per_page)+"&refresh=true&sortBy=DD"
         self.browser.get(JObURL)
         self.avoid_lock()
         log.info("Lock avoided.")
