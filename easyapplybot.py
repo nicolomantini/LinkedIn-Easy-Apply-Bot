@@ -57,7 +57,8 @@ class EasyApplyBot:
                  filename='output.csv',
                  blacklist=[],
                  blackListTitles=[],
-                 companysize=[]
+                 companysize=[],
+                 remote=False
                  ):
         with open("config.yaml", 'r') as stream:
             try:
@@ -82,6 +83,7 @@ class EasyApplyBot:
         self.blacklist = blacklist
         self.blackListTitles = blackListTitles
         self.companysize = companysize
+        self.remote = remote
         self.start_linkedin(username, password)
 
     def get_appliedIDs(self, filename):
@@ -256,6 +258,8 @@ class EasyApplyBot:
                     button = self.get_easy_apply_button()
                     # word filter to skip positions not wanted
                     log.info("Match result "+str(res))
+                    if self.remote is True:
+                        res = True
                     if button is not False and res is True:
                         if any(word in self.browser.title for word in blackListTitles):
                             log.info(
@@ -514,6 +518,8 @@ class EasyApplyBot:
     def next_jobs_page(self, position, location, jobs_per_page):
         JObURL = "https://www.linkedin.com/jobs/search/?f_LF=f_AL&keywords=" + str(urllib.parse.quote(position)) + \
             location + "&start=" + str(jobs_per_page)+"&refresh=true&sortBy=DD"
+        if self.remote == True:
+            JObURL = JObURL+"&f_WT=2"
         self.browser.get(JObURL)
         self.avoid_lock()
         log.info("Lock avoided.")
@@ -563,7 +569,8 @@ if __name__ == '__main__':
                        filename=output_filename,
                        blacklist=blacklist,
                        blackListTitles=blackListTitles,
-                       companysize=companysize
+                       companysize=companysize,
+                       remote=parameters['remote']
                        )
 
     locations = [l for l in parameters['locations'] if l != None]
