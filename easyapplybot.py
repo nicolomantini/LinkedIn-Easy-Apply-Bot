@@ -239,73 +239,79 @@ class EasyApplyBot:
                 log.info(self.companysize)
                 # loop over IDs to apply
                 for i, jobID in enumerate(jobIDs):
-                    count_job += 1
-                    self.get_job_page(jobID)
-                    textcompanysize = self.get_company_employee_size()
-                    log.info("Company size "+str(textcompanysize))
-                    res = False
-                    for l in self.companysize:
-                        if l in textcompanysize:
+                    try:
+                        count_job += 1
+                        self.get_job_page(jobID)
+                        textcompanysize = self.get_company_employee_size()
+                        log.info("Company size "+str(textcompanysize))
+                        res = False
+                        for l in self.companysize:
+                            if l in textcompanysize:
+                                res = True
+                        companyname = self.get_company_name()
+                        log.info("Company Name"+str(companyname))
+                        companyrating = GetCompanyRating(companyname)
+                        log.info("Company Rating"+str(companyrating))
+                        # if not res:
+                        #     log.info('skipping as company size not matched')
+                        #     continue
+                        # get easy apply button
+                        button = self.get_easy_apply_button()
+                        # word filter to skip positions not wanted
+                        log.info("Match result "+str(res))
+                        if self.remote is True:
                             res = True
-                    companyname = self.get_company_name()
-                    log.info("Company Name"+str(companyname))
-                    companyrating = GetCompanyRating(companyname)
-                    log.info("Company Rating"+str(companyrating))
-                    # if not res:
-                    #     log.info('skipping as company size not matched')
-                    #     continue
-                    # get easy apply button
-                    button = self.get_easy_apply_button()
-                    # word filter to skip positions not wanted
-                    log.info("Match result "+str(res))
-                    if self.remote is True:
-                        res = True
-                    if button is not False and res is True:
-                        if any(word in self.browser.title for word in blackListTitles):
-                            log.info(
-                                'skipping this application, a blacklisted keyword was found in the job position')
-                            string_easy = "* Contains blacklisted keyword"
-                            result = False
+                        if button is not False and res is True:
+                            if any(word in self.browser.title for word in blackListTitles):
+                                log.info(
+                                    'skipping this application, a blacklisted keyword was found in the job position')
+                                string_easy = "* Contains blacklisted keyword"
+                                result = False
+                            else:
+                                string_easy = "* has Easy Apply Button"
+                                log.info("Clicking the EASY apply button")
+                                button.click()
+                                time.sleep(3)
+                                result = self.send_resume()
+                                count_application += 1
                         else:
-                            string_easy = "* has Easy Apply Button"
-                            log.info("Clicking the EASY apply button")
-                            button.click()
-                            time.sleep(3)
-                            result = self.send_resume()
-                            count_application += 1
-                    else:
-                        log.info("The button does not exist.")
-                        string_easy = "* Doesn't have Easy Apply Button"
-                        result = False
+                            log.info("The button does not exist.")
+                            string_easy = "* Doesn't have Easy Apply Button"
+                            result = False
 
-                    position_number = str(count_job + jobs_per_page)
-                    log.info(
-                        f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
+                        position_number = str(count_job + jobs_per_page)
+                        log.info(
+                            f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
 
-                    self.write_to_file(
-                        button, jobID, self.browser.title, result)
+                        self.write_to_file(
+                            button, jobID, self.browser.title, result)
 
-                    # sleep every 20 applications
-                    if count_application != 0 and count_application % 20 == 0:
-                        sleepTime = random.randint(500, 900)
-                        log.info(f"""********count_application: {count_application}************\n\n
-                                    Time for a nap - see you in:{int(sleepTime / 60)} min
-                                ****************************************\n\n""")
-                        time.sleep(sleepTime)
+                        # sleep every 20 applications
+                        if count_application != 0 and count_application % 20 == 0:
+                            sleepTime = random.randint(500, 900)
+                            log.info(f"""********count_application: {count_application}************\n\n
+                                        Time for a nap - see you in:{int(sleepTime / 60)} min
+                                    ****************************************\n\n""")
+                            time.sleep(sleepTime)
 
-                    # go to new page if all jobs are done
-                    if count_job == len(jobIDs):
-                        jobs_per_page = jobs_per_page + 25
-                        count_job = 0
-                        log.info("""****************************************\n\n
-                        Going to next jobs page, YEAAAHHH!!
-                        ****************************************\n\n""")
-                        self.avoid_lock()
-                        self.browser, jobs_per_page = self.next_jobs_page(position,
-                                                                          location,
-                                                                          jobs_per_page)
+                        # go to new page if all jobs are done
+                        if count_job == len(jobIDs):
+                            jobs_per_page = jobs_per_page + 25
+                            count_job = 0
+                            log.info("""****************************************\n\n
+                            Going to next jobs page, YEAAAHHH!!
+                            ****************************************\n\n""")
+                            self.avoid_lock()
+                            self.browser, jobs_per_page = self.next_jobs_page(position,
+                                                                              location,
+                                                                              jobs_per_page)
+                    except Exception as ex:
+                        print(e)
             except Exception as e:
                 print(e)
+                self.browser, jobs_per_page = self.next_jobs_page(position,
+                                                                  location,
+                                                                  jobs_per_page)
 
     def write_to_file(self, button, jobID, browserTitle, result):
         def re_extract(text, pattern):
