@@ -296,8 +296,9 @@ class EasyApplyBot:
                                     ****************************************\n\n""")
                             # time.sleep(sleepTime)
                             while waitedtime < sleepTime:
-                                waitedtime = waitedtime+60
-                                time.sleep(60)
+                                time = random.randint(1, 60)
+                                waitedtime = waitedtime+time
+                                time.sleep(time)
                                 self.avoid_lock()
 
                         # go to new page if all jobs are done
