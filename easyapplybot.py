@@ -313,7 +313,7 @@ class EasyApplyBot:
                                                                               location,
                                                                               jobs_per_page)
                     except Exception as ex:
-                        print(e)
+                        print(ex)
             except Exception as e:
                 print(e)
                 self.browser, jobs_per_page = self.next_jobs_page(position,
