@@ -214,7 +214,7 @@ class EasyApplyBot:
                 IDs = []
                 for link in links:
                     children = link.find_elements(By.XPATH,
-                                                  './/a[@data-control-name]'
+                                                  './/a[@data-control-id]'
                                                   )
                     for child in children:
                         if child.text not in self.blacklist:
