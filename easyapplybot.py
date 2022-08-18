@@ -1,3 +1,4 @@
+from ast import While
 import time
 import random
 import os
@@ -289,10 +290,15 @@ class EasyApplyBot:
                         # sleep every 20 applications
                         if count_application != 0 and count_application % 20 == 0:
                             sleepTime = random.randint(500, 900)
+                            waitedtime = 0
                             log.info(f"""********count_application: {count_application}************\n\n
                                         Time for a nap - see you in:{int(sleepTime / 60)} min
                                     ****************************************\n\n""")
-                            time.sleep(sleepTime)
+                            # time.sleep(sleepTime)
+                            while waitedtime < sleepTime:
+                                waitedtime = waitedtime+60
+                                time.sleep(60)
+                                self.avoid_lock()
 
                         # go to new page if all jobs are done
                         if count_job == len(jobIDs):
