@@ -296,8 +296,8 @@ class EasyApplyBot:
                                     ****************************************\n\n""")
                             # time.sleep(sleepTime)
                             while waitedtime < sleepTime:
-                                time = random.randint(1, 60)
-                                waitedtime = waitedtime+time
+                                timeinsec = random.randint(1, 60)
+                                waitedtime = waitedtime+timeinsec
                                 time.sleep(time)
                                 self.avoid_lock()
 
