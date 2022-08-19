@@ -286,7 +286,7 @@ class EasyApplyBot:
 
                         self.write_to_file(
                             button, jobID, self.browser.title, result)
-
+                        self.avoid_lock()
                         # sleep every 20 applications
                         if count_application != 0 and count_application % 20 == 0:
                             sleepTime = random.randint(500, 900)
