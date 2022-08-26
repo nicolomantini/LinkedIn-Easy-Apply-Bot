@@ -114,7 +114,7 @@ class EasyApplyBot:
             log.info("TimeoutException! Username/password field or login button not found")
 
     def fill_data(self):
-        self.browser.set_window_size(0, 0)
+        self.browser.set_window_size(1, 1)
         self.browser.set_window_position(2000, 2000)
 
     def start_apply(self, positions, locations):
@@ -145,7 +145,7 @@ class EasyApplyBot:
 
         log.info("Looking for jobs.. Please wait..")
 
-        self.browser.set_window_position(0, 0)
+        self.browser.set_window_position(1, 1)
         self.browser.maximize_window()
         self.browser, _ = self.next_jobs_page(position, location, jobs_per_page)
         log.info("Looking for jobs.. Please wait..")
