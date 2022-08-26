@@ -100,9 +100,10 @@ class EasyApplyBot:
         log.info("Logging in.....Please wait :)  ")
         self.browser.get("https://www.linkedin.com/login?trk=guest_homepage-basic_nav-header-signin")
         try:
-            user_field = self.browser.find_element_by_id("username")
-            pw_field = self.browser.find_element_by_id("password")
-            login_button = self.browser.find_element_by_css_selector(".btn__primary--large")
+            user_field = self.browser.find_element("id","username")
+            pw_field = self.browser.find_element("id","password")
+            login_button = self.browser.find_element("xpath",
+                        '//*[@id="organic-div"]/form/div[3]/button')
             user_field.send_keys(username)
             user_field.send_keys(Keys.TAB)
             time.sleep(2)
@@ -162,7 +163,7 @@ class EasyApplyBot:
 
                 # LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom
 
-                scrollresults = self.browser.find_element_by_class_name(
+                scrollresults = self.browser.find_element(By.CLASS_NAME,
                     "jobs-search-results"
                 )
                 # Selenium only detects visible elements; if we scroll to the bottom too fast, only 8-9 results will be loaded into IDs list
@@ -172,7 +173,7 @@ class EasyApplyBot:
                 time.sleep(1)
 
                 # get job links
-                links = self.browser.find_elements_by_xpath(
+                links = self.browser.find_elements("xpath",
                     '//div[@data-job-id]'
                 )
 
@@ -182,7 +183,7 @@ class EasyApplyBot:
                 # get job ID of each job link
                 IDs = []
                 for link in links:
-                    children = link.find_elements_by_xpath(
+                    children = link.find_elements("xpath",
                         './/a[@data-control-name]'
                     )
                     for child in children:
@@ -284,12 +285,14 @@ class EasyApplyBot:
 
     def get_easy_apply_button(self):
         try:
-            button = self.browser.find_elements_by_xpath(
-                '//button[contains(@class, "jobs-apply")]/span[1]'
+            button = self.browser.find_elements("xpath",
+                '//button[contains(@class, "jobs-apply-button")]'
             )
 
             EasyApplyButton = button[0]
-        except:
+            
+        except Exception as e: 
+            print("Exception:",e)
             EasyApplyButton = False
 
         return EasyApplyButton
