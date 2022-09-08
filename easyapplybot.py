@@ -164,7 +164,7 @@ class EasyApplyBot:
                 # LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom
 
                 scrollresults = self.browser.find_element(By.CLASS_NAME,
-                    "jobs-search-results"
+                    "jobs-search-results-list"
                 )
                 # Selenium only detects visible elements; if we scroll to the bottom too fast, only 8-9 results will be loaded into IDs list
                 for i in range(300, 3000, 100):
