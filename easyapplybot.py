@@ -47,6 +47,7 @@ class EasyApplyBot:
     def __init__(self,
                  username,
                  password,
+                 phone_number,
                  uploads={},
                  filename='output.csv',
                  blacklist=[],
@@ -66,6 +67,7 @@ class EasyApplyBot:
         self.blacklist = blacklist
         self.blackListTitles = blackListTitles
         self.start_linkedin(username, password)
+        self.phone_number = phone_number
 
     def get_appliedIDs(self, filename) -> list | None:
         try:
@@ -122,6 +124,8 @@ class EasyApplyBot:
         start: float = time.time()
         self.fill_data()
 
+        
+
         combos: list = []
         while len(combos) < len(positions) * len(locations):
             position = positions[random.randint(0, len(positions) - 1)]
@@ -172,19 +176,21 @@ class EasyApplyBot:
 
                 time.sleep(1)
 
-                # get job links
+                # get job links, (the following are actually the job card objects)
                 links = self.browser.find_elements("xpath",
                     '//div[@data-job-id]'
                 )
 
                 if len(links) == 0:
+                    log.debug("No links found")
                     break
 
-                # get job ID of each job link
                 IDs: list = []
+                
+                # children selector is the container of the job cards on the left
                 for link in links:
                     children = link.find_elements("xpath",
-                        './/a[@data-control-name]'
+                        '//ul[@class="scaffold-layout__list-container"]'
                     )
                     for child in children:
                         if child.text not in self.blacklist:
@@ -200,10 +206,10 @@ class EasyApplyBot:
 
                 # it assumed that 25 jobs are listed in the results window
                 if len(jobIDs) == 0 and len(IDs) > 23:
-                    jobs_per_page: int = jobs_per_page + 25
+                    jobs_per_page = jobs_per_page + 25
                     count_job = 0
                     self.avoid_lock()
-                    self.browser, jobs_per_page: int = self.next_jobs_page(position,
+                    self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                     location,
                                                                     jobs_per_page)
                 # loop over IDs to apply
@@ -225,6 +231,7 @@ class EasyApplyBot:
                             log.info("Clicking the EASY apply button")
                             button.click()
                             time.sleep(3)
+                            self.fill_out_phone_number()
                             result: bool = self.send_resume()
                             count_application += 1
                     else:
@@ -247,13 +254,13 @@ class EasyApplyBot:
 
                     # go to new page if all jobs are done
                     if count_job == len(jobIDs):
-                        jobs_per_page: int = jobs_per_page + 25
+                        jobs_per_page = jobs_per_page + 25
                         count_job = 0
                         log.info("""****************************************\n\n
                         Going to next jobs page, YEAAAHHH!!
                         ****************************************\n\n""")
                         self.avoid_lock()
-                        self.browser, jobs_per_page: int = self.next_jobs_page(position,
+                        self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                         location,
                                                                         jobs_per_page)
             except Exception as e:
@@ -296,6 +303,43 @@ class EasyApplyBot:
             EasyApplyButton = False
 
         return EasyApplyButton
+
+    def fill_out_phone_number(self) -> bool:
+        def is_present(button_locator) -> bool:
+            return len(self.browser.find_elements(button_locator[0],
+                                                  button_locator[1])) > 0
+        # try:
+        next_locater = (By.CSS_SELECTOR,
+                        "button[aria-label='Continue to next step']")
+
+
+        submitted = False
+
+
+        input_field = self.browser.find_element("xpath", "//input[contains(@name,'phoneNumber')]")
+
+        # Upload Cover Letter if possible
+        if input_field:
+            input_field.send_keys(self.phone_number)
+            time.sleep(random.uniform(4.5, 6.5))
+
+
+            # Click Next or submit button if possible
+            button: None = None
+
+
+            if is_present(next_locater):
+                button: None = self.wait.until(EC.element_to_be_clickable(next_locater))
+            if button:
+                button.click()
+            else:
+                log.info("Could not complete submission")
+        else:
+            log.debug(f"Could not find phone number field")
+                
+
+                
+        return submitted
 
     def send_resume(self) -> bool:
         def is_present(button_locator) -> bool:
@@ -426,6 +470,7 @@ if __name__ == '__main__':
     assert len(parameters['locations']) > 0
     assert parameters['username'] is not None
     assert parameters['password'] is not None
+    assert parameters['phone_number'] is not None
 
     if 'uploads' in parameters.keys() and type(parameters['uploads']) == list:
         raise Exception("uploads read from the config file appear to be in list format" +
@@ -445,6 +490,7 @@ if __name__ == '__main__':
 
     bot = EasyApplyBot(parameters['username'],
                        parameters['password'],
+                       parameters['phone_number'],
                        uploads=uploads,
                        filename=output_filename,
                        blacklist=blacklist,
