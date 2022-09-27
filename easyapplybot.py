@@ -304,7 +304,7 @@ class EasyApplyBot:
 
         return EasyApplyButton
 
-    def fill_out_phone_number(self) -> bool:
+    def fill_out_phone_number(self):
         def is_present(button_locator) -> bool:
             return len(self.browser.find_elements(button_locator[0],
                                                   button_locator[1])) > 0
@@ -312,34 +312,51 @@ class EasyApplyBot:
         next_locater = (By.CSS_SELECTOR,
                         "button[aria-label='Continue to next step']")
 
+        
 
-        submitted = False
 
 
         input_field = self.browser.find_element("xpath", "//input[contains(@name,'phoneNumber')]")
 
-        # Upload Cover Letter if possible
+
         if input_field:
+            input_field.clear()
             input_field.send_keys(self.phone_number)
             time.sleep(random.uniform(4.5, 6.5))
+        
 
 
-            # Click Next or submit button if possible
+            next_locater = (By.CSS_SELECTOR,
+                            "button[aria-label='Continue to next step']")
+            error_locator = (By.CSS_SELECTOR,
+                             "p[data-test-form-element-error-message='true']")
+
+            # Click Next or submitt button if possible
             button: None = None
-
-
             if is_present(next_locater):
                 button: None = self.wait.until(EC.element_to_be_clickable(next_locater))
+
+            if is_present(error_locator):
+                for element in self.browser.find_elements(error_locator[0],
+                                                            error_locator[1]):
+                    text = element.text
+                    if "Please enter a valid answer" in text:
+                        button = None
+                        break
             if button:
                 button.click()
-            else:
-                log.info("Could not complete submission")
+                time.sleep(random.uniform(1.5, 2.5))
+                # if i in (3, 4):
+                #     submitted = True
+                # if i != 2:
+                #     break
+
+
+
         else:
             log.debug(f"Could not find phone number field")
                 
 
-                
-        return submitted
 
     def send_resume(self) -> bool:
         def is_present(button_locator) -> bool:
