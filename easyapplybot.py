@@ -1,4 +1,5 @@
 from ast import While
+from operator import truediv
 import time
 import random
 import os
@@ -59,7 +60,8 @@ class EasyApplyBot:
                  blacklist=[],
                  blackListTitles=[],
                  companysize=[],
-                 remote=False
+                 remote=False,
+                 goodfitonly=False
                  ):
         with open("config.yaml", 'r') as stream:
             try:
@@ -85,6 +87,7 @@ class EasyApplyBot:
         self.blackListTitles = blackListTitles
         self.companysize = companysize
         self.remote = remote
+        self.goodfitonly=goodfitonly
         self.start_linkedin(username, password)
 
     def get_appliedIDs(self, filename):
@@ -246,9 +249,15 @@ class EasyApplyBot:
                         textcompanysize = self.get_company_employee_size()
                         log.info("Company size "+str(textcompanysize))
                         res = False
+                        goodfittext=False
                         for l in self.companysize:
                             if l in textcompanysize:
                                 res = True
+                        if "good fit" in textcompanysize or "You have a preferred" in textcompanysize:
+                            log.info("Good Fit available")
+                            goodfittext=True
+                        else:
+                            log.info("Not a Good Fit")    
                         companyname = self.get_company_name()
                         log.info("Company Name"+str(companyname))
                         companyrating = GetCompanyRating(companyname)
@@ -262,6 +271,9 @@ class EasyApplyBot:
                         log.info("Match result "+str(res))
                         if self.remote is True:
                             res = True
+                        if self.goodfitonly is True and goodfittext is False:
+                            res = False
+                         
                         if button is not False and res is True:
                             if any(word in self.browser.title for word in blackListTitles):
                                 log.info(
@@ -496,7 +508,7 @@ class EasyApplyBot:
                     # elif 'text' in text_field_type:
                     #     text_field_type = 'text'
 
-                    to_enter = '0'
+                    to_enter = '1'
                     txt_field_text = txt_field.get_attribute('value')
                     if txt_field_text == '':
                         txt_field.send_keys(to_enter)
@@ -583,7 +595,8 @@ if __name__ == '__main__':
                        blacklist=blacklist,
                        blackListTitles=blackListTitles,
                        companysize=companysize,
-                       remote=parameters['remote']
+                       remote=parameters['remote'],
+                       goodfitonly=parameters['goodfitonly']
                        )
 
     locations = [l for l in parameters['locations'] if l != None]
