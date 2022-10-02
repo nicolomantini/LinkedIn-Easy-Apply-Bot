@@ -6,8 +6,7 @@ Video: https://www.youtube.com/watch?v=4R4E304fEAs
 
 ## Setup 
 
-My current setup is using Python 3.10 using a conda virtual environment on Linux (Ubuntu)
-Since this projects has some new commits I'm not sure if the people using it were using windows or some other python version, either way it wasn't working for me and I fixed my problem on this fork.
+Python 3.10 using a conda virtual environment on Linux (Ubuntu)
 
 The run the bot install requirements
 ```bash
