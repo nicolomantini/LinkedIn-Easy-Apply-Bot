@@ -6,6 +6,8 @@ Video: https://www.youtube.com/watch?v=4R4E304fEAs
 
 ## Setup 
 
+Python 3.10 using a conda virtual environment on Linux (Ubuntu)
+
 The run the bot install requirements
 ```bash
 pip3 install -r requirements.txt
