@@ -1,6 +1,7 @@
 import time, random, os, csv, platform
 import logging
 from selenium import webdriver
+from future import annotations
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
