@@ -5,3 +5,4 @@ pyautogui
 webdriver_manager
 PyYAML
 lxml
+future
