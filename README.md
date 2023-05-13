@@ -49,6 +49,7 @@ The program takes the titles from the input boxes and tries to match them with
 list in the config file.
 
 ## Execute
+Before executing, make sure 2-factor authentication is off or else the bot will be unable to login
 
 To execute the bot run the following in your terminal
 ```
