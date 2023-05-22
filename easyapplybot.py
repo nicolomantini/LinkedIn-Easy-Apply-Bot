@@ -1,7 +1,7 @@
+from __future__ import annotations
 import time, random, os, csv, platform
 import logging
 from selenium import webdriver
-from future import annotations
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
@@ -313,12 +313,7 @@ class EasyApplyBot:
         next_locater = (By.CSS_SELECTOR,
                         "button[aria-label='Continue to next step']")
 
-        
-
-
-
-        input_field = self.browser.find_element("xpath", "//input[contains(@name,'phoneNumber')]")
-
+        input_field = self.browser.find_element(By.CSS_SELECTOR, "input.artdeco-text-input--input[type='text']")
 
         if input_field:
             input_field.clear()
@@ -376,7 +371,7 @@ class EasyApplyBot:
                                           "button[aria-label='Submit application']")
             error_locator = (By.CSS_SELECTOR,
                              "p[data-test-form-element-error-message='true']")
-            upload_locator = (By.CSS_SELECTOR, "input[name='file']")
+            upload_locator = upload_locator = (By.CSS_SELECTOR, "button[aria-label='DOC, DOCX, PDF formats only (5 MB).']")
             follow_locator = (By.CSS_SELECTOR, "label[for='follow-company-checkbox']")
 
             submitted = False
@@ -389,7 +384,7 @@ class EasyApplyBot:
                                                                upload_locator[1])
                     for input_button in input_buttons:
                         parent = input_button.find_element(By.XPATH, "..")
-                        sibling = parent.find_element(By.XPATH, "preceding-sibling::*")
+                        sibling = parent.find_element(By.XPATH, "preceding-sibling::*[1]")
                         grandparent = sibling.find_element(By.XPATH, "..")
                         for key in self.uploads.keys():
                             sibling_text = sibling.text
