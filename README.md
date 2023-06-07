@@ -55,3 +55,13 @@ To execute the bot run the following in your terminal
 python3 easyapplybot.py
 ```
 
+## Troubleshooting
+If you get an error like this:
+```bash
+Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+```
+Add the following to your .bashrc file
+```bash
+export PATH=$PATH:/home/$USER/.local/bin
+```
+
