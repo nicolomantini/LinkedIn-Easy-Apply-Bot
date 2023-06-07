@@ -7,6 +7,11 @@ Video: https://www.youtube.com/watch?v=4R4E304fEAs
 ## Setup 
 
 Python 3.10 using a conda virtual environment on Linux (Ubuntu)
+Install conda: https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
+```bash
+conda create -n easybot python=3.1o.9 anaconda
+conda activate easybot
+```
 
 The run the bot install requirements
 ```bash
