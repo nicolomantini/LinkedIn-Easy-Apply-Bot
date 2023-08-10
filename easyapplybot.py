@@ -21,7 +21,6 @@ import yaml
 from datetime import datetime, timedelta
 
 log = logging.getLogger(__name__)
-#driver = webdriver.Chrome(ChromeDriverManager().install())
 service = Service()
 options = webdriver.ChromeOptions()
 driver = webdriver.Chrome(service=service, options=options)
