@@ -2,6 +2,7 @@ from __future__ import annotations
 import time, random, os, csv, platform
 import logging
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
@@ -20,8 +21,10 @@ import yaml
 from datetime import datetime, timedelta
 
 log = logging.getLogger(__name__)
-driver = webdriver.Chrome(ChromeDriverManager().install())
-
+#driver = webdriver.Chrome(ChromeDriverManager().install())
+service = Service()
+options = webdriver.ChromeOptions()
+driver = webdriver.Chrome(service=service, options=options)
 
 def setupLogger() -> None:
     dt: str = datetime.strftime(datetime.now(), "%m_%d_%y %H_%M_%S ")
