@@ -25,8 +25,6 @@ log = logging.getLogger(__name__)
 
 driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
 
-driver.get('https://www.google.com/')
-
 def setupLogger() -> None:
     dt: str = datetime.strftime(datetime.now(), "%m_%d_%y %H_%M_%S ")
 
@@ -34,8 +32,10 @@ def setupLogger() -> None:
         os.mkdir('./logs')
 
     # TODO need to check if there is a log dir available or not
-    logging.basicConfig(filename=('./logs/' + str(dt) + 'applyJobs.log'), filemode='w',
-                        format='%(asctime)s::%(name)s::%(levelname)s::%(message)s', datefmt='./logs/%d-%b-%y %H:%M:%S')
+    logging.basicConfig(filename=('./logs/' + str(dt) + 'applyJobs.log'),
+                        filemode='w',
+                        format='%(asctime)s::%(name)s::%(levelname)s::%(message)s',
+                        datefmt='./logs/%d-%b-%y %H:%M:%S')
     log.setLevel(logging.DEBUG)
     c_handler = logging.StreamHandler()
     c_handler.setLevel(logging.DEBUG)
@@ -314,8 +314,8 @@ class EasyApplyBot:
                         self.avoid_lock()
                         self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                         location,
-                                                                        jobFiltersURI,
-                                                                        jobs_per_page)
+                                                                        jobs_per_page,
+                                                                        jobFiltersURI)
             except Exception as e:
                 print(e)
 
@@ -526,51 +526,6 @@ class EasyApplyBot:
         self.load_page()
         return (self.browser, jobs_per_page)
 
-    def get_job_filters_uri(self,
-                            jobListFilterKeys: list = None) -> str:
-        """Building URI (a part of URL) for filters"""
-        log.debug(f"JobListFilterKeys input to URI - {jobListFilterKeys}")
-        assert jobListFilterKeys is not None
-        jobListFiltersURI: str = ''
-        filterKeysMap = {
-            "sort by" : ["Most Relevant",
-                         "Most Recent"],
-            "date posted" : ["Any Time", 
-                             "Past Month",
-                             "Past Week",
-                             "Past 24 hours"],
-            "fast apply enabler" : ["Fast Apply",
-                                    "Usual Apply"]
-            }
-        filterKeysAlignment = {
-            "Most Relevant" : "R",
-            "Most Recent" : "DD",
-            "Any Time" : None,
-            "Past Week" : "r604800",
-            "Past Month" : "r2592000",
-            "Past 24 hours" : "r86400",
-            "Fast Apply" : "f_AL",
-            "Usual Apply" : None
-            }
-
-        filterKeysMapPrefix = {
-            "sort by" : "sortBy",
-            "date posted" : "f_TPR",
-            "fast apply enabler" : "f_LF"
-            }
-
-        for element in jobListFilterKeys:
-            if filterKeysAlignment[element] is not None:
-                for key in filterKeysMapPrefix:
-                    if element in filterKeysMap[key]:
-                        jobListFiltersURI=str(jobListFiltersURI 
-                                             + "&" 
-                                             + filterKeysMapPrefix[key]
-                                             + "="
-                                             + filterKeysAlignment[element])
-        log.debug("URI for filters -" + jobListFiltersURI)
-    
-        return jobListFiltersURI
 
     def finish_apply(self) -> None:
         self.browser.close()
