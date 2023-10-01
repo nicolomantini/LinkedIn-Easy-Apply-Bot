@@ -21,10 +21,10 @@ locations:
 # outputFilename:
 # - # PATH TO OUTPUT FILE (default output.csv)
 
-# blackList:
+blackList:
 # - # Company names you want to ignore
 
-# blackListTitles:
+blackListTitles:
 #- # Add job titles you want to ignore
 
 jobListFilterKeys:

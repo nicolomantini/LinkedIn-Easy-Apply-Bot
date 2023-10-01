@@ -532,49 +532,157 @@ class EasyApplyBot:
         self.browser.exit()
         return None
 
+# TODO read configuration file name from console 
+def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
+    """
+    Unpack the configuration and check the data format. Username and password
+    are separated from other parameters for security reasons. 
+    """
+    def check_missing_parameters(parametersToCheck: dict = None,
+                                 keysToCheck: list = None) -> None:
+        """Check and add missing parameters if something wrong
+        with a config file
+        """
+        p = parametersToCheck
+        if keysToCheck is None:
+            keysToCheck = ['username',
+                           'password',
+                           'phoneNumber',
+                           'positions',
+                           'locations',
+                           'uploads',
+                           'outputFilename',
+                           'blackList',
+                           'blackListTitles',
+                           'jobListFilterKeys']
+        for key in keysToCheck:
+            if key not in p:
+                p[key] = None
+                log.debug(f"Check: added missing parameter {key}")
+        
+        for key in list(p.keys()):
+            if key not in keysToCheck:
+               log.warning(f"Check: unknown parameter {key}") 
 
-if __name__ == '__main__':
+        log.debug("Checked and added parameters: " + str(p.keys()))
+        return p
 
-    with open("config.yaml", 'r') as stream:
+    def check_input_data(parametersToCheck: dict = None,
+                         keysToCheck: list = None) -> bool:
+        """Check the parameters data completion."""
+        p = parametersToCheck
+        if keysToCheck is None:
+            keysToCheck = ['username',
+                           'password',
+                           'locations',
+                           'positions',
+                           'phoneNumber']
+        for key in keysToCheck:
+            try:
+                assert key in p
+                assert p[key] is not None
+            except AssertionError as err:
+                log.exception(f"Parameter {p[key]} is missing or None")
+                raise err
         try:
-            parameters = yaml.safe_load(stream)
+            assert len(p['positions'])*len(p['locations']) < 500
+        except AssertionError as err:
+                log.exception(f"Too many positions and/or locations")
+                raise err
+        log.debug("Input data checked for completion")
+        return p
+
+    def removeNone(userParameters: dict = None,
+                    keysToClean: list = None) -> dict:
+        """
+        Remove None from some lists in configuration.
+        Just to avoid this check later.
+        """
+        p = userParameters
+        if keysToClean is None:
+            keysToClean: list = ['positions',
+                                 'locations',
+                                 'blackList',
+                                 'blackListTitles']
+
+        for key in keysToClean:
+            a_list = p[key]
+            if a_list is not None:
+                a_list = list(set(a_list))
+                log.debug("key, a_list: " + key + ", " + str(a_list))
+                try:
+                    a_list.remove(None)
+                    log.debug(f"Removed 'None' from {key}")
+                except:
+                    log.debug(f"No 'None' in {key}")
+            else:
+                log.debug(f"The {key} is None, skipped")
+            if not a_list:
+                a_list = None
+                log.debug(f"{key} is empty and None")
+            p[key] = a_list
+        
+        log.debug(f"Parameters after none_remover: {p}")
+        
+        return p
+
+    with open(configFile, 'r') as stream:
+        try:
+            userParameters: dict = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
+            log.error(exc)
             raise exc
 
-    assert len(parameters['positions']) > 0
-    assert len(parameters['locations']) > 0
-    assert parameters['username'] is not None
-    assert parameters['password'] is not None
-    assert parameters['phoneNumber'] is not None
+    p = userParameters
+    log.debug(f"Parameters dirty: {p.keys()}")
 
-    if 'uploads' in parameters.keys() and type(parameters['uploads']) == list:
+    p = check_input_data(p, None)
+    log.debug(f"Parameters after check input: {p.keys()}")
+    p = check_missing_parameters(p, None)
+
+    if ('uploads') in p and type(p['uploads']) == list:
         raise Exception("uploads read from the config file appear to be in list format" +
                         " while should be dict. Try removing '-' from line containing" +
                         " filename & path")
 
-    log.info({k: parameters[k] for k in parameters.keys() if k not in ['username', 'password']})
+    loginInformation={'username' : p['username'],
+                       'password' : p['password'],}
 
-    outputFilename: list = [f for f in parameters.get('outputFilename', ['output.csv']) if f != None]
-    outputFilename: list = outputFilename[0] if len(outputFilename) > 0 else 'output.csv'
-    blackList: list = parameters.get('blackList', [])
-    blackListTitles: list = parameters.get('blackListTitles', [])
-    jobListFilterKeys: list = parameters.get('jobListFilterKeys', [])
+    del p['username']
+    del p['password']
 
-    uploads = {} if parameters.get('uploads', {}) == None else parameters.get('uploads', {})
-    for key in uploads.keys():
-        assert uploads[key] != None
+    log.debug(f"Personal information is separated")
+
+    p = removeNone(p)  
+
+    if (('outputFilename' not in p)
+        or (p['outputFilename']) == None):
+        p['outputFilename'] = 'output.csv'
+
+    log.debug(f"Cleared parameters: {p}")
+
+    return userParameters, loginInformation
+
+if __name__ == '__main__':
     
-    bot = EasyApplyBot(parameters['username'],
-                       parameters['password'],
-                       parameters['phone_number'],
-                       uploads=uploads,
-                       filename=outputFilename,
-                       blackList=blackList,
-                       blackListTitles=blackListTitles,
-                       jobListFilterKeys=jobListFilterKeys
-                       )
+    userParameters: dict = None
+    login: dict = None
 
+    userParameters, login = read_configuration()
+    
+    log.info("Parameters:" + str(userParameters))
+
+    bot = EasyApplyBot(login['username'],
+                       login['password'],
+                       userParameters['phoneNumber'],
+                       uploads=userParameters['uploads'],
+                       filename=userParameters['outputFilename'],
+                       blackList=userParameters['blackList'],
+                       blackListTitles=userParameters['blackListTitles'],
+                       jobListFilterKeys=userParameters['jobListFilterKeys']
+                       )
+    exit()
     locations: list = [l for l in parameters['locations'] if l != None]
     positions: list = [p for p in parameters['positions'] if p != None]
-    log.debug(f"Start bot parameters - {positions, locations, str(jobListFilterKeys)}")
-    bot.start_apply(positions, locations, jobListFilterKeys)
+    log.debug(f"Start bot parameters - {positions, locations, str(userParameters['jobListFilterKeys'])}")
+    bot.start_apply(positions, locations, userParameters['jobListFilterKeys'])
