@@ -55,7 +55,7 @@ class EasyApplyBot:
                  phoneNumber,
                  uploads={},
                  filename='output.csv',
-                 blacklist=[],
+                 blackList=[],
                  blackListTitles=[],
                  jobListFilterKeys=[]) -> None:
 
@@ -70,7 +70,7 @@ class EasyApplyBot:
         self.options = self.browser_options()
         self.browser = driver
         self.wait = WebDriverWait(self.browser, 30)
-        self.blacklist = blacklist
+        self.blackList = blackList
         self.blackListTitles = blackListTitles
         self.jobListFilterKeys = jobListFilterKeys
         self.start_linkedin(username, password)
@@ -244,7 +244,7 @@ class EasyApplyBot:
                         '//ul[@class="scaffold-layout__list-container"]'
                     )
                     for child in children:
-                        if child.text not in self.blacklist:
+                        if child.text not in self.blackList:
                             temp = link.get_attribute("data-job-id")
                             jobID = temp.split(":")[-1]
                             IDs.append(int(jobID))
@@ -545,7 +545,7 @@ if __name__ == '__main__':
     assert len(parameters['locations']) > 0
     assert parameters['username'] is not None
     assert parameters['password'] is not None
-    assert parameters['phone_number'] is not None
+    assert parameters['phoneNumber'] is not None
 
     if 'uploads' in parameters.keys() and type(parameters['uploads']) == list:
         raise Exception("uploads read from the config file appear to be in list format" +
@@ -556,7 +556,7 @@ if __name__ == '__main__':
 
     outputFilename: list = [f for f in parameters.get('outputFilename', ['output.csv']) if f != None]
     outputFilename: list = outputFilename[0] if len(outputFilename) > 0 else 'output.csv'
-    blacklist: list = parameters.get('blacklist', [])
+    blackList: list = parameters.get('blackList', [])
     blackListTitles: list = parameters.get('blackListTitles', [])
     jobListFilterKeys: list = parameters.get('jobListFilterKeys', [])
 
@@ -569,7 +569,7 @@ if __name__ == '__main__':
                        parameters['phone_number'],
                        uploads=uploads,
                        filename=outputFilename,
-                       blacklist=blacklist,
+                       blackList=blackList,
                        blackListTitles=blackListTitles,
                        jobListFilterKeys=jobListFilterKeys
                        )
