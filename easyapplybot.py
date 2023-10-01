@@ -582,7 +582,7 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
                 assert key in p
                 assert p[key] is not None
             except AssertionError as err:
-                log.exception(f"Parameter {p[key]} is missing or None")
+                log.exception(f"Parameter '{key}' is missing or None")
                 raise err
         try:
             assert len(p['positions'])*len(p['locations']) < 500

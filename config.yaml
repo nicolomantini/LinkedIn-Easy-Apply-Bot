@@ -1,6 +1,6 @@
-username: 
-password: 
-phoneNumber: 
+username:
+password:
+phoneNumber:
 
 positions:
 - Data Scientist
@@ -12,7 +12,7 @@ locations:
 - # A second location you want to search in 
 
 # --------- Optional Parameters -------
-# uploads:
+uploads:
 #  Resume: # PATH TO Resume 
 #  Cover Letter: # PATH TO cover letter
 #  Photo: # PATH TO photo
