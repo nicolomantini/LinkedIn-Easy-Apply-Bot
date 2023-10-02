@@ -17,15 +17,14 @@ uploads:
 #  Cover Letter: # PATH TO cover letter
 #  Photo: # PATH TO photo
 
-
 outputFilename:
-# - # PATH TO OUTPUT FILE (default output.csv)
+- # PATH TO OUTPUT FILE (default output.csv)
 
 blackListCompanies:
-# - # Company names you want to ignore
+- # Company names you want to ignore
 
 blackListTitles:
-#- # Add job titles you want to ignore
+- # Add job titles you want to ignore
 
 jobListFilterKeys:
 - Most Recent # Most Recent | Most Relevant - Sort by
