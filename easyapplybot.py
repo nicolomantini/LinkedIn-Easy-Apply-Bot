@@ -1,6 +1,7 @@
 from __future__ import annotations
-import time, random, os, csv, platform
+import time, random, os, csv, sys, platform
 import logging
+import argparse
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -23,8 +24,6 @@ from datetime import datetime, timedelta
 
 log = logging.getLogger(__name__)
 
-driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
-
 def setupLogger() -> None:
     dt: str = datetime.strftime(datetime.now(), "%m_%d_%y %H_%M_%S ")
 
@@ -42,7 +41,7 @@ def setupLogger() -> None:
     c_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', '%H:%M:%S')
     c_handler.setFormatter(c_format)
     log.addHandler(c_handler)
-
+    return None
 
 class EasyApplyBot:
     setupLogger()
@@ -538,6 +537,7 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
     Unpack the configuration and check the data format. Username and password
     are separated from other parameters for security reasons. 
     """
+    log.info("Reading configuration from " + configFile + " ...")
     def check_missing_parameters(parametersToCheck: dict = None,
                                  keysToCheck: list = None) -> None:
         """Check and add missing parameters if something wrong
@@ -580,16 +580,24 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
         for key in keysToCheck:
             try:
                 assert key in p
+            except AssertionError as err:
+                log.exception("Parameter '" 
+                              + key
+                              + "' is missing")
+                raise err
+            try:
                 assert p[key] is not None
             except AssertionError as err:
-                log.exception(f"Parameter '{key}' is missing or None")
+                log.exception(f"Parameter '"
+                              + key
+                              + "' is None")
                 raise err
         try:
             assert len(p['positions'])*len(p['locations']) < 500
         except AssertionError as err:
-                log.exception(f"Too many positions and/or locations")
+                log.exception("Too many positions and/or locations")
                 raise err
-        log.debug("Input data checked for completion")
+        log.debug("Input data checked for completion.")
         return p
 
     def removeNone(userParameters: dict = None,
@@ -604,7 +612,6 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
                                  'locations',
                                  'blackListCompanies',
                                  'blackListTitles']
-
         for key in keysToClean:
             a_list = p[key]
             if a_list is not None:
@@ -621,9 +628,7 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
                 a_list = None
                 log.debug(f"{key} is empty and None")
             p[key] = a_list
-        
         log.debug(f"Parameters after none_remover: {p}")
-        
         return p
 
     with open(configFile, 'r') as stream:
@@ -632,26 +637,25 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
         except yaml.YAMLError as exc:
             log.error(exc)
             raise exc
-
+    
     p = userParameters
     log.debug(f"Parameters dirty: {p.keys()}")
-
     p = check_input_data(p, None)
     log.debug(f"Parameters after check input: {p.keys()}")
     p = check_missing_parameters(p, None)
 
     if ('uploads') in p and type(p['uploads']) == list:
-        raise Exception("uploads read from the config file appear to be in list format" +
+        raise Exception("Uploads read from the config file appear to be in list format" +
                         " while should be dict. Try removing '-' from line containing" +
                         " filename & path")
 
     loginInformation={'username' : p['username'],
-                       'password' : p['password'],}
+                      'password' : p['password'],}
 
     del p['username']
     del p['password']
 
-    log.debug(f"Personal information is separated")
+    log.debug(f"Personal information is separated.")
 
     p = removeNone(p)  
 
@@ -663,13 +667,44 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
 
     return userParameters, loginInformation
 
+def parse_command_line_parameters(clParameters: list = None) -> dict:
+    """Define input parameters for command string.
+    Check config file for existing.
+    """
+    log.info("Checking command prompt parameters...")
+    parser = argparse.ArgumentParser(prog="LinkedIn Easy Apply Bot",
+                description="Some parameters to start with command line",
+                usage="The bot options:",
+                formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--config",
+                        type=str,
+                        default="config.yaml",
+                        help="configuration file, YAML formatted")
+    args = parser.parse_args(clParameters)
+    
+    log.debug("Command string parameters: " + str(vars(args)))
+
+    try:
+        assert os.path.isfile(args.config)
+    except AssertionError as err:
+        log.exception("Config file " + args.config + " doesn't exist")
+        raise err
+    log.debug("Config file " + args.config + " is exist.")
+    log.info("Parameters:" + str(vars(args)))
+    return vars(args)
+
 if __name__ == '__main__':
     
     userParameters: dict = None
     login: dict = None
-
-    userParameters, login = read_configuration()
+    configCommandString: dict = None
     
+    configCommandString = parse_command_line_parameters(sys.argv[1:])
+
+    userParameters, login = read_configuration(configCommandString['config'])
+    
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+
     log.info("Parameters:" + str(userParameters))
 
     bot = EasyApplyBot(login['username'],
@@ -682,7 +717,8 @@ if __name__ == '__main__':
                        jobListFilterKeys=userParameters['jobListFilterKeys']
                        )
     
-    locations: list = [l for l in parameters['locations'] if l != None]
-    positions: list = [p for p in parameters['positions'] if p != None]
+    locations: list = [l for l in userParameters['locations'] if l != None]
+    positions: list = [p for p in userParameters['positions'] if p != None]
+
     log.debug(f"Start bot parameters - {positions, locations, str(userParameters['jobListFilterKeys'])}")
     bot.start_apply(positions, locations, userParameters['jobListFilterKeys'])

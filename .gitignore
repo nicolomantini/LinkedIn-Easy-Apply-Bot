@@ -149,3 +149,5 @@ quickstart.py
 states.json
 logs
 .vscode
+private
+private/*
