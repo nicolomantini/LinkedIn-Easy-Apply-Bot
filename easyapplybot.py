@@ -597,7 +597,7 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
         except AssertionError as err:
                 log.exception("Too many positions and/or locations")
                 raise err
-        log.debug("Input data checked for completion")
+        log.debug("Input data checked for completion.")
         return p
 
     def removeNone(userParameters: dict = None,
@@ -612,7 +612,6 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
                                  'locations',
                                  'blackListCompanies',
                                  'blackListTitles']
-
         for key in keysToClean:
             a_list = p[key]
             if a_list is not None:
@@ -629,9 +628,7 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
                 a_list = None
                 log.debug(f"{key} is empty and None")
             p[key] = a_list
-        
         log.debug(f"Parameters after none_remover: {p}")
-        
         return p
 
     with open(configFile, 'r') as stream:
@@ -640,26 +637,25 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
         except yaml.YAMLError as exc:
             log.error(exc)
             raise exc
-
+    
     p = userParameters
     log.debug(f"Parameters dirty: {p.keys()}")
-
     p = check_input_data(p, None)
     log.debug(f"Parameters after check input: {p.keys()}")
     p = check_missing_parameters(p, None)
 
     if ('uploads') in p and type(p['uploads']) == list:
-        raise Exception("uploads read from the config file appear to be in list format" +
+        raise Exception("Uploads read from the config file appear to be in list format" +
                         " while should be dict. Try removing '-' from line containing" +
                         " filename & path")
 
     loginInformation={'username' : p['username'],
-                       'password' : p['password'],}
+                      'password' : p['password'],}
 
     del p['username']
     del p['password']
 
-    log.debug(f"Personal information is separated")
+    log.debug(f"Personal information is separated.")
 
     p = removeNone(p)  
 
@@ -707,7 +703,6 @@ if __name__ == '__main__':
 
     userParameters, login = read_configuration(configCommandString['config'])
     
-    exit()
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
 
     log.info("Parameters:" + str(userParameters))
@@ -722,7 +717,8 @@ if __name__ == '__main__':
                        jobListFilterKeys=userParameters['jobListFilterKeys']
                        )
     
-    locations: list = [l for l in parameters['locations'] if l != None]
-    positions: list = [p for p in parameters['positions'] if p != None]
+    locations: list = [l for l in userParameters['locations'] if l != None]
+    positions: list = [p for p in userParameters['positions'] if p != None]
+
     log.debug(f"Start bot parameters - {positions, locations, str(userParameters['jobListFilterKeys'])}")
     bot.start_apply(positions, locations, userParameters['jobListFilterKeys'])
