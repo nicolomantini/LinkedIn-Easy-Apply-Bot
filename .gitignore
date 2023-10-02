@@ -148,3 +148,4 @@ venv8/
 quickstart.py
 states.json
 logs
+.vscode
