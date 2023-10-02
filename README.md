@@ -38,7 +38,7 @@ uploads:
 outputFilename:
 - # PATH TO OUTPUT FILE (default output.csv)
 
-blackList:
+blackListCompanies:
 - # Company names you want to ignore
 
 blackListTitles:

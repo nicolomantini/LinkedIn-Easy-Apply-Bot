@@ -552,7 +552,7 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
                            'locations',
                            'uploads',
                            'outputFilename',
-                           'blackList',
+                           'blackListCompanies',
                            'blackListTitles',
                            'jobListFilterKeys']
         for key in keysToCheck:
@@ -602,7 +602,7 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
         if keysToClean is None:
             keysToClean: list = ['positions',
                                  'locations',
-                                 'blackList',
+                                 'blackListCompanies',
                                  'blackListTitles']
 
         for key in keysToClean:
@@ -677,11 +677,11 @@ if __name__ == '__main__':
                        userParameters['phoneNumber'],
                        uploads=userParameters['uploads'],
                        filename=userParameters['outputFilename'],
-                       blackList=userParameters['blackList'],
+                       blackList=userParameters['blackListCompanies'],
                        blackListTitles=userParameters['blackListTitles'],
                        jobListFilterKeys=userParameters['jobListFilterKeys']
                        )
-    exit()
+    
     locations: list = [l for l in parameters['locations'] if l != None]
     positions: list = [p for p in parameters['positions'] if p != None]
     log.debug(f"Start bot parameters - {positions, locations, str(userParameters['jobListFilterKeys'])}")
