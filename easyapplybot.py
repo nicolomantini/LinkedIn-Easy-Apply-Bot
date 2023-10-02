@@ -35,9 +35,9 @@ def setupLogger() -> None:
                         filemode='w',
                         format='%(asctime)s::%(name)s::%(levelname)s::%(message)s',
                         datefmt='./logs/%d-%b-%y %H:%M:%S')
-    log.setLevel(logging.DEBUG)
+    log.setLevel(logging.INFO)
     c_handler = logging.StreamHandler()
-    c_handler.setLevel(logging.DEBUG)
+    c_handler.setLevel(logging.INFO)
     c_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', '%H:%M:%S')
     c_handler.setFormatter(c_format)
     log.addHandler(c_handler)
@@ -657,7 +657,7 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
 
     log.debug(f"Personal information is separated.")
 
-    p = removeNone(p)  
+    p = removeNone(p)
 
     if (('outputFilename' not in p)
         or (p['outputFilename']) == None):

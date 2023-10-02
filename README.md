@@ -59,8 +59,15 @@ list in the config file.
 
 ## Execute
 
-To execute the bot run the following in your terminal
+To execute the bot with default config file run the following in your terminal
 ```
 python3 easyapplybot.py
 ```
-
+You can use the bot with a separate config.
+- Create the ```private``` folder in the bot folder - this folder is excluded in .gitignore and more or less safe for your personal information
+- Copy ```config.yaml``` to the ```private``` directory
+- Make changes in copy
+- Run the bot with
+```
+python3 easyapplybot.py --config private/config.yaml
+```
