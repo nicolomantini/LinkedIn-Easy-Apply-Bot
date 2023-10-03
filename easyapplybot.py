@@ -595,8 +595,8 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
         try:
             assert len(p['positions'])*len(p['locations']) < 500
         except AssertionError as err:
-                log.exception("Too many positions and/or locations")
-                raise err
+            log.exception("Too many positions and/or locations")
+            raise err
         log.debug("Input data checked for completion.")
         return p
 
