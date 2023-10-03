@@ -71,3 +71,11 @@ You can use the bot with a separate config.
 ```
 python3 easyapplybot.py --config private/config.yaml
 ```
+### Additional parameters
+```
+options:
+  -h, --help       show this help message and exit
+  --config CONFIG  configuration file, YAML formatted (default: config.yaml)
+  --forcelogin     force login no matter cookies (default: False)
+  --nobot          do all the setup but not start the bot (default: False)
+```

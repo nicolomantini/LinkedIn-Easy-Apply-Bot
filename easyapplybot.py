@@ -2,6 +2,8 @@ from __future__ import annotations
 import time, random, os, csv, sys, platform
 import logging
 import argparse
+import pickle
+import datetime 
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -43,20 +45,29 @@ def setupLogger() -> None:
     log.addHandler(c_handler)
     return None
 
+def get_browser_options():
+    options = Options()
+    options.add_argument("--start-maximized")
+    options.add_argument("--ignore-certificate-errors")
+    options.add_argument('--no-sandbox')
+    options.add_argument("--disable-extensions")
+    # Disable webdriver flags or you will be easily detectable
+    options.add_argument("--disable-blink-features")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    return options
 class EasyApplyBot:
     setupLogger()
     # MAX_SEARCH_TIME is 10 hours by default, feel free to modify it
     MAX_SEARCH_TIME = 10 * 60 * 60
 
     def __init__(self,
-                 username,
-                 password,
                  phoneNumber,
                  uploads={},
                  filename='output.csv',
                  blackList=[],
                  blackListTitles=[],
-                 jobListFilterKeys=[]) -> None:
+                 jobListFilterKeys=[],
+                 cookies=[]) -> None:
 
         log.info("Welcome to Easy Apply Bot")
         dirpath: str = os.getcwd()
@@ -66,17 +77,23 @@ class EasyApplyBot:
         past_ids: list | None = self.get_appliedIDs(filename)
         self.appliedJobIDs: list = past_ids if past_ids != None else []
         self.filename: str = filename
-        self.options = self.browser_options()
-        self.browser = driver
-        self.wait = WebDriverWait(self.browser, 30)
         self.blackList = blackList
         self.blackListTitles = blackListTitles
         self.jobListFilterKeys = jobListFilterKeys
-        self.start_linkedin(username, password)
         self.phone_number = phoneNumber
+        
+        #browser start
+        self.options = browserOptions
+        self.cookies = cookies
+        self.browser = webdriver.Chrome(service = 
+                                ChromeService(ChromeDriverManager().install()),
+                                options=self.options)
+        self.browser.get('https://www.linkedin.com/')
+        for cookie in self.cookies: self.browser.add_cookie(cookie)
+        self.wait = WebDriverWait(self.browser, 30)
         return None
 
-    def get_appliedIDs(self, filename) -> list | None:
+    def get_appliedIDs(self, filename: str) -> list | None:
         try:
             df = pd.read_csv(filename,
                              header=None,
@@ -92,36 +109,6 @@ class EasyApplyBot:
         except Exception as e:
             log.info(str(e) + "   jobIDs could not be loaded from CSV {}".format(filename))
             return None
-
-    def browser_options(self):
-        options = Options()
-        options.add_argument("--start-maximized")
-        options.add_argument("--ignore-certificate-errors")
-        options.add_argument('--no-sandbox')
-        options.add_argument("--disable-extensions")
-
-        # Disable webdriver flags or you will be easily detectable
-        options.add_argument("--disable-blink-features")
-        options.add_argument("--disable-blink-features=AutomationControlled")
-        return options
-
-    def start_linkedin(self, username, password) -> None:
-        log.info("Logging in.....Please wait :)  ")
-        self.browser.get("https://www.linkedin.com/login?trk=guest_homepage-basic_nav-header-signin")
-        try:
-            user_field = self.browser.find_element("id","username")
-            pw_field = self.browser.find_element("id","password")
-            login_button = self.browser.find_element("xpath",
-                        '//*[@id="organic-div"]/form/div[3]/button')
-            user_field.send_keys(username)
-            user_field.send_keys(Keys.TAB)
-            time.sleep(2)
-            pw_field.send_keys(password)
-            time.sleep(2)
-            login_button.click()
-            time.sleep(3)
-        except TimeoutException:
-            log.info("TimeoutException! Username/password field or login button not found")
 
     def fill_data(self) -> None:
         self.browser.set_window_size(1, 1)
@@ -531,13 +518,12 @@ class EasyApplyBot:
         self.browser.exit()
         return None
 
-# TODO read configuration file name from console 
 def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
     """
     Unpack the configuration and check the data format. Username and password
     are separated from other parameters for security reasons. 
     """
-    log.info("Reading configuration from " + configFile + " ...")
+    log.info(f"Reading configuration from {configFile} ...")
     def check_missing_parameters(parametersToCheck: dict = None,
                                  keysToCheck: list = None) -> None:
         """Check and add missing parameters if something wrong
@@ -641,7 +627,6 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
     p = userParameters
     log.debug(f"Parameters dirty: {p.keys()}")
     p = check_input_data(p, None)
-    log.debug(f"Parameters after check input: {p.keys()}")
     p = check_missing_parameters(p, None)
 
     if ('uploads') in p and type(p['uploads']) == list:
@@ -658,13 +643,13 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
     log.debug(f"Personal information is separated.")
 
     p = removeNone(p)
-
+ 
     if (('outputFilename' not in p)
-        or (p['outputFilename']) == None):
+        or (p['outputFilename'] is None)
+        or (p['outputFilename'] is [None])):
         p['outputFilename'] = 'output.csv'
 
     log.debug(f"Cleared parameters: {p}")
-
     return userParameters, loginInformation
 
 def parse_command_line_parameters(clParameters: list = None) -> dict:
@@ -680,41 +665,133 @@ def parse_command_line_parameters(clParameters: list = None) -> dict:
                         type=str,
                         default="config.yaml",
                         help="configuration file, YAML formatted")
+    parser.add_argument("--forcelogin",
+                        action='store_true',
+                        help="force login no matter cookies")
+    parser.add_argument("--nobot",
+                        action='store_true',
+                        help="do all setup but not start the bot")
     args = parser.parse_args(clParameters)
-    
-    log.debug("Command string parameters: " + str(vars(args)))
-
+    log.debug(f"Command string parameters: {str(vars(args))}")
     try:
         assert os.path.isfile(args.config)
     except AssertionError as err:
-        log.exception("Config file " + args.config + " doesn't exist")
+        log.exception(f"Config file {args.config} doesn't exist")
         raise err
-    log.debug("Config file " + args.config + " is exist.")
-    log.info("Parameters:" + str(vars(args)))
+    log.debug(f"Config file {args.config} is exist.")
     return vars(args)
+
+def login_to_LinkedIn(login: dict = None,
+                      config: str = None,
+                      browserOptions = None,
+                      forceLogin: bool = 0) -> dict | None:
+    """Login to linkedIn and collect cookies
+    if cookies aren't exist or expired.
+    Otherwise, return stored cookies.
+    """
+    log.info('Login to LinkedIn...')
+    cookiesFileName = config + ".cookies"
+
+    def check_actual_cookies(cookiesFileName: str = None) -> bool:
+        '''Define filename for cookies, try to open it
+        and check cookies actuality
+        '''
+        log.debug("Checking cookies...")
+        cookies: list = None
+        if os.path.exists(cookiesFileName):
+            log.debug(f"Found the cookie file {cookiesFileName}, reading...")
+            try:
+                cookies = pickle.load(open(cookiesFileName, "rb"))
+                log.debug(f"Cookies loaded")
+            except:
+                log.error("Something wrong withthe cookie file")
+                raise
+            loginExpires = [cookie['expiry'] for cookie in cookies
+                            if cookie['name'] == 'li_at'][0]
+            if datetime.fromtimestamp(loginExpires) <= datetime.today():
+                log.warning("Auth cookie expiried, need to login.")
+                cookies = None
+            else:
+                log.info("Auth cookie will expire "
+                          + str(datetime.fromtimestamp(loginExpires))
+                          + ", no need to login")
+        else:
+            log.debug(f"The cookie file {cookiesFileName} is not found.")
+            cookies = None
+        return cookies
+
+    def login_in_browser(FileName: str = None,
+                         browserOptions = None,
+                         login: dict = None) -> list:
+        '''Log in by browser and store cookies into the file,
+        return actual cookies.
+        '''
+        log.info("Logging in.....Please wait :)  ")
+        cookies: list = None
+        driver = webdriver.Chrome(service =
+                                  ChromeService(ChromeDriverManager().install()),
+                                  options=browserOptions)
+        driver.get("https://www.linkedin.com/login?trk=guest_homepage-basic_nav-header-signin")
+        try:
+            user_field = driver.find_element("id","username")
+            pw_field = driver.find_element("id","password")
+            login_button = driver.find_element("xpath",
+                        '//*[@id="organic-div"]/form/div[3]/button')
+            user_field.send_keys(login['username'])
+            user_field.send_keys(Keys.TAB)
+            time.sleep(2)
+            pw_field.send_keys(login['password'])
+            time.sleep(2)
+            login_button.click()
+            time.sleep(3)
+        except TimeoutException as err:
+            log.info("TimeoutException! Username/password field"
+                     + "or login button not found")
+            raise err
+        # TODO check login result not by timeout
+        cookies = driver.get_cookies()
+        pickle.dump(cookies, open(FileName, "wb"))
+        driver.close()
+        driver.quit()
+        return cookies
+    
+    if (forceLogin and os.path.exists(cookiesFileName)):
+        log.info("Force Login - cookies are deleted")
+        os.remove(cookiesFileName)
+    cookies = check_actual_cookies(cookiesFileName)
+    if cookies is None:
+        cookies = login_in_browser(cookiesFileName, browserOptions, login)
+        
+    return cookies
 
 if __name__ == '__main__':
     
     userParameters: dict = None
     login: dict = None
     configCommandString: dict = None
-    
+    cookies: list = None
+    browserOptions = get_browser_options()
+
     configCommandString = parse_command_line_parameters(sys.argv[1:])
-
     userParameters, login = read_configuration(configCommandString['config'])
-    
-    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+    cookies = login_to_LinkedIn(login,
+                                configCommandString['config'],
+                                browserOptions,
+                                configCommandString['forcelogin'])
 
-    log.info("Parameters:" + str(userParameters))
+    log.debug(f"Output filename: {userParameters['outputFilename']}")
 
-    bot = EasyApplyBot(login['username'],
-                       login['password'],
-                       userParameters['phoneNumber'],
+    if configCommandString['nobot']:
+        log.info("Launched with --nobot parameter. Forced exit.")
+        exit()
+
+    bot = EasyApplyBot(userParameters['phoneNumber'],
                        uploads=userParameters['uploads'],
                        filename=userParameters['outputFilename'],
                        blackList=userParameters['blackListCompanies'],
                        blackListTitles=userParameters['blackListTitles'],
-                       jobListFilterKeys=userParameters['jobListFilterKeys']
+                       jobListFilterKeys=userParameters['jobListFilterKeys'],
+                       cookies=cookies
                        )
     
     locations: list = [l for l in userParameters['locations'] if l != None]
