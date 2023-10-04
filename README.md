@@ -29,6 +29,7 @@ locations:
 - # Location you want to search for
 - # A second location you want to search in 
 
+# --------- Optional Parameters -------
 uploads:
  Resume: # PATH TO Resume 
  Cover Letter: # PATH TO cover letter

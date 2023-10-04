@@ -3,7 +3,8 @@ import time, random, os, csv, sys, platform
 import logging
 import argparse
 import pickle
-import datetime 
+import datetime
+from itertools import product
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -14,9 +15,10 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup as bs4
 import pandas as pd
 import pyautogui
+import codecs
 
 from urllib.request import urlopen
 
@@ -37,9 +39,9 @@ def setupLogger() -> None:
                         filemode='w',
                         format='%(asctime)s::%(name)s::%(levelname)s::%(message)s',
                         datefmt='./logs/%d-%b-%y %H:%M:%S')
-    log.setLevel(logging.INFO)
+    log.setLevel(logging.DEBUG)
     c_handler = logging.StreamHandler()
-    c_handler.setLevel(logging.INFO)
+    c_handler.setLevel(logging.DEBUG)
     c_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', '%H:%M:%S')
     c_handler.setFormatter(c_format)
     log.addHandler(c_handler)
@@ -55,64 +57,66 @@ def get_browser_options():
     options.add_argument("--disable-blink-features")
     options.add_argument("--disable-blink-features=AutomationControlled")
     return options
+
 class EasyApplyBot:
     setupLogger()
     # MAX_SEARCH_TIME is 10 hours by default, feel free to modify it
     MAX_SEARCH_TIME = 10 * 60 * 60
 
     def __init__(self,
-                 phoneNumber,
-                 uploads={},
-                 filename='output.csv',
-                 blackList=[],
-                 blackListTitles=[],
-                 jobListFilterKeys=[],
+                 userParameters: dict = None,
                  cookies=[]) -> None:
 
-        log.info("Welcome to Easy Apply Bot")
+        log.info("Welcome to Easy Apply Bot!")
         dirpath: str = os.getcwd()
-        log.info("current directory is : " + dirpath)
+        log.info("Current directory is : " + dirpath)
+        log.debug(str(userParameters))
 
-        self.uploads = uploads
-        past_ids: list | None = self.get_appliedIDs(filename)
+        self.userParameters = userParameters
+        self.uploads = userParameters['uploads']
+        self.filename: str = userParameters['outputFilename']
+        past_ids: list | None = self.get_appliedIDs(self.filename)
         self.appliedJobIDs: list = past_ids if past_ids != None else []
-        self.filename: str = filename
-        self.blackList = blackList
-        self.blackListTitles = blackListTitles
-        self.jobListFilterKeys = jobListFilterKeys
-        self.phone_number = phoneNumber
+        
+        self.blackList = userParameters['blackListCompanies']
+        self.blackListTitles = userParameters['blackListTitles']
+        self.jobListFilterKeys = userParameters['jobListFilterKeys']
+        self.phone_number = userParameters['phoneNumber']
         
         #browser start
-        self.options = browserOptions
+        self.options = get_browser_options()
         self.cookies = cookies
-        self.browser = webdriver.Chrome(service = 
-                                ChromeService(ChromeDriverManager().install()),
-                                options=self.options)
+        try:
+            self.browser = webdriver.Chrome(service = 
+                            ChromeService(ChromeDriverManager().install()),
+                            options=self.options)
+        except Exception as err:
+            log.error(f"Browser is not started: {str(err)}")
+            self.browser.close()
+            self.browser.exit()
+            raise err                
         self.browser.get('https://www.linkedin.com/')
         for cookie in self.cookies: self.browser.add_cookie(cookie)
         self.wait = WebDriverWait(self.browser, 30)
         return None
 
-    def get_appliedIDs(self, filename: str) -> list | None:
+    def get_appliedIDs(self,
+                       filename: str = None) -> list | None:
+        '''Trying to get applied jobs ID from given csv file'''
         try:
             df = pd.read_csv(filename,
                              header=None,
                              names=['timestamp', 'jobID', 'job', 'company', 'attempted', 'result'],
                              lineterminator='\n',
                              encoding='utf-8')
-
             df['timestamp'] = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S")
             df = df[df['timestamp'] > (datetime.now() - timedelta(days=2))]
             jobIDs: list = list(df.jobID)
-            log.info(f"{len(jobIDs)} jobIDs found")
+            log.info(f"{len(jobIDs)} jobIDs found in {filename}")
             return jobIDs
-        except Exception as e:
-            log.info(str(e) + "   jobIDs could not be loaded from CSV {}".format(filename))
+        except Exception as err:
+            log.info(f"{str(err)} - jobIDs could not be loaded from {filename}")
             return None
-
-    def fill_data(self) -> None:
-        self.browser.set_window_size(1, 1)
-        self.browser.set_window_position(2000, 2000)
 
     def get_job_filters_uri(self,
                             jobListFilterKeys: dict = None) -> str:
@@ -125,7 +129,7 @@ class EasyApplyBot:
                              "Past Month",
                              "Past Week",
                              "Past 24 hours"],
-            "fast apply enabler" : ["Fast Apply",
+            "easy apply enabler" : ["Easy Apply",
                                     "Usual Apply"]
             }
         filterKeysAlignment = {
@@ -135,13 +139,13 @@ class EasyApplyBot:
             "Past Week" : "r604800",
             "Past Month" : "r2592000",
             "Past 24 hours" : "r86400",
-            "Fast Apply" : "f_AL",
+            "Easy Apply" : "f_AL",
             "Usual Apply" : None
             }
         filterKeysMapPrefix = {
             "sort by" : "sortBy",
             "date posted" : "f_TPR",
-            "fast apply enabler" : "f_LF"
+            "easy apply enabler" : "f_LF"
             }
         for element in jobListFilterKeys:
             if filterKeysAlignment[element] is not None:
@@ -155,41 +159,67 @@ class EasyApplyBot:
         log.debug(f"URI for filters: {jobListFiltersURI}")
         return jobListFiltersURI
 
-    def start_apply(self, positions, locations, jobListFilterKeys) -> None:
+    def apply_to_positions(self, 
+                    positions:list,
+                    locations:list,
+                    jobListFilterKeys:list
+                    ) -> None:
+        '''Set starting list for positions / locations combinatons
+        and starts application fo each combination in the list.
+        '''
+        log.info("Start apllying")
         start: float = time.time()
-        self.fill_data()
-        combos: list = []
+        combos: list = None
+        jobsID: list = None
+#        self.browser.set_window_size(1, 1)
+#        self.browser.set_window_position(2000, 2000)
         jobFiltersURI: str = self.get_job_filters_uri(jobListFilterKeys)
-        while len(combos) < len(positions) * len(locations):
-            position = positions[random.randint(0, len(positions) - 1)]
-            location = locations[random.randint(0, len(locations) - 1)]
-            combo: tuple = (position, location)
-            if combo not in combos:
-                combos.append(combo)
-                log.info(f"Applying to {position}: {location}")
-                location = "&location=" + location
-                self.applications_loop(position, location, jobFiltersURI)
-            if len(combos) > 500:
-                break
+        combos = list(product(positions, locations))
+        log.debug(str(combos))
+        for combo in combos:
+            log.debug(f"Combo: {combo}, {type(combo)}")
+            position, location = list(combo)
+            log.info(f"Applying to: {position}, {location}")
+            fullJobURI: str = ("keywords="
+                               + position
+                               + "&location="
+                               + location
+                               + jobFiltersURI)
+            jobsID = self.get_jobs_id(fullJobURI)
+            log.debug(f"jobsID - {str(jobsID)}")
+            exit()
+#            self.applications_loop(fullJobURI)
         return None 
 
-    # self.finish_apply() --> this does seem to cause more harm than good, since it closes the browser which we usually don't want, other conditions will stop the loop and just break out
-
-    def applications_loop(self,
-                          position,
-                          location,
-                          jobFiltersURI):
-
-        count_application = 0
-        count_job = 0
-        jobs_per_page = 0
+    def get_jobs_id(self,
+                    fullJobURI: str = None) -> list:
+        """The loop to collect jobsID by given URI"""
+        log.debug("Collecting jobs URI...")
+        count_job: int = 0
+        jobs_per_page: int = 0
         start_time: float = time.time()
+        jobsID: list = None
+        self.browser.set_window_position(1, 1)
+        self.browser.maximize_window()
+        self.browser, _ = self.get_next_jobs_page(fullJobURI, jobs_per_page)
+        jobsList = refine_search_page(jobsList)
+        
+        log.info(f"{(self.MAX_SEARCH_TIME-(time.time()-start_time)) // 60} minutes left in this search")
+        return jobsID
 
-        log.info("Looking for jobs.. Please wait..")
+
+    '''
+    def applications_loop(self,
+                          fullJobURI: str = ''):
+
+        count_application: int = 0
+        count_job: int = 0
+        jobs_per_page: int = 0
+        start_time: float = time.time()
 
         self.browser.set_window_position(1, 1)
         self.browser.maximize_window()
-        self.browser, _ = self.next_jobs_page(position, location, jobs_per_page, jobFiltersURI)
+        self.browser, _ = self.next_jobs_page(fullJobURI, jobs_per_page)
         log.info("Looking for jobs.. Please wait..")
 
         while time.time() - start_time < self.MAX_SEARCH_TIME:
@@ -213,33 +243,7 @@ class EasyApplyBot:
 
                 time.sleep(1)
 
-                # get job links, (the following are actually the job card objects)
-                links = self.browser.find_elements("xpath",
-                    '//div[@data-job-id]'
-                )
 
-                if len(links) == 0:
-                    log.debug("No links found")
-                    break
-
-                IDs: list = []
-                
-                # children selector is the container of the job cards on the left
-                for link in links:
-                    children = link.find_elements("xpath",
-                        '//ul[@class="scaffold-layout__list-container"]'
-                    )
-                    for child in children:
-                        if child.text not in self.blackList:
-                            temp = link.get_attribute("data-job-id")
-                            jobID = temp.split(":")[-1]
-                            IDs.append(int(jobID))
-                IDs: list = set(IDs)
-
-                # remove already applied jobs
-                before: int = len(IDs)
-                jobIDs: list = [x for x in IDs if x not in self.appliedJobIDs]
-                after: int = len(jobIDs)
 
                 # it assumed that 25 jobs are listed in the results window
                 if len(jobIDs) == 0 and len(IDs) > 23:
@@ -384,9 +388,6 @@ class EasyApplyBot:
                 #     submitted = True
                 # if i != 2:
                 #     break
-
-
-
         else:
             log.debug(f"Could not find phone number field")
                 
@@ -471,20 +472,54 @@ class EasyApplyBot:
             raise (e)
 
         return submitted
-
+    '''
     def load_page(self, sleep=1):
-        scroll_page = 0
-        while scroll_page < 4000:
-            self.browser.execute_script("window.scrollTo(0," + str(scroll_page) + " );")
-            scroll_page += 200
-            time.sleep(sleep)
+        log.debug("Load page...")
+ #       scroll_page = 0
+ #       while scroll_page < 4000:
+ #           self.browser.execute_script("window.scrollTo(0," + str(scroll_page) + " );")
+ #           scroll_page += 200
+ #           time.sleep(sleep)
 
-        if sleep != 1:
-            self.browser.execute_script("window.scrollTo(0,0);")
-            time.sleep(sleep * 3)
+#        if sleep != 1:
 
-        page = BeautifulSoup(self.browser.page_source, "lxml")
-        return page
+#            self.browser.execute_script("window.scrollTo(0,0);")
+#            time.sleep(sleep * 3)
+        return None
+    
+    def refine_search_page(self,
+                           jobsList: dict = None) -> dict | None:
+        '''Deconstruct search page to usable dictionary'''
+        log.info("Create page summary...")
+
+        jd = jobsList
+        jobBlocks = None
+
+        soup = bs4(self.browser.page_source, "lxml")
+
+        jobBlocks = soup.select('div[data-job-id]')
+        if jobBlocks is None: return jobsList
+
+        for block in jobBlocks:
+            jobID: str = str(block['data-job-id'])
+            jd[jobID] = {}
+            title = block.select_one('div .job-card-list__title')
+            company = block.select_one('div ' 
+                    +'.job-card-container__primary-description')
+            metadataDirty = block.select_one('li'
+                    + ' .job-card-container__metadata-item')
+            metadata = metadataDirty.get_text()
+
+            jd[jobID]['title'] = title.string
+            jd[jobID]['company'] = company.string
+            jd[jobID]['metadata'] = metadata
+
+            for key in jd:
+                for p in jd[key]:
+                    jd[key][p] = str(jd[key][p]).strip()
+
+            log.debug(f"{str(len(jd))} jobs collected.")
+        return jobsList
 
     def avoid_lock(self) -> None:
         x, _ = pyautogui.position()
@@ -495,27 +530,29 @@ class EasyApplyBot:
         pyautogui.keyUp('ctrl')
         time.sleep(0.5)
         pyautogui.press('esc')
+        log.debug("Lock avoided.")
+        return None
 
-    def next_jobs_page(self,
-                       position,
-                       location,
-                       jobs_per_page,
-                       jobFiltersURI: str = '') -> tuple[object, int]:
-        self.browser.get("https://www.linkedin.com/jobs/search/?keywords="
-                         + position
-                         + location
-                         + jobFiltersURI
+    def get_next_jobs_page(self,
+                           fullJobURI: str = None,
+                           jobsPerPage: int = 25) -> tuple[object, int]:
+        self.browser.get("https://www.linkedin.com/jobs/search/?"
+                         + fullJobURI
                          + "&start="
-                         + str(jobs_per_page))
+                         + str(jobsPerPage))
         self.avoid_lock()
-        log.info("Lock avoided.")
         self.load_page()
-        return (self.browser, jobs_per_page)
+        return (self.browser, jobsPerPage)
 
-
-    def finish_apply(self) -> None:
-        self.browser.close()
-        self.browser.exit()
+    def shutdown(self) -> None:
+        try:
+            self.browser.close()
+            self.browser.exit()
+            log.debug("Browser is closed.")
+        except:
+            log.debug("Browser is not found.")
+        finally:
+            log.info("Bye!")
         return None
 
 def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
@@ -645,8 +682,7 @@ def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
     p = removeNone(p)
  
     if (('outputFilename' not in p)
-        or (p['outputFilename'] is None)
-        or (p['outputFilename'] is [None])):
+        or (p['outputFilename'] is not type(str))):
         p['outputFilename'] = 'output.csv'
 
     log.debug(f"Cleared parameters: {p}")
@@ -760,12 +796,12 @@ def login_to_LinkedIn(login: dict = None,
         os.remove(cookiesFileName)
     cookies = check_actual_cookies(cookiesFileName)
     if cookies is None:
-        cookies = login_in_browser(cookiesFileName, browserOptions, login)
-        
+        cookies = login_in_browser(cookiesFileName,
+                                   browserOptions,
+                                   login)
     return cookies
 
-if __name__ == '__main__':
-    
+def main() -> None:
     userParameters: dict = None
     login: dict = None
     configCommandString: dict = None
@@ -785,17 +821,13 @@ if __name__ == '__main__':
         log.info("Launched with --nobot parameter. Forced exit.")
         exit()
 
-    bot = EasyApplyBot(userParameters['phoneNumber'],
-                       uploads=userParameters['uploads'],
-                       filename=userParameters['outputFilename'],
-                       blackList=userParameters['blackListCompanies'],
-                       blackListTitles=userParameters['blackListTitles'],
-                       jobListFilterKeys=userParameters['jobListFilterKeys'],
-                       cookies=cookies
-                       )
+    bot = EasyApplyBot(userParameters, cookies)
     
-    locations: list = [l for l in userParameters['locations'] if l != None]
-    positions: list = [p for p in userParameters['positions'] if p != None]
+    bot.apply_to_positions(userParameters['positions'],
+                           userParameters['locations'],
+                           userParameters['jobListFilterKeys'])
+    bot.shutdown()
+    return None
 
-    log.debug(f"Start bot parameters - {positions, locations, str(userParameters['jobListFilterKeys'])}")
-    bot.start_apply(positions, locations, userParameters['jobListFilterKeys'])
+if __name__ == '__main__':
+    main()
