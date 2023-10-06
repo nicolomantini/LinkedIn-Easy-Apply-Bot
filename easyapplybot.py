@@ -188,12 +188,29 @@ class EasyApplyBot:
                                + jobFiltersURI)
             log.debug(f"Full Job URI: {fullJobURI}")
             jobsData = self.get_jobs_data(fullJobURI)
-            jobsID = list(jobsData)
-            # Remove applied jobs
-            Bset = frozenset(self.appliedJobIDs)
-            [item for item in jobsID if item not in Bset]
-            log.debug(f"jobsID - {str(jobsID)}")
-#            self.applications_loop(fullJobURI)
+            # Remove already applied jobs
+            jobsData = {k: jobsData[k] for k in jobsData.keys() - self.appliedJobIDs}
+            log.debug(f"jobsID - {str(jobsData.keys())}")
+            # Remove blacklisted keywords
+            for key in jobsData:
+                if any(word in jobsData[key]['title'] for word in self.blackListTitles):
+                    log.info(f"Skipping application {key},"
+                             + f" a blacklisted keyword"
+                             + " was found in the job title")
+                    jobsData[key]['skipReason'] = "blacklisted keyword"
+            # Remove blacklisted companies
+            for key in jobsData:
+                if any(word in jobsData[key]['company'] for word in self.blackList):
+                    log.info(f"Skipping application {key},"
+                             + f" a blacklisted keyword"
+                             + " was found in the job title")
+                    jobsData[key]['skipReason'] = "blacklisted company"
+            # Go easy apply
+            jobsData = self.easy_apply(jobsData)
+            # sleep for a moment
+            sleepTime: int = random.randint(60, 300)
+            log.info(f"Time for a nap - see you in:{int(sleepTime/60)} min.")
+            time.sleep(sleepTime)
         return None
 
     def get_jobs_data(self,
@@ -258,122 +275,72 @@ class EasyApplyBot:
             title = block.select_one('div .job-card-list__title')
             company = block.select_one('div ' 
                     +'.job-card-container__primary-description')
-            metadataDirty = block.select_one('li'
+            metadata = block.select_one('li'
                     + ' .job-card-container__metadata-item')
-            metadata = metadataDirty.get_text()
+            applyMethod = block.select_one('li'
+                    + ' .job-card-container__apply-method')
             jd[jobID]['title'] = title.string
             jd[jobID]['company'] = company.string
-            jd[jobID]['metadata'] = metadata
+            jd[jobID]['metadata'] = metadata.get_text()
+            jd[jobID]['applyMethod'] : str = applyMethod.get_text()
+            jd[jobID]['skipReason'] : str = None
             # clean data
             for key in jd:
-        #        log.debug(f"JobID {key} collected data:")
                 for p in jd[key]:
                     jd[key][p] = str(jd[key][p]).strip()
-        #            log.debug(f"{p} : {jd[key][p]}")
+        #            log.debug(f"{jd[key]} : {p} : {jd[key][p]}")
         log.info(f"{str(len(jd))} jobs collected on page {page}.")
         return jd
 
+    def easy_apply(self,
+                   jobsData: dict = None) -> dict | None:
+        '''Apply to easy apply jobs'''
+        log.info("Start easy apply...")
+        jd = jobsData
+        # Check for data
+        if jd is None:
+            log.warning("No jobs sended. Go back.")
+            return None
+        # Extract JobID, ensure of correct apply method
+        jobsID = [k for k in jd.keys() 
+                  if (jd[k]['applyMethod'] == 'Easy Apply')
+                  and (jd[k]['skipReason'] is None)]
+        # Check for zero list
+        if len(jobsID) == 0:
+            log.info("Zero Easy Apply jobs found, skip section.")
+            return jobsData 
+        # Let's loop applications
+        for jobID in jobsID:
+            applyResult = apply_easy_job(jd[jobID])
+            if applyResult is not None:
+                jd[jobID] = applyResult
+        return jd
 
-    '''
-    def applications_loop(self,
-                          fullJobURI: str = ''):
-
-        count_application: int = 0
-        count_job: int = 0
-        jobs_per_page: int = 0
-        start_time: float = time.time()
-
-        self.browser.set_window_position(1, 1)
-        self.browser.maximize_window()
-        self.browser, _ = self.next_jobs_page(fullJobURI, jobs_per_page)
-        log.info("Looking for jobs.. Please wait..")
-
-        while time.time() - start_time < self.MAX_SEARCH_TIME:
-            try:
-                log.info(f"{(self.MAX_SEARCH_TIME - (time.time() - start_time)) // 60} minutes left in this search")
-
-                # sleep to make sure everything loads, add random to make us look human.
-                randoTime: float = random.uniform(3.5, 4.9)
-                log.debug(f"Sleeping for {round(randoTime, 1)}")
-                time.sleep(randoTime)
-                self.load_page(sleep=1)
-
-                # LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom
-
-                # scrollresults = self.browser.find_element(By.CLASS_NAME,
-                #     "jobs-search-results-list"
-                # )
-                # Selenium only detects visible elements; if we scroll to the bottom too fast, only 8-9 results will be loaded into IDs list
-                # for i in range(300, 3000, 100):
-                #     self.browser.execute_script("arguments[0].scrollTo(0, {})".format(i), scrollresults)
-
-                time.sleep(1)
-
-
-
-                # it assumed that 25 jobs are listed in the results window
-                if len(jobIDs) == 0 and len(IDs) > 23:
-                    jobs_per_page = jobs_per_page + 25
-                    count_job = 0
-                    self.avoid_lock()
-                    self.browser, jobs_per_page = self.next_jobs_page(position,
-                                                                      location,
-                                                                      jobs_per_page,
-                                                                      jobFiltersURI)
-                # loop over IDs to apply
-                for i, jobID in enumerate(jobIDs):
-                    count_job += 1
-                    self.get_job_page(jobID)
-
-                    # get easy apply button
-                    button = self.get_easy_apply_button()
-                    # word filter to skip positions not wanted
-
-                    if button is not False:
-                        if any(word in self.browser.title for word in blackListTitles):
-                            log.info('skipping this application, a blacklisted keyword was found in the job position')
-                            string_easy = "* Contains blacklisted keyword"
-                            result = False
-                        else:
-                            string_easy = "* has Easy Apply Button"
-                            log.info("Clicking the EASY apply button")
-                            button.click()
-                            time.sleep(3)
-                            self.fill_out_phone_number()
-                            result: bool = self.send_resume()
-                            count_application += 1
-                    else:
-                        log.info("The button does not exist.")
-                        string_easy = "* Doesn't have Easy Apply Button"
-                        result = False
-
-                    position_number: str = str(count_job + jobs_per_page)
-                    log.info(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
-
-                    self.write_to_file(button, jobID, self.browser.title, result)
-
-                    # sleep every 20 applications
-                    if count_application != 0 and count_application % 20 == 0:
-                        sleepTime: int = random.randint(500, 900)
-                        log.info(f"""********count_application: {count_application}************\n\n
-                                    Time for a nap - see you in:{int(sleepTime / 60)} min
-                                ****************************************\n\n""")
-                        time.sleep(sleepTime)
-
-                    # go to new page if all jobs are done
-                    if count_job == len(jobIDs):
-                        jobs_per_page = jobs_per_page + 25
-                        count_job = 0
-                        log.info("""****************************************\n\n
-                        Going to next jobs page, YEAAAHHH!!
-                        ****************************************\n\n""")
-                        self.avoid_lock()
-                        self.browser, jobs_per_page = self.next_jobs_page(position,
-                                                                        location,
-                                                                        jobs_per_page,
-                                                                        jobFiltersURI)
-            except Exception as e:
-                print(e)
+    def apply_easy_job(self,
+                       jobToApply : dict = None) -> dict | None:
+        '''Start applying one job'''
+        job = jobToApply
+        jobID = next(iter(job))
+        log.info(f"Start applying to {str(job['title'])}, {jobID}")
+        if job is None:
+            log.warning("No job sended to apply.")
+            log.debug("The job is 'None'.")
+            return None
+        self.get_job_page(jobID)
+        # get easy apply button
+        button = self.get_easy_apply_button()
+        if button is not False:
+            log.info("Clicking the EASY apply button")
+            button.click()
+            time.sleep(3)
+            self.fill_out_phone_number()
+            result: bool = self.send_resume()
+        else:
+            log.info("The button does not exist.")
+            job[jobID]['skipReason'] = "No 'Easy Apply' button"
+            result = False
+        self.write_to_file(button, jobID, self.browser.title, result)
+        return jobToApply
 
     def write_to_file(self, button, jobID, browserTitle, result) -> None:
         def re_extract(text, pattern):
@@ -393,7 +360,6 @@ class EasyApplyBot:
             writer.writerow(toWrite)
 
     def get_job_page(self, jobID):
-
         job: str = 'https://www.linkedin.com/jobs/view/' + str(jobID)
         self.browser.get(job)
         self.job_page = self.load_page(sleep=0.5)
@@ -427,8 +393,6 @@ class EasyApplyBot:
             input_field.clear()
             input_field.send_keys(self.phone_number)
             time.sleep(random.uniform(4.5, 6.5))
-        
-
 
             next_locater = (By.CSS_SELECTOR,
                             "button[aria-label='Continue to next step']")
@@ -456,14 +420,11 @@ class EasyApplyBot:
                 #     break
         else:
             log.debug(f"Could not find phone number field")
-                
-
 
     def send_resume(self) -> bool:
         def is_present(button_locator) -> bool:
             return len(self.browser.find_elements(button_locator[0],
                                                   button_locator[1])) > 0
-
         try:
             time.sleep(random.uniform(1.5, 2.5))
             next_locater = (By.CSS_SELECTOR,
@@ -531,14 +492,13 @@ class EasyApplyBot:
 
             time.sleep(random.uniform(1.5, 2.5))
 
-
         except Exception as e:
             log.info(e)
             log.info("cannot apply to this job")
             raise (e)
 
         return submitted
-    '''
+
     def load_page(self, sleep=1):
         log.debug("Load page like human mode...")
         scroll_page = 0
