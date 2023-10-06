@@ -15,10 +15,9 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from bs4 import BeautifulSoup as bs4
+import bs4
 import pandas as pd
 import pyautogui
-import codecs
 
 from urllib.request import urlopen
 
@@ -48,6 +47,7 @@ def setupLogger() -> None:
     return None
 
 def get_browser_options():
+    '''Configure browser to be less scrape-type'''
     options = Options()
     options.add_argument("--start-maximized")
     options.add_argument("--ignore-certificate-errors")
@@ -70,7 +70,7 @@ class EasyApplyBot:
         log.info("Welcome to Easy Apply Bot!")
         dirpath: str = os.getcwd()
         log.info("Current directory is : " + dirpath)
-        log.debug(str(userParameters))
+        log.debug(f"Parameters in bot: {str(userParameters)}")
 
         self.userParameters = userParameters
         self.uploads = userParameters['uploads']
@@ -112,6 +112,7 @@ class EasyApplyBot:
             df['timestamp'] = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S")
             df = df[df['timestamp'] > (datetime.now() - timedelta(days=2))]
             jobIDs: list = list(df.jobID)
+            log.debug(f"JobIDs from CSV file: {str(jobIDs)}")
             log.info(f"{len(jobIDs)} jobIDs found in {filename}")
             return jobIDs
         except Exception as err:
@@ -164,20 +165,20 @@ class EasyApplyBot:
                     locations:list,
                     jobListFilterKeys:list
                     ) -> None:
-        '''Set starting list for positions / locations combinatons
+        '''Sets starting list for positions/locations combinatons
         and starts application fo each combination in the list.
         '''
         log.info("Start apllying")
         start: float = time.time()
         combos: list = None
         jobsID: list = None
+        jobsData: dict = None
 #        self.browser.set_window_size(1, 1)
 #        self.browser.set_window_position(2000, 2000)
         jobFiltersURI: str = self.get_job_filters_uri(jobListFilterKeys)
         combos = list(product(positions, locations))
         log.debug(str(combos))
         for combo in combos:
-            log.debug(f"Combo: {combo}, {type(combo)}")
             position, location = list(combo)
             log.info(f"Applying to: {position}, {location}")
             fullJobURI: str = ("keywords="
@@ -185,27 +186,92 @@ class EasyApplyBot:
                                + "&location="
                                + location
                                + jobFiltersURI)
-            jobsID = self.get_jobs_id(fullJobURI)
+            log.debug(f"Full Job URI: {fullJobURI}")
+            jobsData = self.get_jobs_data(fullJobURI)
+            jobsID = list(jobsData)
+            # Remove applied jobs
+            Bset = frozenset(self.appliedJobIDs)
+            [item for item in jobsID if item not in Bset]
             log.debug(f"jobsID - {str(jobsID)}")
-            exit()
 #            self.applications_loop(fullJobURI)
-        return None 
+        return None
 
-    def get_jobs_id(self,
-                    fullJobURI: str = None) -> list:
+    def get_jobs_data(self,
+                      fullJobURI: str = None) -> dict:
         """The loop to collect jobsID by given URI"""
         log.debug("Collecting jobs URI...")
-        count_job: int = 0
-        jobs_per_page: int = 0
         start_time: float = time.time()
-        jobsID: list = None
+        jobsData: dict = {}
+        jobsDataDelta: dict = {}
         self.browser.set_window_position(1, 1)
         self.browser.maximize_window()
-        self.browser, _ = self.get_next_jobs_page(fullJobURI, jobs_per_page)
-        jobsList = refine_search_page(jobsList)
-        
+        jobSearchPages = 3
+        for jobSearchPage in range(1, jobSearchPages):
+            log.debug(f"jobSearchPage - {jobSearchPage}")
+            # get a soup for the search page
+            soup = self.read_job_search_page(fullJobURI, jobSearchPage)
+            # Break the cycle if no jobs found
+            if soup is None:
+                log.info(f"No search results for page {jobSearchPage}, "
+                         + "stop collecting jobs for this search combo")
+                break
+            # rewrite number of pages with the first search result
+            if jobSearchPage == 1:
+                pages = soup.select_one('div .artdeco-pagination__page-state')
+                if pages is None:
+                    jobSearchPages = 1
+                    log.debug("Only one page for this combo")
+                else:
+                    log.debug(str(pages))
+                    pagesString = pages.string
+                    pagesString = pagesString.strip()
+                    index = pagesString.rfind(" ")
+                    jobSearchPages = int(pagesString[index+1:])
+                    log.debug(f"For this combo {str(jobSearchPages)} "
+                              + "pages to take.")
+            # get jobs delta
+            jobsDataDelta = self.extract_data_from_search(jobSearchPage, soup)
+            if jobsDataDelta is not None:
+                jobsData = jobsData | jobsDataDelta
+                log.debug(f"Jobs in jobsData: {len(jobsData)}")
         log.info(f"{(self.MAX_SEARCH_TIME-(time.time()-start_time)) // 60} minutes left in this search")
-        return jobsID
+        return jobsData
+
+    def extract_data_from_search(self,
+                                 page: int,
+                                 soup: bs4.BeautifulSoup) -> dict | None:
+        '''Deconstruct search page to usable dictionary'''
+        log.info(f"Extract search page {page} data...")
+        log.debug(f"Soup status: Title is {soup.find('title')}, size={str(sys.getsizeof(soup))}")
+        jd: dict = {}  # result delta
+        # collect all blocks with a job ID
+        jobBlocks = soup.select('div[data-job-id]')
+        log.debug(f"JobBlocks: {type(jobBlocks)} and len = {len(list(jobBlocks))}")
+        if jobBlocks is None:
+            log.debug(f"No job cards found on the page {page}")
+            return None
+        for block in jobBlocks:
+            jobID: int = int(str(block['data-job-id']))
+            # create dictionary for each job with ID as the key
+            jd[jobID] = {}
+            # extract data from the current card
+            title = block.select_one('div .job-card-list__title')
+            company = block.select_one('div ' 
+                    +'.job-card-container__primary-description')
+            metadataDirty = block.select_one('li'
+                    + ' .job-card-container__metadata-item')
+            metadata = metadataDirty.get_text()
+            jd[jobID]['title'] = title.string
+            jd[jobID]['company'] = company.string
+            jd[jobID]['metadata'] = metadata
+            # clean data
+            for key in jd:
+        #        log.debug(f"JobID {key} collected data:")
+                for p in jd[key]:
+                    jd[key][p] = str(jd[key][p]).strip()
+        #            log.debug(f"{p} : {jd[key][p]}")
+        log.info(f"{str(len(jd))} jobs collected on page {page}.")
+        return jd
 
 
     '''
@@ -474,54 +540,35 @@ class EasyApplyBot:
         return submitted
     '''
     def load_page(self, sleep=1):
-        log.debug("Load page...")
- #       scroll_page = 0
- #       while scroll_page < 4000:
- #           self.browser.execute_script("window.scrollTo(0," + str(scroll_page) + " );")
- #           scroll_page += 200
- #           time.sleep(sleep)
-
-#        if sleep != 1:
-
-#            self.browser.execute_script("window.scrollTo(0,0);")
-#            time.sleep(sleep * 3)
+        log.debug("Load page like human mode...")
+        scroll_page = 0
+        while scroll_page < 4000:
+            self.browser.execute_script("window.scrollTo(0," + str(scroll_page) + " );")
+            scroll_page += 200
+            time.sleep(sleep)
+        if sleep != 1:
+            self.browser.execute_script("window.scrollTo(0,0);")
+            time.sleep(sleep * 3)
         return None
     
-    def refine_search_page(self,
-                           jobsList: dict = None) -> dict | None:
-        '''Deconstruct search page to usable dictionary'''
-        log.info("Create page summary...")
-
-        jd = jobsList
-        jobBlocks = None
-
-        soup = bs4(self.browser.page_source, "lxml")
-
-        jobBlocks = soup.select('div[data-job-id]')
-        if jobBlocks is None: return jobsList
-
-        for block in jobBlocks:
-            jobID: str = str(block['data-job-id'])
-            jd[jobID] = {}
-            title = block.select_one('div .job-card-list__title')
-            company = block.select_one('div ' 
-                    +'.job-card-container__primary-description')
-            metadataDirty = block.select_one('li'
-                    + ' .job-card-container__metadata-item')
-            metadata = metadataDirty.get_text()
-
-            jd[jobID]['title'] = title.string
-            jd[jobID]['company'] = company.string
-            jd[jobID]['metadata'] = metadata
-
-            for key in jd:
-                for p in jd[key]:
-                    jd[key][p] = str(jd[key][p]).strip()
-
-            log.debug(f"{str(len(jd))} jobs collected.")
-        return jobsList
+    def load_job_cards(self) -> None:
+        '''Need to scroll jobcards column to load them all'''
+        log.debug("Load job cards...")
+        scriptScrollDiv: str = str("document.querySelector"
+                                   + "('.jobs-search-results-list')"
+                                   + ".scroll(0, 1000, 'smooth');")
+        for p in range(0, 5):
+            scriptScrollDiv: str = str((f"document.querySelector")
+                                   + (f"('.jobs-search-results-list')")
+                                   + (f".scroll({str(1000*p)}, ")
+                                   + (f"{str(1000*(p+1))}, ")
+                                   + "'smooth');")
+            self.browser.execute_script(scriptScrollDiv)
+            time.sleep(2)
+        return None
 
     def avoid_lock(self) -> None:
+        '''Imitate human on page'''
         x, _ = pyautogui.position()
         pyautogui.moveTo(x + 200, pyautogui.position().y, duration=1.0)
         pyautogui.moveTo(x, pyautogui.position().y, duration=0.5)
@@ -533,26 +580,45 @@ class EasyApplyBot:
         log.debug("Lock avoided.")
         return None
 
-    def get_next_jobs_page(self,
+    def read_job_search_page(self,
                            fullJobURI: str = None,
-                           jobsPerPage: int = 25) -> tuple[object, int]:
+                           jobPage: int = 1) -> bs4.BeautifulSoup | None:
+        """Get current search page and save it to soup object
+        """
+        log.debug("Start reading search page...")
+        jobPageURI: str = ''
+        # Find page URI
+        if jobPage != 1:
+            jobPageURI = str ("&start="
+                              + str((jobPage-1)*25))
         self.browser.get("https://www.linkedin.com/jobs/search/?"
                          + fullJobURI
-                         + "&start="
-                         + str(jobsPerPage))
+                         + jobPageURI)
         self.avoid_lock()
+        # Check 'No jobs found'
+        if ('No matching jobs' in self.browser.page_source):
+            log.info("No jobs found for this page")
+            return None
         self.load_page()
-        return (self.browser, jobsPerPage)
+        self.load_job_cards()
+        # Get the column with list of jobs
+        jobCardDiv = self.browser.find_element(By.CSS_SELECTOR,
+                                               '.jobs-search-results-list')
+        htmlChunk = jobCardDiv.get_attribute('innerHTML')
+        # Store the column in soup lxml structure
+        soup = bs4.BeautifulSoup(htmlChunk, "lxml")
+        if soup is None:
+            log.debug(f"Soup is not created.")
+            return None
+        log.debug(f"Soup is created.")
+        # TODO check full jobcard column load
+        return soup
 
     def shutdown(self) -> None:
-        try:
-            self.browser.close()
-            self.browser.exit()
-            log.debug("Browser is closed.")
-        except:
-            log.debug("Browser is not found.")
-        finally:
-            log.info("Bye!")
+        self.browser.close()
+        self.browser.quit()
+        log.debug("Browser is closed.")
+        log.info("Bye!")
         return None
 
 def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
@@ -810,6 +876,8 @@ def main() -> None:
 
     configCommandString = parse_command_line_parameters(sys.argv[1:])
     userParameters, login = read_configuration(configCommandString['config'])
+
+
     cookies = login_to_LinkedIn(login,
                                 configCommandString['config'],
                                 browserOptions,

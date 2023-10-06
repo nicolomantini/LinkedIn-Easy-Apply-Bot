@@ -36,8 +36,7 @@ uploads:
  Photo: # PATH TO photo
 # Note file_key:file_paths contained inside the uploads section should be writted without a dash ('-') 
 
-outputFilename:
-- # PATH TO OUTPUT FILE (default output.csv)
+outputFilename: # PATH TO OUTPUT FILE (default output.csv)
 
 blackListCompanies:
 - # Company names you want to ignore
