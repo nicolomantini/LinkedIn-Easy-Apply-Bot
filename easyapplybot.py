@@ -38,9 +38,9 @@ def setupLogger() -> None:
                         filemode='w',
                         format='%(asctime)s::%(name)s::%(levelname)s::%(message)s',
                         datefmt='./logs/%d-%b-%y %H:%M:%S')
-    log.setLevel(logging.DEBUG)
+    log.setLevel(logging.INFO)
     c_handler = logging.StreamHandler()
-    c_handler.setLevel(logging.DEBUG)
+    c_handler.setLevel(logging.INFO)
     c_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', '%H:%M:%S')
     c_handler.setFormatter(c_format)
     log.addHandler(c_handler)
@@ -82,6 +82,8 @@ class EasyApplyBot:
         self.blackListTitles = userParameters['blackListTitles']
         self.jobListFilterKeys = userParameters['jobListFilterKeys']
         self.phone_number = userParameters['phoneNumber']
+
+        self.jobsData = None
         
         #browser start
         self.options = get_browser_options()
@@ -94,10 +96,12 @@ class EasyApplyBot:
             log.error(f"Browser is not started: {str(err)}")
             self.browser.close()
             self.browser.exit()
-            raise err                
+            raise err
+        log.debug("Browser loaded.")
         self.browser.get('https://www.linkedin.com/')
         for cookie in self.cookies: self.browser.add_cookie(cookie)
         self.wait = WebDriverWait(self.browser, 30)
+        log.debug("Cookies sended.")
         return None
 
     def get_appliedIDs(self,
@@ -169,10 +173,7 @@ class EasyApplyBot:
         and starts application fo each combination in the list.
         '''
         log.info("Start apllying")
-        start: float = time.time()
         combos: list = None
-        jobsID: list = None
-        jobsData: dict = None
 #        self.browser.set_window_size(1, 1)
 #        self.browser.set_window_position(2000, 2000)
         jobFiltersURI: str = self.get_job_filters_uri(jobListFilterKeys)
@@ -187,26 +188,29 @@ class EasyApplyBot:
                                + location
                                + jobFiltersURI)
             log.debug(f"Full Job URI: {fullJobURI}")
-            jobsData = self.get_jobs_data(fullJobURI)
+            self.get_jobs_data(fullJobURI)
             # Remove already applied jobs
-            jobsData = {k: jobsData[k] for k in jobsData.keys() - self.appliedJobIDs}
-            log.debug(f"jobsID - {str(jobsData.keys())}")
+            self.jobsData = {k: self.jobsData[k] for k in self.jobsData.keys() - self.appliedJobIDs}
+            log.debug(f"jobsID - {str(self.jobsData.keys())}")
+            self.dump_current_jobs_to_log()
             # Remove blacklisted keywords
-            for key in jobsData:
-                if any(word in jobsData[key]['title'] for word in self.blackListTitles):
-                    log.info(f"Skipping application {key},"
-                             + f" a blacklisted keyword"
-                             + " was found in the job title")
-                    jobsData[key]['skipReason'] = "blacklisted keyword"
+            if self.blackListTitles is not None:
+                for key in self.jobsData:
+                    if any(word in self.jobsData[key]['title'] for word in self.blackListTitles):
+                        log.info(f"Skipping application {key},"
+                                 + " a blacklisted keyword"
+                                 + " was found in the job title")
+                        self.jobsData[key]['skipReason'] = "blacklisted keyword"
             # Remove blacklisted companies
-            for key in jobsData:
-                if any(word in jobsData[key]['company'] for word in self.blackList):
-                    log.info(f"Skipping application {key},"
-                             + f" a blacklisted keyword"
-                             + " was found in the job title")
-                    jobsData[key]['skipReason'] = "blacklisted company"
+            if self.blackList is not None:
+                for key in self.jobsData:
+                    if any(word in self.jobsData[key]['company'] for word in self.blackList):
+                        log.info(f"Skipping application {key},"
+                                 + f" a blacklisted keyword"
+                                 + " was found in the job title")
+                        self.jobsData[key]['skipReason'] = "blacklisted company"
             # Go easy apply
-            jobsData = self.easy_apply(jobsData)
+            self.jobsData = self.easy_apply()
             # sleep for a moment
             sleepTime: int = random.randint(60, 300)
             log.info(f"Time for a nap - see you in:{int(sleepTime/60)} min.")
@@ -214,11 +218,11 @@ class EasyApplyBot:
         return None
 
     def get_jobs_data(self,
-                      fullJobURI: str = None) -> dict:
+                      fullJobURI: str = None) -> None:
         """The loop to collect jobsID by given URI"""
         log.debug("Collecting jobs URI...")
         start_time: float = time.time()
-        jobsData: dict = {}
+        self.jobsData: dict = {}
         jobsDataDelta: dict = {}
         self.browser.set_window_position(1, 1)
         self.browser.maximize_window()
@@ -249,17 +253,17 @@ class EasyApplyBot:
             # get jobs delta
             jobsDataDelta = self.extract_data_from_search(jobSearchPage, soup)
             if jobsDataDelta is not None:
-                jobsData = jobsData | jobsDataDelta
-                log.debug(f"Jobs in jobsData: {len(jobsData)}")
+                self.jobsData = self.jobsData | jobsDataDelta
+                log.debug(f"Jobs in jobsData: {len(self.jobsData)}")
         log.info(f"{(self.MAX_SEARCH_TIME-(time.time()-start_time)) // 60} minutes left in this search")
-        return jobsData
+        return None
 
     def extract_data_from_search(self,
                                  page: int,
                                  soup: bs4.BeautifulSoup) -> dict | None:
         '''Deconstruct search page to usable dictionary'''
         log.info(f"Extract search page {page} data...")
-        log.debug(f"Soup status: Title is {soup.find('title')}, size={str(sys.getsizeof(soup))}")
+        log.debug(f"Soup status: Size={str(sys.getsizeof(soup))}")
         jd: dict = {}  # result delta
         # collect all blocks with a job ID
         jobBlocks = soup.select('div[data-job-id]')
@@ -283,48 +287,47 @@ class EasyApplyBot:
             jd[jobID]['company'] = company.string
             jd[jobID]['metadata'] = metadata.get_text()
             jd[jobID]['applyMethod'] : str = applyMethod.get_text()
-            jd[jobID]['skipReason'] : str = None
+            jd[jobID]['skipReason'] = None
             # clean data
             for key in jd:
                 for p in jd[key]:
-                    jd[key][p] = str(jd[key][p]).strip()
+                    if jd[key][p] is not None:
+                        jd[key][p] = str(jd[key][p]).strip()
         #            log.debug(f"{jd[key]} : {p} : {jd[key][p]}")
         log.info(f"{str(len(jd))} jobs collected on page {page}.")
         return jd
 
-    def easy_apply(self,
-                   jobsData: dict = None) -> dict | None:
+    def easy_apply(self) -> None:
         '''Apply to easy apply jobs'''
         log.info("Start easy apply...")
-        jd = jobsData
         # Check for data
-        if jd is None:
-            log.warning("No jobs sended. Go back.")
+        if self.jobsData is None:
+            log.warning("No jobs sended to easy apply. Go back.")
             return None
+        self.dump_current_jobs_to_log()
         # Extract JobID, ensure of correct apply method
-        jobsID = [k for k in jd.keys() 
-                  if (jd[k]['applyMethod'] == 'Easy Apply')
-                  and (jd[k]['skipReason'] is None)]
+        jobsID = [k for k in self.jobsData
+                   if (self.jobsData[k]['applyMethod'] == 'Easy Apply')
+                   and (self.jobsData[k]['skipReason'] is None)
+                ]
+        log.debug(f"{str(jobsID)} - {type(jobsID)}")
         # Check for zero list
         if len(jobsID) == 0:
             log.info("Zero Easy Apply jobs found, skip section.")
-            return jobsData 
+            return None
         # Let's loop applications
         for jobID in jobsID:
-            applyResult = apply_easy_job(jd[jobID])
-            if applyResult is not None:
-                jd[jobID] = applyResult
-        return jd
+            self.apply_easy_job(jobID)
+        self.write_to_file(self.jobsData)
+        return None
 
     def apply_easy_job(self,
-                       jobToApply : dict = None) -> dict | None:
-        '''Start applying one job'''
-        job = jobToApply
-        jobID = next(iter(job))
-        log.info(f"Start applying to {str(job['title'])}, {jobID}")
-        if job is None:
+                       jobID : int = None) -> dict | None:
+        '''Applying one EASY APPLY job'''
+        log.info(f"Start applying to {self.jobsData[jobID]['title']}, {jobID}")
+        if jobID is None:
             log.warning("No job sended to apply.")
-            log.debug("The job is 'None'.")
+            log.debug("The jobID is 'None'.")
             return None
         self.get_job_page(jobID)
         # get easy apply button
@@ -335,29 +338,36 @@ class EasyApplyBot:
             time.sleep(3)
             self.fill_out_phone_number()
             result: bool = self.send_resume()
+            if result is False:
+                log.info(f"resume for {jobID} is not sended")
+                self.browser.get_screenshot_as_png('screenshot_send_'
+                                                    + str(jobID)
+                                                    + '.png')
+            log.debug(f"Button cycle is finished")
         else:
-            log.info("The button does not exist.")
-            job[jobID]['skipReason'] = "No 'Easy Apply' button"
-            result = False
-        self.write_to_file(button, jobID, self.browser.title, result)
-        return jobToApply
+            log.info("The EASY APPLY button does not exist.")
+            self.browser.get_screenshot_as_png(str('screenshot_ea_button_'
+                                               + str(jobID)
+                                               + '.png'))
+            self.jobsData[jobID]['skipReason'] = "No 'Easy Apply' button"
+        self.jobsData[jobID]['result'] = result
+        return None
 
-    def write_to_file(self, button, jobID, browserTitle, result) -> None:
-        def re_extract(text, pattern):
-            target = re.search(pattern, text)
-            if target:
-                target = target.group(1)
-            return target
-
+    def write_to_file(self) -> None:
         timestamp: str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        attempted: bool = False if button == False else True
-        job = re_extract(browserTitle.split(' | ')[0], r"\(?\d?\)?\s?(\w.*)")
-        company = re_extract(browserTitle.split(' | ')[1], r"(\w.*)")
-
-        toWrite: list = [timestamp, jobID, job, company, attempted, result]
         with open(self.filename, 'a') as f:
+            for jobID in self.jobsData:
+                toWrite: list = [timestamp,
+                                 jobID,
+                                 self.jobsData[jobID]['title'],
+                                 self.jobsData[jobID]['company'],
+                                 self.jobsData[jobID]['skipReason'],
+                                 self.jobsData[jobID]['result']]
             writer = csv.writer(f)
             writer.writerow(toWrite)
+        self.dump_current_jobs_to_log('write_to_file')
+        return None
+
 
     def get_job_page(self, jobID):
         job: str = 'https://www.linkedin.com/jobs/view/' + str(jobID)
@@ -370,13 +380,10 @@ class EasyApplyBot:
             button = self.browser.find_elements("xpath",
                 '//button[contains(@class, "jobs-apply-button")]'
             )
-
             EasyApplyButton = button[0]
-            
         except Exception as e: 
-            print("Exception:",e)
+            log.debug("Exception:",e)
             EasyApplyButton = False
-
         return EasyApplyButton
 
     def fill_out_phone_number(self):
@@ -410,6 +417,7 @@ class EasyApplyBot:
                     text = element.text
                     if "Please enter a valid answer" in text:
                         button = None
+                        self.browser.get_screenshot_as_png('screenshot_phone_number.png')
                         break
             if button:
                 button.click()
@@ -580,6 +588,22 @@ class EasyApplyBot:
         log.debug("Browser is closed.")
         log.info("Bye!")
         return None
+    
+    def dump_current_jobs_to_log(self,
+                                 context: str = 'undefined') -> None:
+        '''For test / debug purpose. Dumps current jobs dictionary
+        in logs in readable format
+        '''
+        if self.jobsData is None:
+            log.warning(f'No jobs to dump into logs for {context}')
+            return None
+        log.debug(f"*** Jobs right now for {context}")
+        for key in self.jobsData:
+            log.debug(f"{key}:{type(self.jobsData[key])} collected data:")
+            for p in self.jobsData[key]:
+                log.debug(f"{p}:{type(self.jobsData[key][p])} {(self.jobsData[key][p])}")
+        log.debug(f"*** End of jobs for {context}")
+        return None
 
 def read_configuration(configFile: str = 'config.yaml') -> tuple[dict, dict]:
     """
@@ -733,6 +757,10 @@ def parse_command_line_parameters(clParameters: list = None) -> dict:
     parser.add_argument("--nobot",
                         action='store_true',
                         help="do all setup but not start the bot")
+    parser.add_argument("--fastapply",
+                        type=str,
+                        default=None,
+                        help="fast apply the job by id without apply loop")
     args = parser.parse_args(clParameters)
     log.debug(f"Command string parameters: {str(vars(args))}")
     try:
@@ -741,6 +769,8 @@ def parse_command_line_parameters(clParameters: list = None) -> dict:
         log.exception(f"Config file {args.config} doesn't exist")
         raise err
     log.debug(f"Config file {args.config} is exist.")
+    if args.fastapply is not None:
+        log.debug(f"Fast apply for {args.fastapply} requested")
     return vars(args)
 
 def login_to_LinkedIn(login: dict = None,
@@ -850,10 +880,25 @@ def main() -> None:
         exit()
 
     bot = EasyApplyBot(userParameters, cookies)
-    
-    bot.apply_to_positions(userParameters['positions'],
-                           userParameters['locations'],
-                           userParameters['jobListFilterKeys'])
+
+    if configCommandString['fastapply'] is None:
+        bot.apply_to_positions(userParameters['positions'],
+                               userParameters['locations'],
+                               userParameters['jobListFilterKeys'])
+    else:
+        log.info(f"Fast apply for {configCommandString['fastapply']} requested")
+        fastApplyJob: dict = {int(configCommandString['fastapply']) :
+                                {'title' : 'Fast Apply Forced Title',
+                                 'company' : 'Fast Apply Forced Company',
+                                 'metadata' : 'Fast Apply Forced Metadata',
+                                 'applyMethod' : 'Easy Apply'
+                                }
+                              }
+        bot.apply_easy_job(fastApplyJob)
+        bot.write_to_file()
+        log.info(f"Forced easy apply cycle for"
+                 + f" {configCommandString['fastapply']} finished.")
+
     bot.shutdown()
     return None
 

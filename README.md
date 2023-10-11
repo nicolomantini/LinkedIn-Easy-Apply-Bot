@@ -74,8 +74,11 @@ python3 easyapplybot.py --config private/config.yaml
 ### Additional parameters
 ```
 options:
-  -h, --help       show this help message and exit
-  --config CONFIG  configuration file, YAML formatted (default: config.yaml)
-  --forcelogin     force login no matter cookies (default: False)
-  --nobot          do all the setup but not start the bot (default: False)
+  -h, --help            show this help message and exit
+  --config CONFIG       configuration file, YAML formatted (default:
+                        config.yaml)
+  --forcelogin          force login no matter cookies (default: False)
+  --nobot               do all setup but not start the bot (default: False)
+  --fastapply FASTAPPLY fast apply the job by id without the apply loop
+
 ```
