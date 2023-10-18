@@ -10,7 +10,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import pandas as pd
-import pyautogui
 from webdriver_manager.chrome import ChromeDriverManager
 import re
 import yaml
@@ -206,7 +205,6 @@ class EasyApplyBot:
                 if len(jobIDs) == 0 and len(IDs) > 23:
                     jobs_per_page = jobs_per_page + 25
                     count_job = 0
-                    self.avoid_lock()
                     self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                     location,
                                                                     jobs_per_page)
@@ -257,7 +255,6 @@ class EasyApplyBot:
                         log.info("""****************************************\n\n
                         Going to next jobs page, YEAAAHHH!!
                         ****************************************\n\n""")
-                        self.avoid_lock()
                         self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                         location,
                                                                         jobs_per_page)
@@ -445,22 +442,10 @@ class EasyApplyBot:
         page = BeautifulSoup(self.browser.page_source, "lxml")
         return page
 
-    def avoid_lock(self) -> None:
-        x, _ = pyautogui.position()
-        pyautogui.moveTo(x + 200, pyautogui.position().y, duration=1.0)
-        pyautogui.moveTo(x, pyautogui.position().y, duration=0.5)
-        pyautogui.keyDown('ctrl')
-        pyautogui.press('esc')
-        pyautogui.keyUp('ctrl')
-        time.sleep(0.5)
-        pyautogui.press('esc')
-
     def next_jobs_page(self, position, location, jobs_per_page):
         self.browser.get(
             "https://www.linkedin.com/jobs/search/?f_LF=f_AL&keywords=" +
             position + location + "&start=" + str(jobs_per_page))
-        self.avoid_lock()
-        log.info("Lock avoided.")
         self.load_page()
         return (self.browser, jobs_per_page)
 
