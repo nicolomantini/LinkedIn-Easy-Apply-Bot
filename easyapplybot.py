@@ -136,8 +136,6 @@ class EasyApplyBot:
             if len(combos) > 500:
                 break
 
-    # self.finish_apply() --> this does seem to cause more harm than good, since it closes the browser which we usually don't want, other conditions will stop the loop and just break out
-
     def applications_loop(self, position, location):
 
         count_application = 0
@@ -448,10 +446,7 @@ class EasyApplyBot:
             position + location + "&start=" + str(jobs_per_page))
         self.load_page()
         return (self.browser, jobs_per_page)
-
-    def finish_apply(self) -> None:
-        self.browser.close()
-
+    
 
 if __name__ == '__main__':
 
