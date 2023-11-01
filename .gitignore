@@ -149,3 +149,4 @@ quickstart.py
 states.json
 logs
 *yaml
+*.yaml
