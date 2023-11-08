@@ -141,12 +141,9 @@ dmypy.json
 # pycharm
 .idea/
 
-# User files
-output.csv
-output*.csv
+# User files (inclusive on configs and logs)
+*.csv
 venv8/
-quickstart.py
-states.json
-logs
+logs/
 *yaml
 *.yaml
