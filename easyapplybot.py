@@ -299,7 +299,15 @@ class EasyApplyBot:
                     break
                 else: # we have some links, but some of them are over 1 week old, then skip this job/location combo, and move to the next one # TODO: would be to add this to config.yaml as an option
                     first_link = links[0]
-                    if any(phrase in first_link.text for phrase in ["week ago", "6 days ago", "5 days ago", "4 days ago", "3 days ago", "2 days ago", "weeks ago",  "month ago", "months ago"]):
+                    if any(phrase in first_link.text for phrase in ["week ago", 
+                                                                    "6 days ago", 
+                                                                    "5 days ago", 
+                                                                    "4 days ago", 
+                                                                    "3 days ago", 
+                                                                    # "2 days ago", 
+                                                                    "weeks ago",  
+                                                                    "month ago", 
+                                                                    "months ago"]):
                         log.debug("moving onto the next combo, due to no new jobs available to apply to for this combo")
                         break # this skips this job/location combo
                     else:
@@ -397,7 +405,15 @@ class EasyApplyBot:
                     # go to new page if all jobs are done
                     if count_job == len(jobIDs):                        
                         # break right here in case last job was old, this will save another reload, and just speed thing up in general. If it matches, do a break statement
-                        if any(phrase in last_link for phrase in ["week ago", "6 days ago", "5 days ago", "4 days ago", "3 days ago", "2 days ago", "weeks ago", "month ago", "months ago"]):
+                        if any(phrase in last_link for phrase in ["week ago", 
+                                                                  "6 days ago", 
+                                                                  "5 days ago", 
+                                                                  "4 days ago", 
+                                                                  "3 days ago", 
+                                                                  # "2 days ago", 
+                                                                  "weeks ago", 
+                                                                  "month ago", 
+                                                                  "months ago"]):
                             log.debug("moving onto the next combo, due to no new jobs available to apply to for this combo")
                             break # this skips this job/location combo
                         jobs_per_page = jobs_per_page + 25
@@ -641,12 +657,6 @@ if __name__ == '__main__':
 # figure out why you have ^ two of the above statements in your code. The code seem to be breaking also, perhaps because of that 
 #NOT (senior OR lead OR chief OR gas OR forklift OR lift OR fire OR electric OR air OR sprinkler OR HVAC OR construction OR mechanical)
 
-# make it run headless unless last login attempt lead to captcha
-
-# if the jobs are over x days, or week old - skip the combination, as in don't go to the next page
-
-# TODO: keep track of combos applied to, with date and time in a separate CSV file. This is to not duplicate searches
-
-# TODO: make sure it stops .bat script permanently in case of running out of combos to apply to
+# make it run headless unless last login attempt lead to captcha, as a setting in the config.yaml
 
 # TODO: play around with auto filling fields which require a number with 0, as it will increase autocompletion rate of applications
