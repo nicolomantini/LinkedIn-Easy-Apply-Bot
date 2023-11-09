@@ -147,3 +147,4 @@ venv8/
 logs/
 *yaml
 *.yaml
+cprofile*
