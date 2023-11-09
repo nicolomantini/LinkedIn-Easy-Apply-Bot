@@ -1,28 +1,31 @@
-username: 
-password: 
-phone_number:
+username:
+password:
+
+# https://www.linkedin.com/help/linkedin/answer/a524335
+# ^ Use Boolean search on LinkedIn
+# it prefilters results, making things faster and using less resources
+# the boolean search doesn't filter out the promoted listings, even if they do include those NOT strings, therefore in the code I have another filter - for a good reason!
+# their boolean search is spotty. Put too many phrases - no results. Put NOT ("lead" OR "senior") or NOT (lead OR senior) - widely different results by a magnitude of 4. Don't relay on it.
 
 positions:
-- Data Scientist
-- # Another position you want to search for
-- # A third position you want to search for
+  - Data Scientist
+  -  # Another position you want to search for
 
-locations:
-- Remote
-- # A second location you want to search in 
+locations: # linkedin doesn't seem to support boolean searches (OR for example) for the location field, so they have to be separate searches
+  - Remote
+  - Edinburgh, Scotland, United Kingdom
+  -  # A second location you want to search in
 
 # --------- Optional Parameters -------
-# uploads:
-#  Resume: # PATH TO Resume 
-#  Cover Letter: # PATH TO cover letter
-#  Photo: # PATH TO photo
-
-
 # output_filename:
 # - # PATH TO OUTPUT FILE (default output.csv)
 
-# blacklist:
-# - # Company names you want to ignore
-
-#blackListTitles:
-#- # Add job titles you want to ignore
+# Company names you want to ignore
+blacklist:
+# Add job titles you want to ignore
+blackListTitles:
+  ########## comment the below once you are free to work on such projects
+  - cofounder
+  - founder
+  - co-founder
+  ########## comment the above once you are free to work on such projects
