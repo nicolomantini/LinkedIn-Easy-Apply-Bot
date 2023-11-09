@@ -38,14 +38,17 @@ num_successful_jobs_global_variable = 0
 
 
 def setupLogger() -> None:
-    dt: str = datetime.strftime(datetime.now(), "%m_%d_%Y %H_%M_%S ")
+    dt: str = datetime.strftime(datetime.now(), 
+                                "%m_%d_%Y %H_%M_%S ")
 
     if not os.path.isdir('./logs'):
         os.mkdir('./logs')
 
     # TODO need to check if there is a log dir available or not
-    logging.basicConfig(filename=('./logs/' + str(dt) + 'applyJobs.log'), filemode='w',
-                        format='%(asctime)s::%(name)s::%(levelname)s::%(message)s', datefmt='./logs/%d-%b-%Y %H:%M:%S')
+    logging.basicConfig(filename=('./logs/' + str(dt) + 'applyJobs.log'), 
+                        filemode='w',
+                        format='%(asctime)s::%(name)s::%(levelname)s::%(message)s', 
+                        datefmt='./logs/%d-%b-%Y %H:%M:%S')
     log.setLevel(logging.DEBUG)
     c_handler = logging.StreamHandler()
     c_handler.setLevel(logging.DEBUG)
@@ -118,7 +121,12 @@ class EasyApplyBot:
         try:
             df = pd.read_csv(filename,
                              header=None,
-                             names=['timestamp', 'jobID', 'job', 'company', 'attempted', 'result'],
+                             names=['timestamp', 
+                                    'jobID', 
+                                    'job', 
+                                    'company', 
+                                    'attempted', 
+                                    'result'],
                              lineterminator=None,
                              encoding='Windows-1252')
 
@@ -241,7 +249,10 @@ class EasyApplyBot:
                     self.applications_loop(position, location)
 
                 # Open the CSV file in append mode with the specified encoding and line terminator
-                with open(csv_combo_log_file, mode='a', encoding='Windows-1252', newline=None) as file:
+                with open(csv_combo_log_file, 
+                          mode='a', 
+                          encoding='Windows-1252', 
+                          newline=None) as file:
                     writer = csv.writer(file)
 
                     # Get the current date and time in the desired format
@@ -291,7 +302,7 @@ class EasyApplyBot:
 
                 # get job links, (the following are actually the job card objects)
                 links = self.browser.find_elements("xpath",
-                    '//div[@data-job-id and .//text()[contains(., "Easy Apply")]]'
+                                                   '//div[@data-job-id and .//text()[contains(., "Easy Apply")]]'
                 )
 
                 if len(links) == 0:
@@ -499,7 +510,8 @@ class EasyApplyBot:
                     time.sleep(random.uniform(1.5, 2.5))
 
                 if is_present(question_element) and not question_element_was_it_clicked_once_already_for_this_submission:
-                    input_element = self.browser.find_element(By.XPATH, "//span[contains(text(), 'Will you now or in the future require sponsorship for employment visa status?')]")
+                    input_element = self.browser.find_element(By.XPATH, 
+                                                              "//span[contains(text(), 'Will you now or in the future require sponsorship for employment visa status?')]")
                     question_element_was_it_clicked_once_already_for_this_submission = True
                     input_element.click()
                     time.sleep(1)
