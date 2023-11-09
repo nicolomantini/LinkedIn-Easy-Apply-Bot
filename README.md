@@ -1,14 +1,24 @@
-# Linkedin EasyApply Bot
-Automate the application process on LinkedIn
+# Linkedin EasyApply Bot - major fork and improvements
 
-Medium Write-up: https://medium.com/xplor8/how-to-apply-for-1-000-jobs-while-you-are-sleeping-da27edc3b703
-Video: https://www.youtube.com/watch?v=4R4E304fEAs
+[![Paypal donate button](https://raw.githubusercontent.com/conradRz/readAloudSubtitlesFirefoxExtension---Chrome-Edge-Opera-browser-version/main/readmePics/PayPal-Donate-Button.png)](https://www.paypal.com/donate/?hosted_button_id=2QH26ZA928JNC)
 
-## Setup 
+^^^^^^^^^^^^^^^^
 
-Python 3.10 using a conda virtual environment on Linux (Ubuntu)
+#### Major fork and improvements (increased speed and reliability - ability to persist through unhandled exceptions, for example caused by internet disconnection), as the owner of the original repo seem to had abandoned the project. 
+#### To practice and showcase skill useful for automated testing/data scrapping/python/Selenium and save time
 
-The run the bot install requirements
+Automate the application process on LinkedIn. Your profile on LinkedIn should have an already saved CV, and a mobile number (this "saving" of such data is handled by the LinkedIn itself).
+
+The CV should be [Applicant tracking system - Wikipedia](https://en.wikipedia.org/wiki/Applicant_tracking_system) friendly.
+It might be the case, that I'll take it private at a certain point, so don't take availability of this for granted.
+Best to just add it to a task scheduler/Cron(on Linux), for every day, except Sundays.
+
+## Setup
+
+Best to [Venv it](https://docs.python.org/3/library/venv.html), especially if you're also using other Python scripts.
+
+Install requirements:
+
 ```bash
 pip3 install -r requirements.txt
 ```
@@ -20,38 +30,26 @@ username: # Insert your username here
 password: # Insert your password here
 
 positions:
-- # positions you want to search for
-- # Another position you want to search for
-- # A third position you want to search for
+  -  # positions you want to search for
+  -  # Another position you want to search for
 
 locations:
-- # Location you want to search for
-- # A second location you want to search in 
-
-uploads:
- Resume: # PATH TO Resume 
- Cover Letter: # PATH TO cover letter
- Photo: # PATH TO photo
-# Note file_key:file_paths contained inside the uploads section should be writted without a dash ('-') 
+  -  # Location you want to search for
+  -  # A second location you want to search in
 
 output_filename:
-- # PATH TO OUTPUT FILE (default output.csv)
+  -  # PATH TO OUTPUT FILE (default output.csv), preferably don't change the output file, leave it as is.
 
 blacklist:
-- # Company names you want to ignore
+  -  # Company names you want to ignore
 ```
-__NOTE: AFTER EDITING SAVE FILE, DO NOT COMMIT FILE__
 
-### Uploads
-
-There is no limit to the number of files you can list in the uploads section. 
-The program takes the titles from the input boxes and tries to match them with 
-list in the config file.
+**NOTE: AFTER EDITING SAVE THE FILE, DO NOT COMMIT FILE**
+I have found loads of credentials posted on GitHub lol, it's out there if you know what/how to search for.
 
 ## Execute
 
-To execute the bot run the following in your terminal
 ```
-python3 easyapplybot.py
+exception_resistant_easyapplybot.bat
 ```
-
+also it will work well inside the VSCode debugger.
