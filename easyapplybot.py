@@ -24,8 +24,15 @@ from os import path
 
 log = logging.getLogger(__name__)
 
-service = Service(executable_path = path.abspath(__file__) + r"\assets\chromedriver.exe")
-driver = webdriver.Chrome()
+service = Service(executable_path = path.dirname(__file__) + r"\assets\chromedriver.exe")
+driver = webdriver.Chrome(service=service) # if you do just 
+# driver = webdriver.Chrome() 
+# you will sometimes get the below, this might be because they don't keep on top of things
+
+# Exception has occurred: NoSuchDriverException
+# Message: Unable to obtain chromedriver using Selenium Manager; Message: Unsuccessful command executed: C:\Users\User\AppData\Local\Programs\Python\Python39\lib\site-packages\selenium\webdriver\common\windows\selenium-manager.exe --browser chrome --output json.
+# The chromedriver version cannot be discovered
+# ; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors/driver_location
 
 num_successful_jobs_global_variable = 0
 
