@@ -12,7 +12,7 @@ Automate the application process on LinkedIn. Your profile on LinkedIn should ha
 The CV should be [Applicant tracking system - Wikipedia](https://en.wikipedia.org/wiki/Applicant_tracking_system) friendly.
 It might be the case, that I'll take it private at a certain point, so don't take availability of this for granted.
 
-Best to just add it to a task scheduler/Cron(on Linux), for every day, except Sundays.
+Best to just add it to a task scheduler/Cron(on Linux), for every other day, except Sundays - as new Jobs are not posted on Sundays.
 
 ## Setup
 
