@@ -1,0 +1,29 @@
+username: <username>
+password: <password>
+phone_number: <phone_number>
+
+profile_path: '' #can be empty, will default to 'C:\Users\<user>\AppData\Local\Google\Chrome\User Data\Default'
+
+
+positions:
+- <position title 1>
+- <position title 2>
+- <position title 3>
+
+
+locations:
+- <state>
+- Remote
+
+# --------- Optional Parameters -------
+uploads:
+  Resume: 'C:\Users\<user>\Documents\resume.docx'
+  Cover Letter: 'C:\Users\<user>\Documents\cover letter.docx'
+  #Photo: # PATH TO photo
+
+
+output_filename:
+ - C:\Users\ba251\OneDrive\Documents\Mohammad_Anwar_Hiring_package\Mohammad_Anwar_Hiring_package\applied.csv
+
+# blacklist:
+# - # Company names you want to ignore
