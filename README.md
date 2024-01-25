@@ -18,6 +18,7 @@ Enter your username, password, and search settings into the `config.yaml` file
 ```yaml
 username: # Insert your username here
 password: # Insert your password here
+profile_path: #optional profile path to use for chrome
 
 positions:
 - # positions you want to search for
