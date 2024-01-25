@@ -399,6 +399,11 @@ class EasyApplyBot:
                     cv_locator.send_keys(cv)
 
                     #time.sleep(random.uniform(4.5, 6.5))
+                elif len(self.get_elements("follow")) > 0:
+                    elements = self.get_elements("follow")
+                    for element in elements:
+                        button = self.wait.until(EC.element_to_be_clickable(element))
+                        button.click()
 
                 if len(self.get_elements("submit")) > 0:
                     elements = self.get_elements("submit")
@@ -530,12 +535,12 @@ if __name__ == '__main__':
     assert parameters['username'] is not None
     assert parameters['password'] is not None
     assert parameters['phone_number'] is not None
-    if parameters['profile_path'] == '':
-        log.info("No profile path provided. Using default")
-        user = getpass.getuser()
-        profile_path = os.path.join("C:/Users/{}/AppData/Local/Google/Chrome/User Data".format(user))
-        log.info("Using profile path: {}".format(profile_path))
-        parameters['profile_path'] = profile_path
+    # if parameters['profile_path'] == '':
+    #     log.info("No profile path provided. Using default")
+    #     user = getpass.getuser()
+    #     profile_path = os.path.join("C:/Users/{}/AppData/Local/Google/Chrome/User Data".format(user))
+    #     log.info("Using profile path: {}".format(profile_path))
+    #     parameters['profile_path'] = profile_path
 
     if 'uploads' in parameters.keys() and type(parameters['uploads']) == list:
         raise Exception("uploads read from the config file appear to be in list format" +
@@ -556,7 +561,7 @@ if __name__ == '__main__':
     bot = EasyApplyBot(parameters['username'],
                        parameters['password'],
                        parameters['phone_number'],
-                       parameters['profile_path'],
+                       # parameters['profile_path'],
                        parameters['salary'],
                        parameters['rate'],
                        uploads=uploads,
