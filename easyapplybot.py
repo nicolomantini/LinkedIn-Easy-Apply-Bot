@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import csv
 import logging
 import os
@@ -61,7 +62,7 @@ class EasyApplyBot:
                  username,
                  password,
                  phone_number,
-                 profile_path,
+                 # profile_path,
                  salary,
                  rate,
                  uploads={},
@@ -76,7 +77,7 @@ class EasyApplyBot:
         self.uploads = uploads
         self.salary = salary
         self.rate = rate
-        self.profile_path = profile_path
+        # self.profile_path = profile_path
         past_ids: list | None = self.get_appliedIDs(filename)
         self.appliedJobIDs: list = past_ids if past_ids != None else []
         self.filename: str = filename
@@ -87,6 +88,7 @@ class EasyApplyBot:
         self.blackListTitles = blackListTitles
         self.start_linkedin(username, password)
         self.phone_number = phone_number
+        self.answers = json.load(open('answers.json', 'r'))
         self.locator = {
             "next": (By.CSS_SELECTOR, "button[aria-label='Continue to next step']"),
             "review": (By.CSS_SELECTOR, "button[aria-label='Review your application']"),
@@ -99,8 +101,9 @@ class EasyApplyBot:
             "search": (By.CLASS_NAME, "jobs-search-results-list"),
             "links": ("xpath", '//div[@data-job-id]'),
             "fields": (By.CLASS_NAME, "jobs-easy-apply-form-section__grouping"),
-
-
+            "radio_select": (By.CSS_SELECTOR, "input[type='radio']"), #need to append [value={}].format(answer)
+            "multi_select": (By.XPATH, "//*[contains(@id, 'text-entity-list-form-component')]"),
+            "text_select": (By.CLASS_NAME, "artdeco-text-input--input"),
         }
 
     def get_appliedIDs(self, filename) -> list | None:
@@ -202,7 +205,7 @@ class EasyApplyBot:
                 randoTime: float = random.uniform(1.5, 2.9)
                 log.debug(f"Sleeping for {round(randoTime, 1)}")
                 #time.sleep(randoTime)
-                self.load_page(sleep=1)
+                self.load_page(sleep=0.5)
 
                 # LinkedIn displays the search results in a scrollable <div> on the left side, we have to scroll to its bottom
 
@@ -271,31 +274,34 @@ class EasyApplyBot:
         self.get_job_page(jobID)
 
         # get easy apply button
-        button = self.get_easy_apply_button()
-        # word filter to skip positions not wanted
+        button = None
+        while button is None:
+            time.sleep(1)
+            button = self.get_easy_apply_button()
+            # word filter to skip positions not wanted
 
-        if button is not False:
-            if any(word in self.browser.title for word in blackListTitles):
-                log.info('skipping this application, a blacklisted keyword was found in the job position')
-                string_easy = "* Contains blacklisted keyword"
-                result = False
+            if button is not False:
+                if any(word in self.browser.title for word in blackListTitles):
+                    log.info('skipping this application, a blacklisted keyword was found in the job position')
+                    string_easy = "* Contains blacklisted keyword"
+                    result = False
+                else:
+                    string_easy = "* has Easy Apply Button"
+                    log.info("Clicking the EASY apply button")
+                    button.click()
+                    time.sleep(1)
+                    self.fill_out_fields()
+                    result: bool = self.send_resume()
+
             else:
-                string_easy = "* has Easy Apply Button"
-                log.info("Clicking the EASY apply button")
-                button.click()
-                #time.sleep(1)
-                self.fill_out_fields()
-                result: bool = self.send_resume()
+                log.info("The Easy apply button does not exist or I'm too stupid to find it. Please help me.")
+                string_easy = "* Doesn't have Easy Apply Button"
+                result = False
 
-        else:
-            log.info("The Easy apply button does not exist or I'm too stupid to find it. Please help me.")
-            string_easy = "* Doesn't have Easy Apply Button"
-            result = False
+            # position_number: str = str(count_job + jobs_per_page)
+            # log.info(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
 
-        # position_number: str = str(count_job + jobs_per_page)
-        # log.info(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
-
-        self.write_to_file(button, jobID, self.browser.title, result)
+            self.write_to_file(button, jobID, self.browser.title, result)
         pass
 
     def write_to_file(self, button, jobID, browserTitle, result) -> None:
@@ -337,7 +343,7 @@ class EasyApplyBot:
         except Exception as e: 
             print("Exception:",e)
             EasyApplyButton = False
-
+        self.wait.until(EC.element_to_be_clickable(EasyApplyButton))
         return EasyApplyButton
 
     def fill_out_fields(self):
@@ -443,16 +449,26 @@ class EasyApplyBot:
 
         return submitted
     def process_questions(self):
+        time.sleep(0.5)
         form = self.get_elements("fields") #self.browser.find_elements(By.CLASS_NAME, "jobs-easy-apply-form-section__grouping")
         for field in form:
             question = field.text
             answer = self.ans_question(question)
+            if self.is_present("radio_select"):
+                pass
+            elif self.is_present("multi_select"):
+                pass
+            elif self.is_present("text_select"):
+                pass
+
             if "Yes" or "No" in answer: #radio button
                 try: #debug this
                     input = form.find_element(By.CSS_SELECTOR, "input[type='radio'][value={}]".format(answer))
                     form.execute_script("arguments[0].click();", input)
                 except:
                     pass
+
+
             else:
                 input = form.find_element(By.CLASS_NAME, "artdeco-text-input--input")
                 input.send_keys(answer)
@@ -476,24 +492,27 @@ class EasyApplyBot:
         else:
             log.debug("Not able to answer question automatically. Please provide answer")
             #open file and document unanswerable questions, appending to it
-            file = open("unanswerable.txt", "ab")
+            # file = open("unanswerable.txt", "ab")
             answer = input(question)
-            file.write(question + answer +"\n")
-            file.close()
-        file = open("answered.txt", "ab")
-        file.write(question + ": " + answer + "\n")
-        file.close()
+
+            # file.write(question + answer +"\n")
+            # file.close()
+        self.answers[question] = answer
+        json.dump(self.answers, open("answers.json", "wb"), indent=4)
+        # file = open("answers.json", "ab")
+        # file.write("{" + question + ": " + answer + "\n")
+        # file.close()
         return answer
     def load_page(self, sleep=1):
         scroll_page = 0
         while scroll_page < 4000:
             self.browser.execute_script("window.scrollTo(0," + str(scroll_page) + " );")
             scroll_page += 500
-            #time.sleep(sleep)
+            time.sleep(sleep)
 
         if sleep != 1:
             self.browser.execute_script("window.scrollTo(0,0);")
-            #time.sleep(sleep * 3)
+            time.sleep(sleep)
 
         page = BeautifulSoup(self.browser.page_source, "lxml")
         return page
