@@ -9,6 +9,7 @@ import re
 import time
 from datetime import datetime, timedelta
 import getpass
+from pathlib import Path
 
 import pandas as pd
 import pyautogui
@@ -88,7 +89,8 @@ class EasyApplyBot:
         self.blackListTitles = blackListTitles
         self.start_linkedin(username, password)
         self.phone_number = phone_number
-        self.answers = json.load(open('answers.json', 'r'))
+
+
         self.locator = {
             "next": (By.CSS_SELECTOR, "button[aria-label='Continue to next step']"),
             "review": (By.CSS_SELECTOR, "button[aria-label='Review your application']"),
@@ -105,6 +107,19 @@ class EasyApplyBot:
             "multi_select": (By.XPATH, "//*[contains(@id, 'text-entity-list-form-component')]"),
             "text_select": (By.CLASS_NAME, "artdeco-text-input--input"),
         }
+
+        #initialize questions and answers file
+        self.qa_file = Path("qa.csv")
+
+        #if qa file does not exist, create it
+        if self.qa_file.is_file():
+            self.answers = pd.read_csv(self.qa_file, header=0,  squeeze=True).to_dict()
+        #if qa file does exist, load it
+        else:
+            self.answers = {"Questions":"Answers"}
+            df = pd.DataFrame(self.answers, index=[0])
+            df.to_csv(self.qa_file, encoding='utf-8')
+
 
     def get_appliedIDs(self, filename) -> list | None:
         try:
@@ -242,25 +257,13 @@ class EasyApplyBot:
                                     else:
                                         jobIDs.append(int(jobID))
 
-                # remove already applied jobs
-                # before: int = len(IDs)
-                # jobIDs: list = [x for x in IDs if x not in self.appliedJobIDs]
-                # after: int = len(jobIDs)
-
                 count_job = 0
                 # self.avoid_lock() #fking annoying
                 for jobID in jobIDs:
                     self.apply_to_job(jobID)
                     count_job += 1
 
-                # # go to new page if all jobs are done
-                # if count_job == len(jobIDs):
-                #     jobs_per_page = jobs_per_page + 25
-                #     count_job = 0
-                #     log.info("""****************************************\n\n
-                #     Going to next jobs page
-                #     ****************************************\n\n""")
-                    #self.avoid_lock()
+
                 self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                 location,
                                                                 jobs_per_page)
@@ -278,6 +281,9 @@ class EasyApplyBot:
         while button is None:
             time.sleep(1)
             button = self.get_easy_apply_button()
+            if button == False:
+                break
+
             # word filter to skip positions not wanted
 
             if button is not False:
@@ -297,6 +303,7 @@ class EasyApplyBot:
                 log.info("The Easy apply button does not exist or I'm too stupid to find it. Please help me.")
                 string_easy = "* Doesn't have Easy Apply Button"
                 result = False
+                break
 
             # position_number: str = str(count_job + jobs_per_page)
             # log.info(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
@@ -336,14 +343,16 @@ class EasyApplyBot:
             for button in buttons:
                 if "Easy Apply" in button.text:
                     EasyApplyButton = button
+                    self.wait.until(EC.element_to_be_clickable(EasyApplyButton))
                 else:
                     log.debug("Easy Apply button not found")
                     EasyApplyButton = False
             
         except Exception as e: 
             print("Exception:",e)
+            log.debug("Easy Apply button not found")
             EasyApplyButton = False
-        self.wait.until(EC.element_to_be_clickable(EasyApplyButton))
+
         return EasyApplyButton
 
     def fill_out_fields(self):
@@ -390,8 +399,9 @@ class EasyApplyBot:
             follow_locator = (By.CSS_SELECTOR, "label[for='follow-company-checkbox']")
 
             submitted = False
-            while True:
-
+            loop = 0
+            while submitted == False | loop < 5:
+                time.sleep(1)
                 # Upload resume
                 if is_present(upload_resume_locator):
                     #upload_locator = self.browser.find_element(By.NAME, "file")
@@ -422,7 +432,10 @@ class EasyApplyBot:
                 elif len(self.get_elements("error")) > 0:
                     elements = self.get_elements("error")
                     # for element in elements:
-                    self.process_questions()
+                    log.info("please answer the questions")
+                    time.sleep(15)
+                    loop +=1
+                    # self.process_questions()
 
                 elif len(self.get_elements("next")) > 0:
                     elements = self.get_elements("next")
@@ -449,17 +462,38 @@ class EasyApplyBot:
 
         return submitted
     def process_questions(self):
-        time.sleep(0.5)
+        time.sleep(1)
         form = self.get_elements("fields") #self.browser.find_elements(By.CLASS_NAME, "jobs-easy-apply-form-section__grouping")
         for field in form:
             question = field.text
-            answer = self.ans_question(question)
-            if self.is_present("radio_select"):
-                pass
-            elif self.is_present("multi_select"):
-                pass
-            elif self.is_present("text_select"):
-                pass
+            answer = self.ans_question(question.lower())
+            #radio button
+            if self.is_present(self.locator["radio_select"]):
+                try:
+                    input = field.find_element(By.CSS_SELECTOR, "input[type='radio'][value={}]".format(answer))
+                    input.execute_script("arguments[0].click();", input)
+                except Exception as e:
+                    log.error(e)
+                    continue
+            #multi select
+            elif self.is_present(self.locator["multi_select"]):
+                try:
+                    input = field.find_element(self.locator["multi_select"])
+                    input.send_keys(answer)
+                except Exception as e:
+                    log.error(e)
+                    continue
+            # text box
+            elif self.is_present(self.locator["text_select"]):
+                try:
+                    input = field.find_element(self.locator["text_select"])
+                    input.send_keys(answer)
+                except Exception as e:
+                    log.error(e)
+                    continue
+
+            elif self.is_present(self.locator["text_select"]):
+               pass
 
             if "Yes" or "No" in answer: #radio button
                 try: #debug this
@@ -475,33 +509,50 @@ class EasyApplyBot:
 
     def ans_question(self, question): #refactor this to an ans.yaml file
         answer = None
-        if "How many" in question:
-            answer = random.randint(3, 8)
+        if "how many" in question:
+            answer = random.randint(3, 12)
+        elif "experience" in question:
+            answer = random.randint(3, 12)
         elif "sponsor" in question:
             answer = "No"
-        elif 'Do you have' in question:
+        elif 'do you ' in question:
             answer = "Yes"
-        elif "have you previously" in question:
+        elif "have you " in question:
             answer = "Yes"
         elif "US citizen" in question:
             answer = "Yes"
-        elif "Are you willing" in question:
+        elif "are you " in question:
             answer = "Yes"
         elif "salary" in question:
             answer = self.salary
+        elif "can you" in question:
+            answer = "Yes"
+        elif "gender" in question:
+            answer = "Male"
+        elif "race" in question:
+            answer = "Wish not to answer"
+        elif "lgbtq" in question:
+            answer = "Wish not to answer"
+        elif "ethnicity" in question:
+            answer = "Wish not to answer"
+        elif "nationality" in question:
+            answer = "Wish not to answer"
+        elif "government" in question:
+            answer = "I do not wish to self-identify"
+        elif "are you legally" in question:
+            answer = "Yes"
         else:
-            log.debug("Not able to answer question automatically. Please provide answer")
+            log.info("Not able to answer question automatically. Please provide answer")
             #open file and document unanswerable questions, appending to it
-            # file = open("unanswerable.txt", "ab")
-            answer = input(question)
-
-            # file.write(question + answer +"\n")
-            # file.close()
+            answer = "user provided"
+            self.answers[question] = answer
+            # df = pd.DataFrame(self.answers, index=[0])
+            # df.to_csv(self.qa_file, encoding="utf-8")
+        log.info("Answering question: " + question + " with answer: " + answer)
         self.answers[question] = answer
-        json.dump(self.answers, open("answers.json", "wb"), indent=4)
-        # file = open("answers.json", "ab")
-        # file.write("{" + question + ": " + answer + "\n")
-        # file.close()
+        df = pd.DataFrame(self.answers, index=[0])
+        df.to_csv(self.qa_file, encoding="utf-8")
+        log.debug(f"{question} : {answer}")
         return answer
     def load_page(self, sleep=1):
         scroll_page = 0
