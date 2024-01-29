@@ -27,15 +27,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.service import Service as ChromeService
 import webdriver_manager.chrome as ChromeDriverManager
 ChromeDriverManager = ChromeDriverManager.ChromeDriverManager
-#from webdriver_manager.chrome import ChromeDriverManager
+
 
 log = logging.getLogger(__name__)
 
-
-#service = Service()
-#options = webdriver.ChromeOptions()
-#driver = webdriver.Chrome(service=service, options=options)
-#driver = webdriver.Chrome(ChromeDriverManager().install())
 
 def setupLogger() -> None:
     dt: str = datetime.strftime(datetime.now(), "%m_%d_%y %H_%M_%S ")
@@ -256,6 +251,10 @@ class EasyApplyBot:
                                         continue
                                     else:
                                         jobIDs.append(int(jobID))
+                else:
+                    self.browser, jobs_per_page = self.next_jobs_page(position,
+                                                                      location,
+                                                                      jobs_per_page)
 
                 count_job = 0
                 # self.avoid_lock() #fking annoying
@@ -267,48 +266,50 @@ class EasyApplyBot:
                 self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                 location,
                                                                 jobs_per_page)
+
             except Exception as e:
                 print(e)
     def apply_to_job(self, jobID):
         # count_job = 0
-        # #self.avoid_lock() #fking annoying
-        # for i, jobID in enumerate(jobIDs):
-        #     count_job += 1
+        # #self.avoid_lock() # annoying
+
+        # get job page
         self.get_job_page(jobID)
 
+        time.sleep(1)
+
         # get easy apply button
-        button = None
-        while button is None:
-            time.sleep(1)
-            button = self.get_easy_apply_button()
-            if button == False:
-                break
+        button = self.get_easy_apply_button()
 
-            # word filter to skip positions not wanted
 
-            if button is not False:
-                if any(word in self.browser.title for word in blackListTitles):
-                    log.info('skipping this application, a blacklisted keyword was found in the job position')
-                    string_easy = "* Contains blacklisted keyword"
-                    result = False
-                else:
-                    string_easy = "* has Easy Apply Button"
-                    log.info("Clicking the EASY apply button")
-                    button.click()
-                    time.sleep(1)
-                    self.fill_out_fields()
-                    result: bool = self.send_resume()
-
-            else:
-                log.info("The Easy apply button does not exist or I'm too stupid to find it. Please help me.")
-                string_easy = "* Doesn't have Easy Apply Button"
+        # word filter to skip positions not wanted
+        if button is not False:
+            if any(word in self.browser.title for word in blackListTitles):
+                log.info('skipping this application, a blacklisted keyword was found in the job position')
+                string_easy = "* Contains blacklisted keyword"
                 result = False
-                break
+            else:
+                string_easy = "* has Easy Apply Button"
+                log.info("Clicking the EASY apply button")
+                button.click()
+                clicked = True
+                time.sleep(1)
+                self.fill_out_fields()
+                result: bool = self.send_resume()
+                if result:
+                    string_easy = "*Applied: Sent Resume"
+                else:
+                    string_easy = "*Did not apply: Failed to send Resume"
 
-            # position_number: str = str(count_job + jobs_per_page)
-            # log.info(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
+        else:
+            log.info("The Easy apply button does not exist or I'm too stupid to find it. Please help me.")
+            string_easy = "* Doesn't have Easy Apply Button"
+            result = False
 
-            self.write_to_file(button, jobID, self.browser.title, result)
+        # position_number: str = str(count_job + jobs_per_page)
+        log.info(f"\nPosition {jobID}:\n {self.browser.title} \n {string_easy} \n")
+
+        self.write_to_file(button, jobID, self.browser.title, result)
         pass
 
     def write_to_file(self, button, jobID, browserTitle, result) -> None:
@@ -336,6 +337,7 @@ class EasyApplyBot:
         return self.job_page
 
     def get_easy_apply_button(self):
+        EasyApplyButton = False
         try:
             buttons = self.browser.find_elements("xpath",
                 '//button[contains(@class, "jobs-apply-button")]'
@@ -346,12 +348,11 @@ class EasyApplyBot:
                     self.wait.until(EC.element_to_be_clickable(EasyApplyButton))
                 else:
                     log.debug("Easy Apply button not found")
-                    EasyApplyButton = False
             
         except Exception as e: 
             print("Exception:",e)
             log.debug("Easy Apply button not found")
-            EasyApplyButton = False
+
 
         return EasyApplyButton
 
@@ -400,7 +401,7 @@ class EasyApplyBot:
 
             submitted = False
             loop = 0
-            while submitted == False | loop < 5:
+            while loop < 2:
                 time.sleep(1)
                 # Upload resume
                 if is_present(upload_resume_locator):
@@ -428,10 +429,12 @@ class EasyApplyBot:
                         button.click()
                         log.info("Application Submitted")
                         submitted = True
+                        break
 
                 elif len(self.get_elements("error")) > 0:
                     elements = self.get_elements("error")
                     # for element in elements:
+                    #self.process_questions()
                     log.info("please answer the questions")
                     time.sleep(15)
                     loop +=1
@@ -545,6 +548,7 @@ class EasyApplyBot:
             log.info("Not able to answer question automatically. Please provide answer")
             #open file and document unanswerable questions, appending to it
             answer = "user provided"
+            time.sleep(15)
             self.answers[question] = answer
             # df = pd.DataFrame(self.answers, index=[0])
             # df.to_csv(self.qa_file, encoding="utf-8")
@@ -605,12 +609,7 @@ if __name__ == '__main__':
     assert parameters['username'] is not None
     assert parameters['password'] is not None
     assert parameters['phone_number'] is not None
-    # if parameters['profile_path'] == '':
-    #     log.info("No profile path provided. Using default")
-    #     user = getpass.getuser()
-    #     profile_path = os.path.join("C:/Users/{}/AppData/Local/Google/Chrome/User Data".format(user))
-    #     log.info("Using profile path: {}".format(profile_path))
-    #     parameters['profile_path'] = profile_path
+
 
     if 'uploads' in parameters.keys() and type(parameters['uploads']) == list:
         raise Exception("uploads read from the config file appear to be in list format" +
@@ -619,19 +618,21 @@ if __name__ == '__main__':
 
     log.info({k: parameters[k] for k in parameters.keys() if k not in ['username', 'password']})
 
-    output_filename: list = [f for f in parameters.get('output_filename', ['output.csv']) if f != None]
+    output_filename: list = [f for f in parameters.get('output_filename', ['output.csv']) if f is not None]
     output_filename: list = output_filename[0] if len(output_filename) > 0 else 'output.csv'
     blacklist = parameters.get('blacklist', [])
     blackListTitles = parameters.get('blackListTitles', [])
 
-    uploads = {} if parameters.get('uploads', {}) == None else parameters.get('uploads', {})
+    uploads = {} if parameters.get('uploads', {}) is None else parameters.get('uploads', {})
     for key in uploads.keys():
-        assert uploads[key] != None
+        assert uploads[key] is not None
+
+    locations: list = [l for l in parameters['locations'] if l is not None]
+    positions: list = [p for p in parameters['positions'] if p is not None]
 
     bot = EasyApplyBot(parameters['username'],
                        parameters['password'],
                        parameters['phone_number'],
-                       # parameters['profile_path'],
                        parameters['salary'],
                        parameters['rate'],
                        uploads=uploads,
@@ -639,7 +640,6 @@ if __name__ == '__main__':
                        blacklist=blacklist,
                        blackListTitles=blackListTitles
                        )
-
-    locations: list = [l for l in parameters['locations'] if l != None]
-    positions: list = [p for p in parameters['positions'] if p != None]
     bot.start_apply(positions, locations)
+
+
