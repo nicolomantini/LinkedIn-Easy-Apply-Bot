@@ -18,6 +18,7 @@ Enter your username, password, and search settings into the `config.yaml` file
 ```yaml
 username: # Insert your username here
 password: # Insert your password here
+phone_number: #Insert your phone number
 
 positions:
 - # positions you want to search for
@@ -28,11 +29,14 @@ locations:
 - # Location you want to search for
 - # A second location you want to search in 
 
+salary: #yearly salary requirement 
+rate: #hourly rate requirement 
+
 uploads:
  Resume: # PATH TO Resume 
  Cover Letter: # PATH TO cover letter
  Photo: # PATH TO photo
-# Note file_key:file_paths contained inside the uploads section should be writted without a dash ('-') 
+# Note file_key:file_paths contained inside the uploads section should be written without a dash ('-') 
 
 output_filename:
 - # PATH TO OUTPUT FILE (default output.csv)

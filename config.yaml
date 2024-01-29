@@ -1,28 +1,31 @@
-username: 
-password: 
-phone_number:
+username: <username>
+password: <password>
+phone_number: <phone_number>
+
+profile_path: '' #can be empty, will default to 'C:\Users\<user>\AppData\Local\Google\Chrome\User Data\Default'
+
 
 positions:
-- Data Scientist
-- # Another position you want to search for
-- # A third position you want to search for
+- <position title 1>
+- <position title 2>
+- <position title 3>
+
 
 locations:
+- <state>
 - Remote
-- # A second location you want to search in 
 
+salary: <yearly salary>
+rate: <hourly rate>
 # --------- Optional Parameters -------
-# uploads:
-#  Resume: # PATH TO Resume 
-#  Cover Letter: # PATH TO cover letter
-#  Photo: # PATH TO photo
+uploads:
+  Resume: 'C:\Users\<user>\Documents\resume.docx'
+  Cover Letter: 'C:\Users\<user>\Documents\cover letter.docx'
+  #Photo: # PATH TO photo
 
 
-# output_filename:
-# - # PATH TO OUTPUT FILE (default output.csv)
+output_filename:
+- # PATH TO OUTPUT FILE (default output.csv)
 
 # blacklist:
 # - # Company names you want to ignore
-
-#blackListTitles:
-#- # Add job titles you want to ignore
