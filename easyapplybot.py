@@ -101,6 +101,7 @@ class EasyApplyBot:
             "radio_select": (By.CSS_SELECTOR, "input[type='radio']"), #need to append [value={}].format(answer)
             "multi_select": (By.XPATH, "//*[contains(@id, 'text-entity-list-form-component')]"),
             "text_select": (By.CLASS_NAME, "artdeco-text-input--input"),
+            "2fa_oneClick": (By.ID, 'reset-password-submit-button')
         }
 
         #initialize questions and answers file
@@ -164,10 +165,14 @@ class EasyApplyBot:
             pw_field.send_keys(password)
             time.sleep(2)
             login_button.click()
-            oneclick_auth = self.browser.find_element(by='id', value='reset-password-submit-button')
-            if oneclick_auth is not None:
-                log.info("additional authentication required, sleep for 15 seconds so you can do that")
-                time.sleep(15)
+            time.sleep(15)
+            # if self.is_present(self.locator["2fa_oneClick"]):
+            #     oneclick_auth = self.browser.find_element(by='id', value='reset-password-submit-button')
+            #     if oneclick_auth is not None:
+            #         log.info("additional authentication required, sleep for 15 seconds so you can do that")
+            #         time.sleep(15)
+            # else:
+            #     time.sleep()
         except TimeoutException:
             log.info("TimeoutException! Username/password field or login button not found")
 
