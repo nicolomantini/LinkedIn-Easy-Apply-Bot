@@ -255,8 +255,11 @@ class EasyApplyBot:
                                         log.debug("Job ID not found, search keyword found instead? {}".format(link.text))
                                         continue
                                     else:
-                                        jobIDs[jobID] = False
+                                        jobIDs[jobID] = "To be processed"
                     self.apply_loop(jobIDs)
+                    self.browser, jobs_per_page = self.next_jobs_page(position,
+                                                                      location,
+                                                                      jobs_per_page)
                 else:
                     self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                       location,
@@ -283,14 +286,13 @@ class EasyApplyBot:
                 print(e)
     def apply_loop(self, jobIDs):
         for jobID in jobIDs:
-            if jobIDs[jobID] == False:
+            if jobIDs[jobID] == "To be processed":
                 applied = self.apply_to_job(jobID)
                 if applied:
                     log.info(f"Applied to {jobID}")
-                    jobIDs[jobID] == True
                 else:
                     log.info(f"Failed to apply to {jobID}")
-                    jobIDs[jobID] == 2
+                jobIDs[jobID] == applied
 
     def apply_to_job(self, jobID):
         # #self.avoid_lock() # annoying
@@ -323,11 +325,15 @@ class EasyApplyBot:
                     string_easy = "*Applied: Sent Resume"
                 else:
                     string_easy = "*Did not apply: Failed to send Resume"
-
+        elif "You applied on" in self.browser.page_source:
+            log.info("You have already applied to this position.")
+            string_easy = "* Already Applied"
+            result = False
         else:
             log.info("The Easy apply button does not exist.")
             string_easy = "* Doesn't have Easy Apply Button"
             result = False
+
 
         # position_number: str = str(count_job + jobs_per_page)
         log.info(f"\nPosition {jobID}:\n {self.browser.title} \n {string_easy} \n")
