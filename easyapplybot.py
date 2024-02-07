@@ -244,7 +244,7 @@ class EasyApplyBot:
                 #     '//div[@data-job-id]'
                 # )
 
-                    jobIDs = []
+                    jobIDs = {} #{Job id: processed_status}
                 
                     # children selector is the container of the job cards on the left
                     for link in links:
@@ -255,32 +255,50 @@ class EasyApplyBot:
                                         log.debug("Job ID not found, search keyword found instead? {}".format(link.text))
                                         continue
                                     else:
-                                        jobIDs.append(int(jobID))
+                                        jobIDs[jobID] = False
+                    self.apply_loop(jobIDs)
                 else:
                     self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                       location,
                                                                       jobs_per_page)
 
-                count_job = 0
-                # self.avoid_lock() #fking annoying
-                for jobID in jobIDs:
-                    self.apply_to_job(jobID)
-                    count_job += 1
+                # count_job = 0
+                # # self.avoid_lock() #fking annoying
+                # for jobID in jobIDs:
+                #     applied = self.apply_to_job(jobID)
+                #     if applied:
+                #         count_application += 1
+                #         count_job += 1
+                #         log.info(f"Applied to {jobID}")
+                #     else:
+                #         count_job += 1
+                #         log.info(f"Failed to apply to {jobID}")
 
-
-                self.browser, jobs_per_page = self.next_jobs_page(position,
-                                                                location,
-                                                                jobs_per_page)
+                #
+                # self.browser, jobs_per_page = self.next_jobs_page(position,
+                #                                                 location,
+                #                                                 jobs_per_page)
 
             except Exception as e:
                 print(e)
+    def apply_loop(self, jobIDs):
+        for jobID in jobIDs:
+            if jobIDs[jobID] == False:
+                applied = self.apply_to_job(jobID)
+                if applied:
+                    log.info(f"Applied to {jobID}")
+                    jobIDs[jobID] == True
+                else:
+                    log.info(f"Failed to apply to {jobID}")
+                    jobIDs[jobID] == 2
+
     def apply_to_job(self, jobID):
-        # count_job = 0
         # #self.avoid_lock() # annoying
 
         # get job page
         self.get_job_page(jobID)
 
+        # let page load
         time.sleep(1)
 
         # get easy apply button
@@ -307,7 +325,7 @@ class EasyApplyBot:
                     string_easy = "*Did not apply: Failed to send Resume"
 
         else:
-            log.info("The Easy apply button does not exist or I'm too stupid to find it. Please help me.")
+            log.info("The Easy apply button does not exist.")
             string_easy = "* Doesn't have Easy Apply Button"
             result = False
 
@@ -315,7 +333,7 @@ class EasyApplyBot:
         log.info(f"\nPosition {jobID}:\n {self.browser.title} \n {string_easy} \n")
 
         self.write_to_file(button, jobID, self.browser.title, result)
-        pass
+        return result
 
     def write_to_file(self, button, jobID, browserTitle, result) -> None:
         def re_extract(text, pattern):
@@ -330,7 +348,7 @@ class EasyApplyBot:
         company = re_extract(browserTitle.split(' | ')[1], r"(\w.*)")
 
         toWrite: list = [timestamp, jobID, job, company, attempted, result]
-        with open(self.filename, 'a') as f:
+        with open(self.filename, 'a+') as f:
             writer = csv.writer(f)
             writer.writerow(toWrite)
 
@@ -438,11 +456,27 @@ class EasyApplyBot:
 
                 elif len(self.get_elements("error")) > 0:
                     elements = self.get_elements("error")
+                    if "Application sent" in self.browser.page_source:
+                        log.info("Application Submitted")
+                        submitted = True
+                        break
+                    elif len(elements) > 0:
+                        log.info("Please answer the questions")
+                        while len(elements) > 0:
+                            time.sleep(2)
+                            elements = self.get_elements("error")
+                            if "Application sent" in self.browser.page_source:
+                                log.info("Application Submitted")
+                                submitted = True
+                                break
+                        continue
+                        #add explicit wait
                     # for element in elements:
                     #self.process_questions()
-                    log.info("please answer the questions")
-                    time.sleep(15)
-                    loop +=1
+                    else:
+                        log.info("Application not submitted")
+                        time.sleep(2)
+                        break
                     # self.process_questions()
 
                 elif len(self.get_elements("next")) > 0:
