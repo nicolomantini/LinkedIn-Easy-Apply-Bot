@@ -101,7 +101,9 @@ class EasyApplyBot:
             "radio_select": (By.CSS_SELECTOR, "input[type='radio']"), #need to append [value={}].format(answer)
             "multi_select": (By.XPATH, "//*[contains(@id, 'text-entity-list-form-component')]"),
             "text_select": (By.CLASS_NAME, "artdeco-text-input--input"),
-            "2fa_oneClick": (By.ID, 'reset-password-submit-button')
+            "2fa_oneClick": (By.ID, 'reset-password-submit-button'),
+            "easy_apply_button": (By.XPATH, '//button[contains(@class, "jobs-apply-button")]')
+
         }
 
         #initialize questions and answers file
@@ -109,7 +111,7 @@ class EasyApplyBot:
 
         #if qa file does not exist, create it
         if self.qa_file.is_file():
-            self.answers = pd.read_csv(self.qa_file, header=0,  squeeze=True).to_dict()
+            self.answers = pd.read_csv(self.qa_file).to_dict()
         #if qa file does exist, load it
         else:
             self.answers = {"Questions":"Answers"}
@@ -183,6 +185,8 @@ class EasyApplyBot:
     def start_apply(self, positions, locations) -> None:
         start: float = time.time()
         self.fill_data()
+        self.positions = positions
+        self.locations = locations
         combos: list = []
         while len(combos) < len(positions) * len(locations):
             position = positions[random.randint(0, len(positions) - 1)]
@@ -256,7 +260,8 @@ class EasyApplyBot:
                                         continue
                                     else:
                                         jobIDs[jobID] = "To be processed"
-                    self.apply_loop(jobIDs)
+                    if len(jobIDs) > 0:
+                        self.apply_loop(jobIDs)
                     self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                       location,
                                                                       jobs_per_page)
@@ -265,22 +270,6 @@ class EasyApplyBot:
                                                                       location,
                                                                       jobs_per_page)
 
-                # count_job = 0
-                # # self.avoid_lock() #fking annoying
-                # for jobID in jobIDs:
-                #     applied = self.apply_to_job(jobID)
-                #     if applied:
-                #         count_application += 1
-                #         count_job += 1
-                #         log.info(f"Applied to {jobID}")
-                #     else:
-                #         count_job += 1
-                #         log.info(f"Failed to apply to {jobID}")
-
-                #
-                # self.browser, jobs_per_page = self.next_jobs_page(position,
-                #                                                 location,
-                #                                                 jobs_per_page)
 
             except Exception as e:
                 print(e)
@@ -368,9 +357,10 @@ class EasyApplyBot:
     def get_easy_apply_button(self):
         EasyApplyButton = False
         try:
-            buttons = self.browser.find_elements("xpath",
-                '//button[contains(@class, "jobs-apply-button")]'
-            )
+            buttons = self.get_elements("easy_apply_button")
+            # buttons = self.browser.find_elements("xpath",
+            #     '//button[contains(@class, "jobs-apply-button")]'
+            # )
             for button in buttons:
                 if "Easy Apply" in button.text:
                     EasyApplyButton = button
@@ -467,13 +457,17 @@ class EasyApplyBot:
                         submitted = True
                         break
                     elif len(elements) > 0:
-                        log.info("Please answer the questions")
                         while len(elements) > 0:
-                            time.sleep(2)
+                            log.info("Please answer the questions, waiting 5 seconds...")
+                            time.sleep(5)
                             elements = self.get_elements("error")
                             if "Application sent" in self.browser.page_source:
                                 log.info("Application Submitted")
                                 submitted = True
+                                break
+                            elif is_present(self.locator["easy_apply_button"]):
+                                log.info("Skipping application")
+                                submitted = False
                                 break
                         continue
                         #add explicit wait
