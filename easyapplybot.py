@@ -452,7 +452,7 @@ class EasyApplyBot:
 
                 elif len(self.get_elements("error")) > 0:
                     elements = self.get_elements("error")
-                    if "Application sent" in self.browser.page_source:
+                    if "application was sent" in self.browser.page_source:
                         log.info("Application Submitted")
                         submitted = True
                         break
@@ -461,7 +461,7 @@ class EasyApplyBot:
                             log.info("Please answer the questions, waiting 5 seconds...")
                             time.sleep(5)
                             elements = self.get_elements("error")
-                            if "Application sent" in self.browser.page_source:
+                            if "application was sent" in self.browser.page_source:
                                 log.info("Application Submitted")
                                 submitted = True
                                 break
