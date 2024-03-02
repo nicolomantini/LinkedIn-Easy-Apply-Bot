@@ -425,9 +425,15 @@ class EasyApplyBot:
                 # Upload resume
                 if is_present(upload_resume_locator):
                     #upload_locator = self.browser.find_element(By.NAME, "file")
-                    resume_locator = self.browser.find_element(By.XPATH, "//*[contains(@id, 'jobs-document-upload-file-input-upload-resume')]")
-                    resume = self.uploads["Resume"]
-                    resume_locator.send_keys(resume)
+                    try:
+                        resume_locator = self.browser.find_element(By.XPATH, "//*[contains(@id, 'jobs-document-upload-file-input-upload-resume')]")
+                        resume = self.uploads["Resume"]
+                        resume_locator.send_keys(resume)
+                    except Exception as e:
+                        log.error(e)
+                        log.error("Resume upload failed")
+                        log.debug("Resume: " + resume)
+                        log.debug("Resume Locator: " + str(resume_locator))
                 # Upload cover letter if possible
                 if is_present(upload_cv_locator):
                     cv = self.uploads["Cover Letter"]
@@ -498,9 +504,10 @@ class EasyApplyBot:
                         button.click()
 
         except Exception as e:
-            log.info(e)
-            log.info("cannot apply to this job")
-            raise (e)
+            log.error(e)
+            log.error("cannot apply to this job")
+            pass
+            #raise (e)
 
         return submitted
     def process_questions(self):
