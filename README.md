@@ -59,3 +59,9 @@ To execute the bot run the following in your terminal
 python3 easyapplybot.py
 ```
 
+Do you like the project and find it helpful?
+Leave a tip if you'd like to support! 
+Zelle: ba2512005@gmail.com
+![zelle](https://github.com/ba2512005/LinkedIn-Easy-Apply-Bot/assets/17554729/c17006bf-d926-4d02-91ef-ac98f615f764)
+
+
