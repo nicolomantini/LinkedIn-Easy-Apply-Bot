@@ -15,17 +15,17 @@ locations:
 - Michigan
 - Remote
 
-salary: 120,000
-rate: 60
+salary: 60,000
+rate: 25
 # --------- Optional Parameters -------
 uploads:
-  Resume: 'C:\Users\<user>\Documents\resume.docx'
-  Cover Letter: 'C:\Users\<user>\Documents\cover letter.docx'
+  Resume: './cv.pdf'
+  Cover Letter: './cl.pdf'
   #Photo: # PATH TO photo
 
 
 output_filename:
-- # PATH TO OUTPUT FILE (default output.csv)
+- './out.csv'
 
 # blacklist:
 # - # Company names you want to ignore
