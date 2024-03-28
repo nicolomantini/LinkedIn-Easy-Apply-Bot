@@ -7,8 +7,6 @@ profile_path: '' #can be empty, will default to 'C:\Users\<user>\AppData\Local\G
 
 positions:
 - Software Engineer
-- <position title 2>
-- <position title 3>
 
 
 locations:
@@ -19,13 +17,13 @@ salary: 60,000
 rate: 25
 # --------- Optional Parameters -------
 uploads:
-  Resume: './cv.pdf'
-  Cover Letter: './cl.pdf'
+  Resume: /Users/steven/Desktop/LinkedIn-Easy-Apply-Bot/cv.pdf
+  Cover Letter: /Users/steven/Desktop/LinkedIn-Easy-Apply-Bot/cl.pdf
   #Photo: # PATH TO photo
 
 
 output_filename:
-- './out.csv'
+- /Users/steven/Desktop/LinkedIn-Easy-Apply-Bot/out.csv
 
 # blacklist:
 # - # Company names you want to ignore
