@@ -595,13 +595,22 @@ class EasyApplyBot:
             #open file and document unanswerable questions, appending to it
             answer = "user provided"
             time.sleep(15)
-            self.answers[question] = answer
+            
             # df = pd.DataFrame(self.answers, index=[0])
             # df.to_csv(self.qa_file, encoding="utf-8")
         log.info("Answering question: " + question + " with answer: " + answer)
         self.answers[question] = answer
-        df = pd.DataFrame(self.answers, index=[0])
-        df.to_csv(self.qa_file, encoding="utf-8")
+
+        # Check if the question already exists to avoid duplicates in the internal dictionary.
+        new_data = pd.DataFrame({question: [answer]})
+
+        if self.qa_file.is_file():
+            new_data.to_csv(self.qa_file, mode='a', header=False, encoding='utf-8')
+        else:
+            new_data.to_csv(self.qa_file, mode='w', encoding='utf-8')
+
+        log.info(f"Question: '{question}' with answer: '{answer}' saved to qa.csv.")
+
         log.debug(f"{question} : {answer}")
         return answer
     def load_page(self, sleep=1):
