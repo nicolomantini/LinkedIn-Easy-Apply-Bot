@@ -595,7 +595,7 @@ class EasyApplyBot:
             #open file and document unanswerable questions, appending to it
             answer = "user provided"
             time.sleep(15)
-            
+
             # df = pd.DataFrame(self.answers, index=[0])
             # df.to_csv(self.qa_file, encoding="utf-8")
         log.info("Answering question: " + question + " with answer: " + answer)
@@ -613,6 +613,7 @@ class EasyApplyBot:
 
         log.debug(f"{question} : {answer}")
         return answer
+
     def load_page(self, sleep=1):
         scroll_page = 0
         while scroll_page < 4000:
