@@ -1,6 +1,6 @@
-username: wischahaha@outlook.com
-password: zhuqy.ziyouxie
-phone_number: 1836857896
+username: <username>
+password: <password>
+phone_number: <phone_number>
 
 profile_path: '' #can be empty, will default to 'C:\Users\<user>\AppData\Local\Google\Chrome\User Data\Default'
 
