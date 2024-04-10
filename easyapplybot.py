@@ -108,15 +108,17 @@ class EasyApplyBot:
 
         #initialize questions and answers file
         self.qa_file = Path("qa.csv")
+        self.answers = {}
 
         #if qa file does not exist, create it
         if self.qa_file.is_file():
-            self.answers = pd.read_csv(self.qa_file).to_dict()
+            self.answers = pd.read_csv(self.qa_file)
+            for index, row in df.iterrows():
+                self.answers[row['Question']] = row['Answer']
         #if qa file does exist, load it
         else:
-            self.answers = {"Questions":"Answers"}
-            df = pd.DataFrame(self.answers, index=[0])
-            df.to_csv(self.qa_file, encoding='utf-8')
+            df = pd.DataFrame(columns=["Question", "Answer"])
+            df.to_csv(self.qa_file, index=False, encoding='utf-8')
 
 
     def get_appliedIDs(self, filename) -> list | None:
@@ -599,19 +601,17 @@ class EasyApplyBot:
             # df = pd.DataFrame(self.answers, index=[0])
             # df.to_csv(self.qa_file, encoding="utf-8")
         log.info("Answering question: " + question + " with answer: " + answer)
-        self.answers[question] = answer
 
-        # Check if the question already exists to avoid duplicates in the internal dictionary.
-        new_data = pd.DataFrame({question: [answer]})
-
-        if self.qa_file.is_file():
-            new_data.to_csv(self.qa_file, mode='a', header=False, encoding='utf-8')
+        # Append question and answer to the CSV if it's a new question
+        if question not in self.answers:
+            self.answers[question] = answer
+            # Append a new question-answer pair to the CSV file
+            new_data = pd.DataFrame({"Question": [question], "Answer": [answer]})
+            new_data.to_csv(self.qa_file, mode='a', header=False, index=False, encoding='utf-8')
+            log.info(f"Appended to QA file: '{question}' with answer: '{answer}'.")
         else:
-            new_data.to_csv(self.qa_file, mode='w', encoding='utf-8')
+            log.info("Question already exists. Not appending to QA file.")
 
-        log.info(f"Question: '{question}' with answer: '{answer}' saved to qa.csv.")
-
-        log.debug(f"{question} : {answer}")
         return answer
 
     def load_page(self, sleep=1):
