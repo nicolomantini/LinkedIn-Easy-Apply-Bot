@@ -602,15 +602,12 @@ class EasyApplyBot:
             # df.to_csv(self.qa_file, encoding="utf-8")
         log.info("Answering question: " + question + " with answer: " + answer)
 
-        # Append question and answer to the CSV if it's a new question
-        if question not in self.answers:
-            self.answers[question] = answer
-            # Append a new question-answer pair to the CSV file
-            new_data = pd.DataFrame({"Question": [question], "Answer": [answer]})
-            new_data.to_csv(self.qa_file, mode='a', header=False, index=False, encoding='utf-8')
-            log.info(f"Appended to QA file: '{question}' with answer: '{answer}'.")
-        else:
-            log.info("Question already exists. Not appending to QA file.")
+        # Append question and answer to the CSV
+        self.answers[question] = answer
+        # Append a new question-answer pair to the CSV file
+        new_data = pd.DataFrame({"Question": [question], "Answer": [answer]})
+        new_data.to_csv(self.qa_file, mode='a', header=False, index=False, encoding='utf-8')
+        log.info(f"Appended to QA file: '{question}' with answer: '{answer}'.")
 
         return answer
 
