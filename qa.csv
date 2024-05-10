@@ -1,0 +1,52 @@
+Question,Answer
+"Have you completed the following level of education: Bachelor's Degree?
+Have you completed the following level of education: Bachelor's Degree?
+Required
+Yes
+No",user provided
+"Do you have a valid driver's license?
+Do you have a valid driver's license?
+Required
+Yes
+No",user provided
+"Do you have the following license or certification: Google Cloud Certified Professional Cloud Architect?
+Do you have the following license or certification: Google Cloud Certified Professional Cloud Architect?
+Required
+Yes
+No
+Please make a selection",user provided
+"have you completed the following level of education: bachelor's degree?
+have you completed the following level of education: bachelor's degree?
+required
+yes
+no",Yes
+how many years of work experience do you have with c++?,1
+"how many years of computer games experience do you currently have?
+enter a whole number between 0 and 99",1
+"how many years of engineering experience do you currently have?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with unreal engine?
+enter a whole number between 0 and 99",1
+"how many years utilizing unreal engine?
+enter a decimal number larger than 0.0",1
+how many years of computer games experience do you currently have?,1
+how many years of engineering experience do you currently have?,1
+how many years of work experience do you have with unreal engine?,1
+how many years utilizing unreal engine?,1
+"how many years of work experience do you have with databases?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with business development?
+enter a whole number between 0 and 99",1
+"are you comfortable commuting to this job's location?
+are you comfortable commuting to this job's location?
+required
+yes
+no
+please make a selection",Yes
+how many years of work experience do you have with databases?,1
+how many years of work experience do you have with business development?,1
+"are you comfortable commuting to this job's location?
+are you comfortable commuting to this job's location?
+required
+yes
+no",Yes

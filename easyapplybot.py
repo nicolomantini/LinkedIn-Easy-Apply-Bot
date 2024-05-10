@@ -108,15 +108,17 @@ class EasyApplyBot:
 
         #initialize questions and answers file
         self.qa_file = Path("qa.csv")
+        self.answers = {}
 
         #if qa file does not exist, create it
         if self.qa_file.is_file():
-            self.answers = pd.read_csv(self.qa_file).to_dict()
+            df = pd.read_csv(self.qa_file)
+            for index, row in df.iterrows():
+                self.answers[row['Question']] = row['Answer']
         #if qa file does exist, load it
         else:
-            self.answers = {"Questions":"Answers"}
-            df = pd.DataFrame(self.answers, index=[0])
-            df.to_csv(self.qa_file, encoding='utf-8')
+            df = pd.DataFrame(columns=["Question", "Answer"])
+            df.to_csv(self.qa_file, index=False, encoding='utf-8')
 
 
     def get_appliedIDs(self, filename) -> list | None:
@@ -467,6 +469,10 @@ class EasyApplyBot:
                             log.info("Please answer the questions, waiting 5 seconds...")
                             time.sleep(5)
                             elements = self.get_elements("error")
+
+                            for element in elements:
+                                self.process_questions()
+
                             if "application was sent" in self.browser.page_source:
                                 log.info("Application Submitted")
                                 submitted = True
@@ -477,8 +483,7 @@ class EasyApplyBot:
                                 break
                         continue
                         #add explicit wait
-                    # for element in elements:
-                    #self.process_questions()
+                    
                     else:
                         log.info("Application not submitted")
                         time.sleep(2)
@@ -559,9 +564,9 @@ class EasyApplyBot:
     def ans_question(self, question): #refactor this to an ans.yaml file
         answer = None
         if "how many" in question:
-            answer = random.randint(3, 12)
+            answer = "1"
         elif "experience" in question:
-            answer = random.randint(3, 12)
+            answer = "1"
         elif "sponsor" in question:
             answer = "No"
         elif 'do you ' in question:
@@ -595,15 +600,21 @@ class EasyApplyBot:
             #open file and document unanswerable questions, appending to it
             answer = "user provided"
             time.sleep(15)
-            self.answers[question] = answer
+
             # df = pd.DataFrame(self.answers, index=[0])
             # df.to_csv(self.qa_file, encoding="utf-8")
         log.info("Answering question: " + question + " with answer: " + answer)
-        self.answers[question] = answer
-        df = pd.DataFrame(self.answers, index=[0])
-        df.to_csv(self.qa_file, encoding="utf-8")
-        log.debug(f"{question} : {answer}")
+
+        # Append question and answer to the CSV
+        if question not in self.answers:
+            self.answers[question] = answer
+            # Append a new question-answer pair to the CSV file
+            new_data = pd.DataFrame({"Question": [question], "Answer": [answer]})
+            new_data.to_csv(self.qa_file, mode='a', header=False, index=False, encoding='utf-8')
+            log.info(f"Appended to QA file: '{question}' with answer: '{answer}'.")
+
         return answer
+
     def load_page(self, sleep=1):
         scroll_page = 0
         while scroll_page < 4000:
