@@ -64,11 +64,28 @@ class EasyApplyBot:
                  uploads={},
                  filename='output.csv',
                  blacklist=[],
-                 blackListTitles=[]) -> None:
+                 blackListTitles=[],
+                 experience_level=[]
+                 ) -> None:
 
         log.info("Welcome to Easy Apply Bot")
         dirpath: str = os.getcwd()
         log.info("current directory is : " + dirpath)
+        log.info("Please wait while we prepare the bot for you")
+        if experience_level:
+            experience_levels = {
+                1: "Entry level",
+                2: "Associate",
+                3: "Mid-Senior level",
+                4: "Director",
+                5: "Executive",
+                6: "Internship"
+            }
+            applied_levels = [experience_levels[level] for level in experience_level]
+            log.info("Applying for experience level roles: " + ", ".join(applied_levels))
+        else:
+            log.info("Applying for all experience levels")
+        
 
         self.uploads = uploads
         self.salary = salary
@@ -84,6 +101,7 @@ class EasyApplyBot:
         self.blackListTitles = blackListTitles
         self.start_linkedin(username, password)
         self.phone_number = phone_number
+        self.experience_level = experience_level
 
 
         self.locator = {
@@ -215,7 +233,7 @@ class EasyApplyBot:
 
         self.browser.set_window_position(1, 1)
         self.browser.maximize_window()
-        self.browser, _ = self.next_jobs_page(position, location, jobs_per_page)
+        self.browser, _ = self.next_jobs_page(position, location, jobs_per_page, experience_level=self.experience_level)
         log.info("Looking for jobs.. Please wait..")
 
         while time.time() - start_time < self.MAX_SEARCH_TIME:
@@ -266,11 +284,13 @@ class EasyApplyBot:
                         self.apply_loop(jobIDs)
                     self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                       location,
-                                                                      jobs_per_page)
+                                                                      jobs_per_page, 
+                                                                      experience_level=self.experience_level)
                 else:
                     self.browser, jobs_per_page = self.next_jobs_page(position,
                                                                       location,
-                                                                      jobs_per_page)
+                                                                      jobs_per_page, 
+                                                                      experience_level=self.experience_level)
 
 
             except Exception as e:
@@ -639,11 +659,14 @@ class EasyApplyBot:
         time.sleep(0.5)
         pyautogui.press('esc')
 
-    def next_jobs_page(self, position, location, jobs_per_page):
+    def next_jobs_page(self, position, location, jobs_per_page, experience_level=[]):
+        # Construct the experience level part of the URL
+        experience_level_str = ",".join(map(str, experience_level)) if experience_level else ""
+        experience_level_param = f"&f_E={experience_level_str}" if experience_level_str else ""
         self.browser.get(
             # URL for jobs page
             "https://www.linkedin.com/jobs/search/?f_LF=f_AL&keywords=" +
-            position + location + "&start=" + str(jobs_per_page))
+            position + location + "&start=" + str(jobs_per_page) + experience_level_param)
         #self.avoid_lock()
         log.info("Loading next job page?")
         self.load_page()
@@ -691,11 +714,12 @@ if __name__ == '__main__':
                        parameters['password'],
                        parameters['phone_number'],
                        parameters['salary'],
-                       parameters['rate'],
+                       parameters['rate'], 
                        uploads=uploads,
                        filename=output_filename,
                        blacklist=blacklist,
-                       blackListTitles=blackListTitles
+                       blackListTitles=blackListTitles,
+                       experience_level=parameters.get('experience_level', [])
                        )
     bot.start_apply(positions, locations)
 
