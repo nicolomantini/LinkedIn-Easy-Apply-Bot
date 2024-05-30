@@ -666,7 +666,7 @@ class EasyApplyBot:
         self.browser.get(
             # URL for jobs page
             "https://www.linkedin.com/jobs/search/?f_LF=f_AL&keywords=" +
-            position + location + "&start=" + str(jobs_per_page) + experience_level_param)
+            position + location + "&f_TPR=r86400&start=" + str(jobs_per_page) + experience_level_param)
         #self.avoid_lock()
         log.info("Loading next job page?")
         self.load_page()
