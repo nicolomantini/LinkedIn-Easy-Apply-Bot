@@ -9,3 +9,4 @@ bs4~=0.0.1
 future
 python-dotenv
 packaging
+webdriver_manager
