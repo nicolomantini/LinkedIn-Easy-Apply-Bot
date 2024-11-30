@@ -177,10 +177,12 @@ class EasyApplyBot:
         log.info("Logging in.....Please wait :)  ")
         self.browser.get("https://www.linkedin.com/login?trk=guest_homepage-basic_nav-header-signin")
         try:
-            user_field = self.browser.find_element("id","username")
-            pw_field = self.browser.find_element("id","password")
-            login_button = self.browser.find_element("xpath",
-                        '//*[@id="organic-div"]/form/div[3]/button')
+            # Wait for elements to be present
+            user_field = self.browser.find_element("id", "username")
+            pw_field = self.browser.find_element("id", "password")
+            login_button = self.browser.find_element("css selector", "button[type='submit']")
+            
+            # Input credentials with waits
             user_field.send_keys(username)
             user_field.send_keys(Keys.TAB)
             time.sleep(2)
@@ -188,15 +190,18 @@ class EasyApplyBot:
             time.sleep(2)
             login_button.click()
             time.sleep(15)
-            # if self.is_present(self.locator["2fa_oneClick"]):
-            #     oneclick_auth = self.browser.find_element(by='id', value='reset-password-submit-button')
-            #     if oneclick_auth is not None:
-            #         log.info("additional authentication required, sleep for 15 seconds so you can do that")
-            #         time.sleep(15)
-            # else:
-            #     time.sleep()
+
+            # Check for security verification or 2FA
+            if ("security verification" in self.browser.page_source.lower() or 
+                "verify it's you" in self.browser.page_source.lower() or
+                "we need to verify it's you" in self.browser.page_source.lower()):
+                log.info("Security verification required. Please complete it manually within 60 seconds...")
+                time.sleep(60)
+
         except TimeoutException:
             log.info("TimeoutException! Username/password field or login button not found")
+        except Exception as e:
+            log.error(f"Error during login: {str(e)}")
 
     def fill_data(self) -> None:
         self.browser.set_window_size(1, 1)
