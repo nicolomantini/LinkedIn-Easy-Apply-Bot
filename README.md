@@ -1,7 +1,7 @@
 # Linkedin EasyApply Bot
 Automate the application process on LinkedIn
 
-Write-up: https://nicolomantini.com/how-to-apply-for-jobs-while-you-are-sleeping/
+Write-up: https://www.nicolomantini.com/p/how-to-apply-for-jobs-while-you-are-sleeping
 Video: https://www.youtube.com/watch?v=4R4E304fEAs
 
 ## Setup 
