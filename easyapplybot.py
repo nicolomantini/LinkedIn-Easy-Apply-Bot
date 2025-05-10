@@ -180,7 +180,7 @@ class EasyApplyBot:
             user_field = self.browser.find_element("id","username")
             pw_field = self.browser.find_element("id","password")
             login_button = self.browser.find_element("xpath",
-                        '//*[@id="organic-div"]/form/div[3]/button')
+                        '//*[@id="organic-div"]/form/div[4]/button')
             user_field.send_keys(username)
             user_field.send_keys(Keys.TAB)
             time.sleep(2)
