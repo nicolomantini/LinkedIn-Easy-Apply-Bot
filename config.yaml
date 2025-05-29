@@ -1,37 +1,41 @@
-username: <username>
-password: <password>
-phone_number: <phone_number>
-
-profile_path: '' #can be empty, will default to 'C:\Users\<user>\AppData\Local\Google\Chrome\User Data\Default'
-
+username: satyam8306
+password: {secret.PASSWORD}
+phone_number: {secret.PHONE}
 
 positions:
-- Software Engineer
-
+  - AI Intern
+  - Machine Learning Intern
+  - Data Science Intern
+  - Deep Learning Intern
+  - Gen AI Intern
 
 locations:
-- Michigan
-- Remote
+  - Remote
+  - Bangalore, India
+  - Hyderabad, India
 
-salary: 60,000
-rate: 25
-# --------- Optional Parameters -------
+salary: 0  # Set to 0 if not applicable or if you're open to unpaid internships
+rate: 0    # Set to 0 if not applicable
+
 uploads:
-  Resume: /Users/steven/Desktop/LinkedIn-Easy-Apply-Bot/cv.pdf
-  Cover Letter: /Users/steven/Desktop/LinkedIn-Easy-Apply-Bot/cl.pdf
-  #Photo: # PATH TO photo
-
+  Resume: data\newResume.pdf
+  Cover Letter: data\newResume.pdf
+  Photo: data\profile_photo.jpg
+  # Note: Ensure the file paths are correct and accessible
 
 output_filename:
-- /Users/steven/Desktop/LinkedIn-Easy-Apply-Bot/out.csv
+  - output.csv  
 
-# blacklist:
-# - # Company names you want to ignore
+blacklist:
+  - Company A
+  - Company B
+  # Add any companies you wish to exclude from applications
+
 
 experience_level:
-  # - 1 # Entry level
-  # - 2 # Associate
-  # - 3 # Mid-Senior level
-  # - 4 # Director
-  # - 5 # Executive
-  # - 6 # Internship
+  - 1 Entry level
+  - 2 Associate
+  - 3 Mid-Senior level
+  - 4 Director
+  - 5 Executive
+  - 6 Internship
