@@ -148,3 +148,9 @@ venv8/
 quickstart.py
 states.json
 logs
+
+# Claude settings
+.claude/*
+
+# Poetry - DO NOT ignore lock file
+# poetry.lock should be committed to version control
