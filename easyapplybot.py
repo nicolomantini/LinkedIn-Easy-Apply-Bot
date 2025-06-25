@@ -574,8 +574,12 @@ class EasyApplyBot:
                         self.browser.execute_script("arguments[0].click();", input)
 
                     elif input_type == "text":
-                        log.info("This is a text field")
-                        element.send_keys(answer)
+                        current_value = element.get_attribute("value")
+                        if not current_value.strip():  # fill only if empty or whitespace
+                            log.info("This is an empty textarea. Filling it now.")
+                            element.send_keys(answer)
+                        else:
+                            log.info("Textarea already has a value. Skipping.")
 
                 elif tag_name == "select":
                         log.info("This is a dropdown/select field.")
@@ -584,8 +588,12 @@ class EasyApplyBot:
                         select.select_by_visible_text(answer)
 
                 elif tag_name == "textarea":
-                        log.info("This is a textarea.")
-                        element.send_keys(answer)
+                        current_value = element.get_attribute("value")
+                        if not current_value.strip():  # fill only if empty or whitespace
+                            log.info("This is an empty textarea. Filling it now.")
+                            element.send_keys(answer)
+                        else:
+                            log.info("Textarea already has a value. Skipping.")
 
                 else:
                         log.warning(f"Unhandled tag: {tag_name}")

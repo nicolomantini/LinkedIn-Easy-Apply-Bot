@@ -61,11 +61,10 @@ python3 easyapplybot.py
 
 
 Issues:
-1) Not answering any questions whether radio or text or dropdown but fetching question and answer from the qa.csv
-2) getting stuck on load page. loading same page again and again instead of going to next page
-3) stops for "continue application" after clicking "easy apply" for a job
-4) Fill current location as job locationi
-5) Adding answers even if answer is already present
+1) getting stuck on load page. loading same page again and again instead of going to next page
+2) stops for "continue application" after clicking "easy apply" for a job
+3) Fill current location as job locationi
+4) Adding answers even if answer is already present
 
 Commands:
 1) python -m venv .venv - creates venv if not present

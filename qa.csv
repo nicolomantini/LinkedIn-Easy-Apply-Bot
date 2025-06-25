@@ -345,7 +345,7 @@ yes
 no
 please make a selection",yes
 "please share your annual salary expectations for this position in usd, or the usd equivalent to your local currency.
-enter a decimal number between 0.0 and 9.9999998e12","80,000"
+enter a decimal number between 0.0 and 9.9999998e12","80000"
 "have you completed the following level of education: doctor of philosophy?
 have you completed the following level of education: doctor of philosophy?
 required
@@ -826,7 +826,7 @@ please enter a valid answer",1
 "please provide your linkedin profile.
 please enter a valid answer",user provided
 "what are your expectations for base salary in this role?
-enter a decimal number between 0.0 and 9.9999998e12","80,000"
+enter a decimal number between 0.0 and 9.9999998e12","80000"
 what state do you currently reside in?,Yes
 "how many years of pre-sales, demo engineering, or technical product marketing experience fo you possess?",1
 please describe you experience as it pertains to this role.,1
@@ -1240,4 +1240,123 @@ required
        no
   ",Yes
 "how many years of work experience do you have with php?
+enter a whole number between 0 and 99",1
+"can you share a portfolio of existing work relevant to the key responsibilities and required qualifications?
+can you share a portfolio of existing work relevant to the key responsibilities and required qualifications?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have openai api application development experience?
+do you have openai api application development experience?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"this is a 60 - 90 day internship with a 10-15hrs per week of objectives, are you comfortable participating in this internship without pay?
+this is a 60 - 90 day internship with a 10-15hrs per week of objectives, are you comfortable participating in this internship without pay?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"are you aware that this is a 5-week unpaid internship with a possible chance of a full-time offer in either january 2025 or summer 2025?
+are you aware that this is a 5-week unpaid internship with a possible chance of a full-time offer in either january 2025 or summer 2025?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"what is your university grade point average (4.0 gpa scale)?
+enter a decimal number between 0.0 and 5.0",user provided
+"are you aware that this is a 5-week unpaid internship with a possible chance of a full-time offer in either january 2025 or summer 2025?
+are you aware that this is a 5-week unpaid internship with a possible chance of a full-time offer in either january 2025 or summer 2025?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"how many years of work experience do you have with microsoft power apps?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with react.js?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with cascading style sheets (css)?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with bootstrap (framework)?
+enter a whole number between 0 and 99",1
+how many years of work experience do you have with mysql?,1
+"how many years of work experience do you have with asp.net?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have as a full-stack web engineer?
+enter a decimal number larger than 0.0",1
+"how many years of work experience do you have with php/laravel?
+enter a decimal number larger than 0.0",1
+"how many years of work experience do you have with vue?
+enter a decimal number larger than 0.0",1
+"how many years of work experience do you have with typescript?
+enter a decimal number larger than 0.0",1
+"do you have a relevant associate's or bachelor's degree from an accredited institution along with 2-5 years of experience designing, developing, and maintaining modern websites? 
+do you have a relevant associate's or bachelor's degree from an accredited institution along with 2-5 years of experience designing, developing, and maintaining modern websites?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have the technical expertise detailed in the job description?
+do you have the technical expertise detailed in the job description?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have a strong foundation in full-stack development, with expertise in php 7 and 8, mysql, and front-end technologies? 
+do you have a strong foundation in full-stack development, with expertise in php 7 and 8, mysql, and front-end technologies?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"are you located in the nyc area and seeking a hybrid role with a minimum of 3 days in-office per week?
+are you located in the nyc area and seeking a hybrid role with a minimum of 3 days in-office per week?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"what is your salary requirement?
+enter a decimal number larger than 0.0","90000"
+"do you have a relevant associate's or bachelor's degree from an accredited institution along with 2-5 years of experience designing, developing, and maintaining modern websites? 
+do you have a relevant associate's or bachelor's degree from an accredited institution along with 2-5 years of experience designing, developing, and maintaining modern websites?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"do you have the technical expertise detailed in the job description?
+do you have the technical expertise detailed in the job description?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"do you have a strong foundation in full-stack development, with expertise in php 7 and 8, mysql, and front-end technologies? 
+do you have a strong foundation in full-stack development, with expertise in php 7 and 8, mysql, and front-end technologies?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"are you located in the nyc area and seeking a hybrid role with a minimum of 3 days in-office per week?
+are you located in the nyc area and seeking a hybrid role with a minimum of 3 days in-office per week?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"how many years of work experience do you have with webflow?
+enter a whole number between 0 and 99",1
+how many years of work experience do you have with php?,1
+"how many years of work experience do you have with amazon web services (aws)?
 enter a whole number between 0 and 99",1
