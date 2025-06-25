@@ -23,6 +23,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import Select
 
 from selenium.webdriver.chrome.service import Service as ChromeService
 import webdriver_manager.chrome as ChromeDriverManager
@@ -125,16 +126,23 @@ class EasyApplyBot:
         }
 
         #initialize questions and answers file
-        self.qa_file = Path("qa.csv")
+        self.qa_file = Path("./qa.csv")
         self.answers = {}
 
-        #if qa file does not exist, create it
+        #if qa file exist, load it
         if self.qa_file.is_file():
+            log.info("qa csv file exists......")
             df = pd.read_csv(self.qa_file)
             for index, row in df.iterrows():
                 self.answers[row['Question']] = row['Answer']
-        #if qa file does exist, load it
+            if self.answers:
+                first_q,first_a = next(iter(self.answers.items()))
+                log.info(f"first question and answer is:{first_q} => {first_a}")
+            else:
+                log.info("no questions loaded.......")
+        #if qa file doesn't exist, create it
         else:
+            log.info("qa csv file doesnt exists......")
             df = pd.DataFrame(columns=["Question", "Answer"])
             df.to_csv(self.qa_file, index=False, encoding='utf-8')
 
@@ -179,8 +187,7 @@ class EasyApplyBot:
         try:
             user_field = self.browser.find_element("id","username")
             pw_field = self.browser.find_element("id","password")
-            login_button = self.browser.find_element("xpath",
-                        '//*[@id="organic-div"]/form/div[3]/button')
+            login_button = self.browser.find_element("css selector", 'button.btn__primary--large')
             user_field.send_keys(username)
             user_field.send_keys(Keys.TAB)
             time.sleep(2)
@@ -303,7 +310,8 @@ class EasyApplyBot:
                     log.info(f"Applied to {jobID}")
                 else:
                     log.info(f"Failed to apply to {jobID}")
-                jobIDs[jobID] == applied
+                    # jobIDs[jobID] = "Failed"
+                # jobIDs[jobID] == applied
 
     def apply_to_job(self, jobID):
         # #self.avoid_lock() # annoying
@@ -330,6 +338,7 @@ class EasyApplyBot:
                 button.click()
                 clicked = True
                 time.sleep(1)
+                # if self.browser.find_elements(By.CLASS_NAME, "Continue Applying")
                 self.fill_out_fields()
                 result: bool = self.send_resume()
                 if result:
@@ -490,15 +499,18 @@ class EasyApplyBot:
                             time.sleep(5)
                             elements = self.get_elements("error")
 
-                            for element in elements:
+                            if len(elements) > 0:
+                                log.info(f"Error elements are...{element}")
                                 self.process_questions()
+                                elements = None
+                                break
 
                             if "application was sent" in self.browser.page_source:
                                 log.info("Application Submitted")
                                 submitted = True
                                 break
                             elif is_present(self.locator["easy_apply_button"]):
-                                log.info("Skipping application")
+                                log.info("Skipping applications")
                                 submitted = False
                                 break
                         continue
@@ -536,38 +548,91 @@ class EasyApplyBot:
 
         return submitted
     def process_questions(self):
+        log.info("in process_questions.....")
         time.sleep(1)
-        form = self.get_elements("fields") #self.browser.find_elements(By.CLASS_NAME, "jobs-easy-apply-form-section__grouping")
+        form = self.browser.find_elements(By.CLASS_NAME, "fb-dash-form-element ")
         for field in form:
+            log.info(f"Field in form is:{field}")
             question = field.text
             answer = self.ans_question(question.lower())
-            #radio button
-            if self.is_present(self.locator["radio_select"]):
-                try:
-                    input = field.find_element(By.CSS_SELECTOR, "input[type='radio'][value={}]".format(answer))
-                    input.execute_script("arguments[0].click();", input)
-                except Exception as e:
-                    log.error(e)
-                    continue
-            #multi select
-            elif self.is_present(self.locator["multi_select"]):
-                try:
-                    input = field.find_element(self.locator["multi_select"])
-                    input.send_keys(answer)
-                except Exception as e:
-                    log.error(e)
-                    continue
-            # text box
-            elif self.is_present(self.locator["text_select"]):
-                try:
-                    input = field.find_element(self.locator["text_select"])
-                    input.send_keys(answer)
-                except Exception as e:
-                    log.error(e)
-                    continue
+            log.info(f"question is.....{question}")
+            log.info(f"answer is.....{answer}")
 
-            elif self.is_present(self.locator["text_select"]):
-               pass
+            try:
+                element = field.find_element(By.XPATH, ".//input | .//select | .//textarea")
+
+                tag_name = element.tag_name
+                log.info(f"Tag name of child element is {tag_name}")
+
+                if tag_name == "input":
+                    input_type = element.get_attribute("type")
+                    log.info(f"Input type is.....:{input_type}")
+
+                    if input_type == "radio":
+                        log.info("This is a radio button")
+                        input = field.find_element(By.CSS_SELECTOR, f"input[type='radio'][value='{answer}']")
+                        self.browser.execute_script("arguments[0].click();", input)
+
+                    elif input_type == "text":
+                        log.info("This is a text field")
+                        element.send_keys(answer)
+
+                elif tag_name == "select":
+                        log.info("This is a dropdown/select field.")
+                        
+                        select = Select(element)
+                        select.select_by_visible_text(answer)
+
+                elif tag_name == "textarea":
+                        log.info("This is a textarea.")
+                        element.send_keys(answer)
+
+                else:
+                        log.warning(f"Unhandled tag: {tag_name}")
+
+            except Exception as e:
+                log.error(f"Error processing field: {e}")
+
+            #radio button
+            # if self.is_present(self.locator["radio_select"]):
+            #     log.info("in radio select......")
+            #     try:
+            #         input = field.find_element(By.CSS_SELECTOR, f"input[type='radio'][value='{answer}']")
+            #         self.browser.execute_script("arguments[0].click();", input)
+            #         continue
+            #     except Exception as e:
+            #         log.error(e)
+            #         continue
+            #single select
+            # elif self.is_present(self.locator["single_select"]):
+            #     log.info("in single select......")
+            #     try:
+            #         input = field.find_element(*self.locator["single_select"])
+            #         input.send_keys(answer)
+            #         continue
+            #     except Exception as e:
+            #         log.error(e)
+            #         continue
+            # #multi select
+            # elif self.is_present(self.locator["multi_select"]):
+            #     log.info("in multi select......")
+            #     try:
+            #         input = field.find_element(self.locator["multi_select"])
+            #         input.send_keys(answer)
+            #         continue
+            #     except Exception as e:
+            #         log.error(e)
+            #         continue
+            # # text box
+            # elif self.is_present(self.locator["text_select"]):
+            #     log.info("in text select......")
+            #     try:
+            #         input = field.find_element(*self.locator["text_select"])
+            #         input.send_keys(answer)
+            #         continue
+            #     except Exception as e:
+            #         log.error(e)
+            #         continue
 
             if "Yes" or "No" in answer: #radio button
                 try: #debug this
@@ -582,19 +647,27 @@ class EasyApplyBot:
                 input.send_keys(answer)
 
     def ans_question(self, question): #refactor this to an ans.yaml file
+        log.info("In ans_qeustion method.....")
+        if question in self.answers:
+            answer = self.answers[question]
+            log.info(f"Found answer to cached question: {question} => {answer}")
+            return answer
+        else:
+            log.info("Answer not found in cached questions.....")
+        
         answer = None
         if "how many" in question:
             answer = "1"
+        elif 'do you ' in question:
+            answer = "Yes"
         elif "experience" in question:
             answer = "1"
         elif "sponsor" in question:
             answer = "No"
-        elif 'do you ' in question:
-            answer = "Yes"
         elif "have you " in question:
             answer = "Yes"
         elif "US citizen" in question:
-            answer = "Yes"
+            answer = "No"
         elif "are you " in question:
             answer = "Yes"
         elif "salary" in question:
@@ -722,5 +795,3 @@ if __name__ == '__main__':
                        experience_level=parameters.get('experience_level', [])
                        )
     bot.start_apply(positions, locations)
-
-

@@ -12,7 +12,6 @@ No",user provided
 "Do you have the following license or certification: Google Cloud Certified Professional Cloud Architect?
 Do you have the following license or certification: Google Cloud Certified Professional Cloud Architect?
 Required
-Yes
 No
 Please make a selection",user provided
 "have you completed the following level of education: bachelor's degree?
@@ -50,3 +49,1195 @@ are you comfortable commuting to this job's location?
 required
 yes
 no",Yes
+"how many years of work experience do you have with artificial intelligence (ai)?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with artificial intelligence for business?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with artificial intelligence for design?
+enter a whole number between 0 and 99",1
+"do you have strong knowledge of flutter and dart?
+do you have strong knowledge of flutter and dart?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"how many years of experience do you have working with flutter and dart?
+enter a decimal number larger than 0.0",1
+"do you reside in the us?
+do you reside in the us?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have strong knowledge of flutter and dart?
+do you have strong knowledge of flutter and dart?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"are you familiar (such as with node.js and libraries like puppeteer or playwright) to automate searching/scraping online?
+are you familiar (such as with node.js and libraries like puppeteer or playwright) to automate searching/scraping online?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you currently reside in the u.s.
+do you currently reside in the u.s.
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"are you currently enrolled at a university (1 for undergrad, 2 for graduate, 0 for not in college)?
+enter a decimal number larger than 0.0",0
+"how many months of experience do you have with tailwind css or java (producing solutions that exactly match a figma)
+enter a decimal number larger than 0.0",2
+"are you familiar (such as with node.js and libraries like puppeteer or playwright) to automate searching/scraping online?
+are you familiar (such as with node.js and libraries like puppeteer or playwright) to automate searching/scraping online?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"do you currently reside in the u.s.
+do you currently reside in the u.s.
+required
+       select an option
+       yes
+       no
+  ",Yes
+"are you currently enrolled at a university (1 for undergrad, 2 for graduate, 0 for not in college)?",0
+"what is your level of proficiency in english?
+what is your level of proficiency in english?
+required
+       select an option
+       none
+       conversational
+       professional
+       native or bilingual
+   please make a selection",professional
+"are you comfortable using python or typescript to run demos, create examples, and clearly explain code to fellow engineers?
+are you comfortable using python or typescript to run demos, create examples, and clearly explain code to fellow engineers?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"are you currently based near san francisco or planning to relocate? (please note: we don’t sponsor relocation.)
+are you currently based near san francisco or planning to relocate? (please note: we don’t sponsor relocation.)
+required
+       select an option
+       yes
+       no
+  ",yes
+"what is your level of proficiency in english?
+what is your level of proficiency in english?
+required
+       select an option
+       none
+       conversational
+       professional
+       native or bilingual
+  ",professional
+"how many years of professional, hands-on software development do you currently have?
+enter a decimal number larger than 0.0",1
+"are you a fluent english speaker, reader, and writer?
+are you a fluent english speaker, reader, and writer?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"are you a us citizen working inside the us?
+are you a us citizen working inside the us?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",no
+"how many years of work experience do you have with microsoft azure?
+enter a decimal number larger than 0.0",2
+"are you comfortable appearing on camera representing invene as someone who is client facing?
+are you comfortable appearing on camera representing invene as someone who is client facing?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"are you a us citizen working inside the us?
+are you a us citizen working inside the us?
+required
+       select an option
+       yes
+       no
+  ",no
+how many years of work experience do you have with microsoft azure?,2
+"are you comfortable appearing on camera representing invene as someone who is client facing?
+are you comfortable appearing on camera representing invene as someone who is client facing?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"do you currently reside in or near santa barbara, california?
+do you currently reside in or near santa barbara, california?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+how many years of work experience do you have with python (programming language)?,2
+"how many years of work experience do you have with postgresql?
+enter a whole number between 0 and 99",2
+"do you have strong experience with scaling out both cloud-hosted and on-prem industry applications?
+do you have strong experience with scaling out both cloud-hosted and on-prem industry applications?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",yes
+"do you have 3+ years of experience with back-end frameworks, specifically flask, redis, and celery?
+do you have 3+ years of experience with back-end frameworks, specifically flask, redis, and celery?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",yes
+"do you have strong experience with containerization frameworks like docker, and deployment frameworks such as ec2/ecs?
+do you have strong experience with containerization frameworks like docker, and deployment frameworks such as ec2/ecs?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",yes
+"have you completed the following level of education: doctor of law?
+have you completed the following level of education: doctor of law?
+required
+yes
+no
+please make a selection",No
+"which work location would you like to choose? (1 for new york, 2 for seattle, 3 for san francisco bay area)
+请输入decimal编号 (长度超过 0.0)",user provided
+"are you able to work on-site in winter haven, fl?
+are you able to work on-site in winter haven, fl?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"have you previously worked with real-world data?
+have you previously worked with real-world data?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"what stage of r&d are you most comfortable working in? please answer on a scale of 1 (lab) - 5 (final product)
+enter a decimal number larger than 0.0",3
+"how many years of work experience do you have with digital signal processing?
+enter a decimal number larger than 0.0",1
+what stage of r&d are you most comfortable working in? please answer on a scale of 1 (lab) - 5 (final product),Yes
+"are you willing to undergo a background check, in accordance with local law/regulations?
+are you willing to undergo a background check, in accordance with local law/regulations?
+required
+yes
+no",Yes
+"do you have a valid driver's license?
+do you have a valid driver's license?
+required
+yes
+no
+please make a selection",Yes
+"are you comfortable working in an onsite setting?
+are you comfortable working in an onsite setting?
+required
+yes
+no",Yes
+how many years of work experience do you have with react.js?,3
+how many years of work experience do you have with node.js?,3
+what is your university grade point average (4.0 gpa scale)?,3.56
+how many years of work experience do you have with linux?,3
+"how many years of work experience do you have with systems engineering?
+enter a whole number between 0 and 99",3
+how many years of software development experience do you currently have?,3
+"do you hold any of the following work authorizations: opt ead or h1b visas?
+do you hold any of the following work authorizations: opt ead or h1b visas?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"how many years of experience do you have with advanced scripting languages?
+enter a decimal number larger than 0.0",1
+"how many years of work experience do you have with containerization?
+enter a whole number between 0 and 99",2
+"how many years of work experience do you have with bash?
+enter a whole number between 0 and 99",2
+how many years of information technology experience do you currently have?,3
+how many years of work experience do you have with systems engineering?,3
+"do you hold any of the following work authorizations: opt ead or h1b visas?
+do you hold any of the following work authorizations: opt ead or h1b visas?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"based in argentinian, american or uk time-zone.
+based in argentinian, american or uk time-zone.
+required
+yes
+no",yes
+"typescript, react native, redux, react navigation
+typescript, react native, redux, react navigation
+required
+yes
+no",yes
+"happy with this being a 3 month contract only.
+happy with this being a 3 month contract only.
+required
+yes
+no",yes
+"figma design handoffs
+figma design handoffs
+required
+yes
+no",yes
+"component-driven development (e.g., storybook)
+component-driven development (e.g., storybook)
+required
+yes
+no",yes
+"strong git workflow
+strong git workflow
+required
+yes
+no",yes
+"what's your citizenship / employment eligibility?
+what's your citizenship / employment eligibility?
+required
+u.s. citizen/permanent resident
+non-citizen allowed to work for any employer
+non-citizen allowed to work for current employer
+non-citizen seeking work authorization
+canadian citizen/permanent resident
+other
+please make a selection",non-citizen allowed to work for any employer
+desired salary,"90,000"
+"will you now, or in the future, require sponsorship for employment? (i.e. h-1b visa status)
+will you now, or in the future, require sponsorship for employment? (i.e. h-1b visa status)
+required
+yes
+no",no
+"how many years of experience do you have creating web crawlers?
+how many years of experience do you have creating web crawlers?
+required
+0-1
+1-4
+please make a selection",1
+"do you have experience with python?
+do you have experience with python?
+required
+yes
+no
+please make a selection",yes
+"please share your annual salary expectations for this position in usd, or the usd equivalent to your local currency.
+enter a decimal number between 0.0 and 9.9999998e12","80,000"
+"have you completed the following level of education: doctor of philosophy?
+have you completed the following level of education: doctor of philosophy?
+required
+yes
+no",Yes
+"have you completed the following level of education: master's degree?
+have you completed the following level of education: master's degree?
+required
+yes
+no",yes
+"how many years of work experience do you have with robotics?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with deep neural networks (dnn)?
+enter a whole number between 0 and 99",1
+"are you comfortable working in a hybrid setting?
+are you comfortable working in a hybrid setting?
+required
+yes
+no",yes
+"are you comfortable working in a remote setting?
+are you comfortable working in a remote setting?
+required
+yes
+no",yes
+"do you have a valid driver's license?
+do you have a valid driver's license?
+required
+yes
+no",Yes
+"do you currently reside in the san francisco bay area?
+do you currently reside in the san francisco bay area?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"have you completed the following level of education: bachelor's degree?
+have you completed the following level of education: bachelor's degree?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have at least 2 years of experience with software development and web technologies?
+do you have at least 2 years of experience with software development and web technologies?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",yes
+"do you have 2 years proven experience as a jr. full stack developer or similar role?
+do you have 2 years proven experience as a jr. full stack developer or similar role?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",yes
+"the ideal candidate possess vast ai tools experience. do you have at least 2 years experience with ai tools?
+the ideal candidate possess vast ai tools experience. do you have at least 2 years experience with ai tools?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",yes
+"are you willing to stay up to date with the latest industry trends and technologies?
+are you willing to stay up to date with the latest industry trends and technologies?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have a strong proficiency in at least core technology environments - angular/java/python?
+do you have a strong proficiency in at least core technology environments - angular/java/python?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have 2 years rest / http / web architecture understanding?
+do you have 2 years rest / http / web architecture understanding?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have 2 years proficiency in database design and management (sql/nosql)?
+do you have 2 years proficiency in database design and management (sql/nosql)?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have a deep understanding (2 years) of devops practices and tools (github actions, docker, jenkins, etc.)?
+do you have a deep understanding (2 years) of devops practices and tools (github actions, docker, jenkins, etc.)?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have experience with fundamental aws services and concepts?
+do you have experience with fundamental aws services and concepts?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",1
+"do you have knowledge of software security best practices?
+do you have knowledge of software security best practices?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"are you legally authorized to work in the united states?
+are you legally authorized to work in the united states?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have a minimum of 2+ years experience with queueing systems (rabbitmq / kafka / etc.)?
+do you have a minimum of 2+ years experience with queueing systems (rabbitmq / kafka / etc.)?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",1
+"do you have a minimum of 2+ years experience with mobile development?
+do you have a minimum of 2+ years experience with mobile development?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",1
+"confirm that you currently actually reside in the san francisco bay area?
+confirm that you currently actually reside in the san francisco bay area?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",user provided
+"how many years of work experience do you have with java?
+enter a decimal number larger than 0.0",3
+"are you willing to undergo a background check, in accordance with local law/regulations?
+are you willing to undergo a background check, in accordance with local law/regulations?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"are you comfortable commuting to this job's location?
+are you comfortable commuting to this job's location?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"are you comfortable working in an onsite setting?
+are you comfortable working in an onsite setting?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"are you comfortable working in a remote setting?
+are you comfortable working in a remote setting?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"we must fill this position urgently. can you start immediately?
+we must fill this position urgently. can you start immediately?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"have you completed the following level of education: bachelor's degree?
+have you completed the following level of education: bachelor's degree?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"do you have at least 2 years of experience with software development and web technologies?
+do you have at least 2 years of experience with software development and web technologies?
+required
+       select an option
+       yes
+       no
+  ",1
+"do you have 2 years proven experience as a jr. full stack developer or similar role?
+do you have 2 years proven experience as a jr. full stack developer or similar role?
+required
+       select an option
+       yes
+       no
+  ",1
+"are you legally authorized to work in the u.s. for keeper?
+are you legally authorized to work in the u.s. for keeper?
+required
+yes
+no
+please make a selection",Yes
+"are you legally authorized to work in united states of america?
+are you legally authorized to work in united states of america?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"how many years of experience working with accela automation ?
+enter a decimal number larger than 0.0",1
+"are you legally authorized to work in united states of america?
+are you legally authorized to work in united states of america?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"will you now or in the future require transfer of or sponsorship for employment visa status?
+will you now or in the future require transfer of or sponsorship for employment visa status?
+required
+       select an option
+       yes
+       no
+   please make a selection",No
+"gender - gender, race and ethnicity (definitions)
+gender - gender, race and ethnicity
+required
+       select an option
+       male
+       female
+       prefer not to answer
+   please make a selection",Male
+how many years of work experience do you have with c#?,1
+"how many years of work experience do you have with ibm iseries?
+enter a whole number between 0 and 99",1
+"do you have experience with sql?
+do you have experience with sql?
+required
+       select an option
+       no
+       yes
+   please enter a valid answer",yes
+"male
+female
+decline to answer",user provided
+"how many years of work experience do you have with svelte?
+enter a whole number between 0 and 99",0
+"how many years of full time experience?
+enter a decimal number larger than 0.0",3
+"do you have startup experience?
+do you have startup experience?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",1
+"are you willing to take a drug test, in accordance with local law/regulations?
+are you willing to take a drug test, in accordance with local law/regulations?
+required
+yes
+no",Yes
+"how many years of work experience do you have with natural language processing (nlp)?
+enter a whole number between 0 and 99",1
+how many years of work experience do you have with javascript?,3
+"how many years of work experience do you have with ethernet?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with oscilloscope?
+enter a whole number between 0 and 99",1
+"what is your level of proficiency in korean?
+what is your level of proficiency in korean?
+required
+       select an option
+       none
+       conversational
+       professional
+       native or bilingual
+   please make a selection",user provided
+"what is your level of proficiency in korean?
+what is your level of proficiency in korean?
+required
+       select an option
+       none
+       conversational
+       professional
+       native or bilingual
+  ",user provided
+"are you comfortable working with modern development frameworks such as react, angular, vue, node.js, django, or ruby on rails?
+are you comfortable working with modern development frameworks such as react, angular, vue, node.js, django, or ruby on rails?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"have you worked with any code generation tools like cursor, codeium, or windsurf?
+have you worked with any code generation tools like cursor, codeium, or windsurf?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"are you familiar with interacting with databases using sql or nosql?
+are you familiar with interacting with databases using sql or nosql?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"have you worked with e-commerce platforms, particularly in areas like product customization or front-end optimization?
+have you worked with e-commerce platforms, particularly in areas like product customization or front-end optimization?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"how many years of experience do you have in software development, preferably in a backend or full-stack role?
+enter a decimal number larger than 0.0",1
+"have you worked with any code generation tools like cursor, codeium, or windsurf?
+have you worked with any code generation tools like cursor, codeium, or windsurf?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"are you familiar with interacting with databases using sql or nosql?
+are you familiar with interacting with databases using sql or nosql?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"have you worked with e-commerce platforms, particularly in areas like product customization or front-end optimization?
+have you worked with e-commerce platforms, particularly in areas like product customization or front-end optimization?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"how many years of work experience do you have with ios?
+enter a whole number between 0 and 99",1
+"are you willing to work for equity only in a pre-seed startup?
+are you willing to work for equity only in a pre-seed startup?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have strong skills in at least one programming language?
+do you have strong skills in at least one programming language?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you own a mac device suitable for ios development?
+do you own a mac device suitable for ios development?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"can you work in us time zones?
+can you work in us time zones?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+how many years of work experience do you have with ios?,1
+"how many years of work experience do you have with agile software development?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with wordpress?
+enter a whole number between 0 and 99",1
+"do you have at least 2+ years of programming, networking and gameplay experience in the unity game engine?
+do you have at least 2+ years of programming, networking and gameplay experience in the unity game engine?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",1
+"do you have at least 1+ years of experience using amazon web services?
+do you have at least 1+ years of experience using amazon web services?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",1
+"do you have at least 2+ years of programming, networking and gameplay experience in the unity game engine?
+do you have at least 2+ years of programming, networking and gameplay experience in the unity game engine?
+required
+       select an option
+       yes
+       no
+  ",1
+"how many years of work experience do you have with r shiny?
+enter a whole number between 0 and 99",1
+"do you use an ai ide (eg: cursor, windsurf, etc.)
+do you use an ai ide (eg: cursor, windsurf, etc.)
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"are you willing to work in-person, 5 days a week, in nyc?
+are you willing to work in-person, 5 days a week, in nyc?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you use an ai ide (eg: cursor, windsurf, etc.)
+do you use an ai ide (eg: cursor, windsurf, etc.)
+required
+       select an option
+       yes
+       no
+  ",Yes
+"have you completed the following level of education: high school diploma?
+have you completed the following level of education: high school diploma?
+required
+yes
+no
+please make a selection",Yes
+"how many years of work experience do you have with solidworks?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with routers?
+enter a whole number between 0 and 99",1
+"are you comfortable with the responsibilities and expectations outlined in the job description?
+are you comfortable with the responsibilities and expectations outlined in the job description?
+required
+       select an option
+       no
+       yes
+   please enter a valid answer",Yes
+"what is your current location?
+please enter a valid answer",Boston
+what is your current location?,Boston
+"are you comfortable with the responsibilities and expectations outlined in the job description?
+are you comfortable with the responsibilities and expectations outlined in the job description?
+required
+       select an option
+       no
+       yes
+  ",Yes
+"will you now or in the future require keeper immigration sponsorship for employment authorization? (e.g. h1-b or other employment-based immigration)
+will you now or in the future require keeper immigration sponsorship for employment authorization? (e.g. h1-b or other employment-based immigration)
+required
+yes
+no
+please make a selection",No
+"do you live in one of the following states? arizona, arkansas, california, colorado, delaware, florida, georgia, idaho, illinois, indiana, maryland, massachusetts, minnesota, missouri, nevada, north carolina, oklahoma, oregon, south carolina, south dakota, tennessee, texas, utah, virginia, washington, wisconsin
+do you live in one of the following states? arizona, arkansas, california, colorado, delaware, florida, georgia, idaho, illinois, indiana, maryland, massachusetts, minnesota, missouri, nevada, north carolina, oklahoma, oregon, south carolina, south dakota, tennessee, texas, utah, virginia, washington, wisconsin
+required
+yes
+no
+please make a selection",Yes
+"what state do you currently reside in?
+please enter a valid answer",Yes
+"do you have 2+ years of experience in pre-sales, demo engineering or technical product marketing?
+do you have 2+ years of experience in pre-sales, demo engineering or technical product marketing?
+required
+yes
+no
+please make a selection",1
+"how many years of pre-sales, demo engineering, or technical product marketing experience fo you possess?
+enter a decimal number between 0.0 and 9.9999998e12",1
+"are you proficient with cloud platforms (e.g., aws, azure, google cloud) and infrastructure management tools like terraform, kubernetes, or docker?
+are you proficient with cloud platforms (e.g., aws, azure, google cloud) and infrastructure management tools like terraform, kubernetes, or docker?
+required
+yes
+no
+please make a selection",Yes
+"please describe you experience as it pertains to this role.
+please enter a valid answer",1
+"please provide your linkedin profile.
+please enter a valid answer",user provided
+"what are your expectations for base salary in this role?
+enter a decimal number between 0.0 and 9.9999998e12","80,000"
+what state do you currently reside in?,Yes
+"how many years of pre-sales, demo engineering, or technical product marketing experience fo you possess?",1
+please describe you experience as it pertains to this role.,1
+please provide your linkedin profile.,user provided
+"are you willing to work for equity only in a pre-seed startup?
+are you willing to work for equity only in a pre-seed startup?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"do you have strong skills in at least one programming language?
+do you have strong skills in at least one programming language?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"do you own a mac device suitable for ios development?
+do you own a mac device suitable for ios development?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"can you work in us time zones?
+can you work in us time zones?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"how many years of work experience do you have with data integration?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with commercial real estate?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with data mapping?
+enter a whole number between 0 and 99",1
+"have you worked with any multifamily property management systems, data, and integrated them? 
+have you worked with any multifamily property management systems, data, and integrated them?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"what's you starting base salary expectations?
+enter a decimal number larger than 1.0","80,000"
+how many years of work experience do you have with data integration?,1
+how many years of work experience do you have with commercial real estate?,1
+how many years of work experience do you have with data mapping?,1
+"how many years of work experience do you have with hmis?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with scada?
+enter a whole number between 0 and 99",1
+"do you have prior experience deploying computer vision hardware? 
+do you have prior experience deploying computer vision hardware?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",1
+"are you available to work immediately?
+are you available to work immediately?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"how many years of work experience do you have with algorithm development?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with programming languages?
+enter a whole number between 0 and 99",1
+"are you available for relocation across usa? as the training location will be atlanta, georgia for 8 weeks and project location will be anywhere in us?
+are you available for relocation across usa? as the training location will be atlanta, georgia for 8 weeks and project location will be anywhere in us?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"how many years of work experience do you have with cloud infrastructure?
+enter a whole number between 0 and 99",3
+"how many years of work experience do you have with powerbuilder?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with pl/sql?
+enter a whole number between 0 and 99",3
+"how many years of work experience do you have with oracle database?
+enter a whole number between 0 and 99",2
+"experience with client server, sql, javascript and related frameworks (angular, react, or vue).
+experience with client server, sql, javascript and related frameworks (angular, react, or vue).
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",yes
+"do you have direct, hands-on experience building and running outbound campaigns?
+do you have direct, hands-on experience building and running outbound campaigns?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have direct, hands-on experience using clay.com?
+do you have direct, hands-on experience using clay.com?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"have you ever served, or are you currently serving, in the united states armed forces?
+have you ever served, or are you currently serving, in the united states armed forces?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",No
+linkedin profile,user provided
+"what is your desired compensation?
+enter a decimal number larger than 0.0",90000
+"are you legally authorized to work in the united states for any employer?
+are you legally authorized to work in the united states for any employer?
+required
+yes
+no
+please make a selection",Yes
+"do you now, or will you in the future require sponsorship for employment in the united states? (e.g., h1-b visa status)
+do you now, or will you in the future require sponsorship for employment in the united states? (e.g., h1-b visa status)
+required
+yes
+no
+please make a selection",no
+"are you related to any current key capture energy employee(s)?
+are you related to any current key capture energy employee(s)?
+required
+yes
+no
+please make a selection",no
+"if you are related to a current key capture energy employee, please indicate the employee's name and title.",user provided
+"have you ever been employed by key capture energy before?
+have you ever been employed by key capture energy before?
+required
+yes
+no
+please make a selection",no
+"if you have been previously employed by key capture energy, please indicate date(s) of employment and title.",user provided
+"how did you hear about this position?
+how did you hear about this position?
+required
+       select an option
+       keycaptureenergy.com (company website)
+       i am a current key capture energy employee
+       employee referral
+       former intern/employee
+       career fair
+       college/campus recruiting
+       glassdoor
+       google
+       handshake
+       indeed
+       linkedin
+       staffing agency
+       ziprecruiter
+       other
+   please make a selection",linkedin
+"if applicable, please indicate a more specific source (ie. name of employee referral or name of staffing agency).",user provided
+"please indicate the highest level of education achieved.
+please indicate the highest level of education achieved.
+required
+some high school
+high school diploma/ged
+some college
+associates degree
+bachelors degree
+masters degree
+phd or jd
+please make a selection",masters degree
+"are you open to relocation?
+are you open to relocation?
+required
+yes
+no
+please make a selection",Yes
+"is your current supervisor/employer aware you are applying for this position? (please note: we will not contact your employer without obtaining your approval.)
+is your current supervisor/employer aware you are applying for this position? (please note: we will not contact your employer without obtaining your approval.)
+required
+yes
+no
+please make a selection",Yes
+"i have read the full job description and understand the responsibilities and qualifications required for the role.
+i have read the full job description and understand the responsibilities and qualifications required for the role.
+required
+yes
+select checkbox to proceed",yes
+"are you legally authorized to work in the united states for any employer?
+are you legally authorized to work in the united states for any employer?
+required
+yes
+no",Yes
+"do you now, or will you in the future require sponsorship for employment in the united states? (e.g., h1-b visa status)
+do you now, or will you in the future require sponsorship for employment in the united states? (e.g., h1-b visa status)
+required
+yes
+no",no
+"are you related to any current key capture energy employee(s)?
+are you related to any current key capture energy employee(s)?
+required
+yes
+no",Yes
+"have you ever been employed by key capture energy before?
+have you ever been employed by key capture energy before?
+required
+yes
+no",Yes
+"are you open to relocation?
+are you open to relocation?
+required
+yes
+no",Yes
+"is your current supervisor/employer aware you are applying for this position? (please note: we will not contact your employer without obtaining your approval.)
+is your current supervisor/employer aware you are applying for this position? (please note: we will not contact your employer without obtaining your approval.)
+required
+yes
+no",Yes
+"how many years of work experience do you have with salesforce.com?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with apex programming?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with lightning web components?
+enter a whole number between 0 and 99",1
+"are you open to travel frequently?
+are you open to travel frequently?
+required
+       bir seçenek belirleyin
+       yes
+       no
+   lütfen geçerli bir yanıt girin",Yes
+"are you proficient with ms office?
+are you proficient with ms office?
+required
+       bir seçenek belirleyin
+       yes
+       no
+   lütfen geçerli bir yanıt girin",Yes
+"have you completed the following level of education: master of business administration?
+have you completed the following level of education: master of business administration?
+required
+yes
+no
+please make a selection",no
+"how many years of work experience do you have with software as a service (saas)?
+enter a whole number between 0 and 99",3
+"how many years of work experience do you have with telecommunications?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with .net apis?
+enter a whole number between 0 and 99",1
+"are you currently an active duty servicemember and eligible for the dod skillbridge program?
+are you currently an active duty servicemember and eligible for the dod skillbridge program?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",no
+"how many days are you currently approved or pending approval for your skillbridge fellowship?
+enter a decimal number larger than 0.0",0
+how many years of work experience do you have with pytorch?,1
+"how many years of work experience do you have with machine tools?
+enter a whole number between 0 and 99",1
+how many years of work experience do you have with amazon web services (aws)?,1
+"please check one of the boxes below: 
+required
+       select an option
+       yes, i have a disability, or have had one in the past
+       no, i do not have a disability and have not had one in the past
+       i do not want to answer
+   please make a selection",user provided
+"race/ethnicity - gender, race and ethnicity (definitions)
+race/ethnicity - gender, race and ethnicity
+required
+       select an option
+       american indian or alaska native
+       asian
+       black or african american
+       hispanic or latino
+       native hawaiian or other pacific islander
+       white
+       two or more races
+       prefer not to answer
+   please make a selection",Male
+"are you a protected veteran? (definitions)
+are you a protected veteran?
+required
+yes
+no
+prefer not to answer
+please make a selection",Yes
+"are you a veteran?
+are you a veteran?
+required
+yes
+no
+please make a selection",Yes
+"please check one of the boxes below: 
+required
+       select an option
+       yes, i have a disability, or have had one in the past
+       no, i do not have a disability and have not had one in the past
+       i do not want to answer
+  ",user provided
+"gender - gender, race and ethnicity (definitions)
+gender - gender, race and ethnicity
+required
+       select an option
+       male
+       female
+       prefer not to answer
+  ",Male
+"race/ethnicity - gender, race and ethnicity (definitions)
+race/ethnicity - gender, race and ethnicity
+required
+       select an option
+       american indian or alaska native
+       asian
+       black or african american
+       hispanic or latino
+       native hawaiian or other pacific islander
+       white
+       two or more races
+       prefer not to answer
+  ",Male
+"are you authorized to work in the job's location?
+are you authorized to work in the job's location?
+required
+yes
+no
+please make a selection",Yes
+"will you now or in the future require sponsorship for work authorization in the u.s.?
+will you now or in the future require sponsorship for work authorization in the u.s.?
+required
+yes
+no
+please make a selection",No
+"i certify that i am at least 18 years of age
+i certify that i am at least 18 years of age
+required
+confirmed
+select checkbox to proceed",confirmed
+"the information given by me in this application is true in all respects. i understand that if the information is found to be false in any way, it is grounds for refusal or, if hired, dismissal.
+the information given by me in this application is true in all respects. i understand that if the information is found to be false in any way, it is grounds for refusal or, if hired, dismissal.
+required
+confirmed
+select checkbox to proceed",confirmed
+"your message to the hiring manager
+0/2,000
+2000 maximum characters allowed.",None
+"are you authorized to work in the job's location?
+are you authorized to work in the job's location?
+required
+yes
+no",Yes
+"your message to the hiring manager
+13/2,000
+2000 maximum characters allowed.",None
+"how many years of work experience do you have with html5?
+enter a whole number between 0 and 99",1
+"will you be interested in consultant-based job?
+will you be interested in consultant-based job?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",yes
+"will you now, or in the future, require sponsorship for employment visa status (e.g. h-1b visa status)?
+will you now, or in the future, require sponsorship for employment visa status (e.g. h-1b visa status)?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",No
+"are you ready for training onsite in atlanta, ga and relocation across the us for projects ?
+are you ready for training onsite in atlanta, ga and relocation across the us for projects ?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"will you now, or in the future, require sponsorship for employment visa status (e.g. h-1b visa status)?
+will you now, or in the future, require sponsorship for employment visa status (e.g. h-1b visa status)?
+required
+       select an option
+       yes
+       no
+  ",No
+"are you legally authorized to work in the united states?
+are you legally authorized to work in the united states?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"we must fill this position urgently. can you start immediately?
+we must fill this position urgently. can you start immediately?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"are you ready for training onsite in atlanta, ga and relocation across the us for projects ?
+are you ready for training onsite in atlanta, ga and relocation across the us for projects ?
+required
+       select an option
+       yes
+       no
+  ",Yes
+"how many years of work experience do you have with php?
+enter a whole number between 0 and 99",1

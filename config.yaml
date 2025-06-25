@@ -1,37 +1,39 @@
-username: <username>
-password: <password>
-phone_number: <phone_number>
+username: pradyumna.nunna@gmail.com
+password: PradyumnaLi@079
+phone_number: +18573967207
 
 profile_path: '' #can be empty, will default to 'C:\Users\<user>\AppData\Local\Google\Chrome\User Data\Default'
 
 
 positions:
 - Software Engineer
+- Software Developer
+- Web Developer
 
 
 locations:
-- Michigan
+- Boston
 - Remote
+- United States
+- California
+- Michigan
 
-salary: 60,000
+salary: 80,000
 rate: 25
 # --------- Optional Parameters -------
 uploads:
-  Resume: /Users/steven/Desktop/LinkedIn-Easy-Apply-Bot/cv.pdf
-  Cover Letter: /Users/steven/Desktop/LinkedIn-Easy-Apply-Bot/cl.pdf
+  Resume: /Users/pradyumna/Documents/Full_Stack_resume_with_3_yrs/Pradyumna_Nunna_Resume.pdf
+  #Cover Letter: #
   #Photo: # PATH TO photo
 
 
 output_filename:
-- /Users/steven/Desktop/LinkedIn-Easy-Apply-Bot/out.csv
+- /Users/pradyumna/Documents/Projects/LinkedIn-Easy-Apply-Bot/out.csv
 
 # blacklist:
 # - # Company names you want to ignore
 
 experience_level:
-  # - 1 # Entry level
-  # - 2 # Associate
-  # - 3 # Mid-Senior level
-  # - 4 # Director
-  # - 5 # Executive
-  # - 6 # Internship
+  - 1
+  - 2
+  - 6

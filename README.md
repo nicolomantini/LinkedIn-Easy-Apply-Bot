@@ -16,30 +16,30 @@ pip3 install -r requirements.txt
 Enter your username, password, and search settings into the `config.yaml` file
 
 ```yaml
-username: # Insert your username here
-password: # Insert your password here
-phone_number: #Insert your phone number
+username: Pradyumna
+password: pradyumna@079
+phone_number: +18573967207
 
 positions:
-- # positions you want to search for
-- # Another position you want to search for
-- # A third position you want to search for
+- Software Engineer
+- Software Developer
+- Web Developer
 
 locations:
-- # Location you want to search for
-- # A second location you want to search in 
+- California
+- United States
 
 salary: #yearly salary requirement 
 rate: #hourly rate requirement 
 
 uploads:
- Resume: # PATH TO Resume 
+ Resume: /Users/pradyumna/Documents/Full_Stack_resume_with_3_yrs/Pradyumna_Nunna_Resume.pdf
  Cover Letter: # PATH TO cover letter
  Photo: # PATH TO photo
 # Note file_key:file_paths contained inside the uploads section should be written without a dash ('-') 
 
 output_filename:
-- # PATH TO OUTPUT FILE (default output.csv)
+- /Users/pradyumna/Documents/Projects/LinkedIn-Easy-Apply-Bot/out.csv
 
 blacklist:
 - # Company names you want to ignore
@@ -59,5 +59,17 @@ To execute the bot run the following in your terminal
 python3 easyapplybot.py
 ```
 
+
+Issues:
+1) Not answering any questions whether radio or text or dropdown but fetching question and answer from the qa.csv
+2) getting stuck on load page. loading same page again and again instead of going to next page
+3) stops for "continue application" after clicking "easy apply" for a job
+4) Fill current location as job locationi
+5) Adding answers even if answer is already present
+
+Commands:
+1) python -m venv .venv - creates venv if not present
+2) source .venv/bin/activate - to activate the venv
+3) python3 easyapplybot.py - to run the application (in the venv)
 
 
