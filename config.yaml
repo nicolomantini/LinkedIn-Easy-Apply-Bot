@@ -18,7 +18,7 @@ locations:
 - California
 - Michigan
 
-salary: 80,000
+salary: 90000
 rate: 25
 # --------- Optional Parameters -------
 uploads:

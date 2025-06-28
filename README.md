@@ -70,5 +70,5 @@ Commands:
 1) python -m venv .venv - creates venv if not present
 2) source .venv/bin/activate - to activate the venv
 3) python3 easyapplybot.py - to run the application (in the venv)
-
+   test
 
