@@ -1254,4 +1254,190 @@ required
        select an option
        yes
        no
+   please enter a valid answer",Yes"are you comfortable working in an onsite setting 4 days a week?
+are you comfortable working in an onsite setting 4 days a week?
+required
+       select an option
+       yes
+       no
    please enter a valid answer",Yes
+"are you willing to relocate to memphis, tn?
+are you willing to relocate to memphis, tn?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"how many years of work experience do you have with amazon s3?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with aws iot?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with applied machine learning?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with mobile operating systems?
+enter a whole number between 0 and 99",1
+"mobile gateway/mobile api
+mobile gateway/mobile api
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",user provided
+how many years of work experience do you have with mobile operating systems?,1
+"mobile gateway/mobile api
+mobile gateway/mobile api
+required
+       select an option
+       yes
+       no
+  ",user provided
+"are you on an h4-ead/opt-ead visa status?
+are you on an h4-ead/opt-ead visa status?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"do you have minimum of 2 years of experience in usa?
+do you have minimum of 2 years of experience in usa?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"how many years of experience do you have in aci mts development?
+enter a decimal number larger than 0.0",1
+"do you have experience in banking/fintech platforms?
+do you have experience in banking/fintech platforms?
+required
+       select an option
+       yes
+       no
+   please enter a valid answer",Yes
+"how many years professional experience do you have working with python?
+how many years professional experience do you have working with python?
+required
+>1 year
+1-3 years
+4 years+
+please make a selection",1
+"are you prepared to take a skills verification test lasting up to 15 minutes as part of your application? 
+are you prepared to take a skills verification test lasting up to 15 minutes as part of your application?
+required
+yes
+no
+please make a selection",Yes
+"python
+javascript
+sql
+java
+html/css
+none of the above
+please make a selection",user provided
+"if you selected ""other"" for the previous answer, please add further details below.",user provided
+"required
+       select an option
+       australia
+       austria
+       belgium
+       canada
+       chile
+       croatia
+       czech republic
+       denmark
+       estonia
+       finland
+       france
+       germany
+       greece
+       hungary
+       iceland
+       ireland
+       israel
+       italy
+       japan
+       korea
+       latvia
+       luxembourg
+       mexico
+       netherlands
+       new zealand
+       norway
+       poland
+       portugal
+       slovakia
+       slovenia
+       south africa
+       spain
+       sweden
+       switzerland
+       united kingdom
+       united states
+   please make a selection",user provided
+"how many years of work experience do you have with rest apis?
+enter a whole number between 0 and 99",1
+"how many years of work experience do you have with representational state transfer (rest)?
+enter a whole number between 0 and 99",1
+"are you currently a wealthfront client?
+are you currently a wealthfront client?
+required
+       select an option
+       yes, i am!
+       yes, i have opened an account but have not funded it yet.
+       no, i have not had a chance to use wealthfront.
+   please make a selection",Yes
+"why are you interested in wealthfront?
+please enter a valid answer",Yes
+"how did you hear about us?
+how did you hear about us?
+required
+linkedin job postings
+linkedin advertising
+glassdoor
+indeed
+working at wealthfront blog
+social media (facebook, instagram, twitter, etc.)
+youtube
+podcast
+from family or a friend
+wealthfront employee
+other
+please make a selection",user provided
+"if other, please specify:",user provided
+"do you now, or will you in the future, require sponsorship for employment visa status (e.g., h-1b visa status, etc.) to work legally for wealthfront in the united states?
+please enter a valid answer",Yes
+"highest education completed?
+highest education completed?
+required
+       select an option
+       high school diploma
+       bachelor's degree
+       master's degree
+       phd
+       other
+   please make a selection",user provided
+"what was your major field of study?
+please enter a valid answer",user provided
+"are you currently a wealthfront client?
+are you currently a wealthfront client?
+required
+       select an option
+       yes, i am!
+       yes, i have opened an account but have not funded it yet.
+       no, i have not had a chance to use wealthfront.
+  ",Yes
+why are you interested in wealthfront?,Yes
+"how did you hear about us?
+how did you hear about us?
+required
+linkedin job postings
+linkedin advertising
+glassdoor
+indeed
+working at wealthfront blog
+social media (facebook, instagram, twitter, etc.)
+youtube
+podcast
+from family or a friend
+wealthfront employee
+other",user provided
