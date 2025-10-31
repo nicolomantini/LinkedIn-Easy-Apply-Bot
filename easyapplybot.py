@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import shutil
+
 import json
 import csv
 import logging
@@ -95,7 +97,20 @@ class EasyApplyBot:
         self.appliedJobIDs: list = past_ids if past_ids != None else []
         self.filename: str = filename
         self.options = self.browser_options()
-        self.browser = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=self.options)
+
+        # Fix chromedriver on NixOS
+
+        chromedriver_path = shutil.which("chromedriver")
+        chrome_path = shutil.which("chromium") or shutil.which("google-chrome")
+
+        if not chromedriver_path:
+            raise FileNotFoundError("Chromedriver not found in PATH.")
+        if not chrome_path:
+            raise FileNotFoundError("Chromium/Chrome not found in PATH.")
+
+        self.options.binary_location = chrome_path
+        self.browser = webdriver.Chrome(service=ChromeService(chromedriver_path), options=self.options)
+
         self.wait = WebDriverWait(self.browser, 30)
         self.blacklist = blacklist
         self.blackListTitles = blackListTitles
@@ -103,6 +118,7 @@ class EasyApplyBot:
         self.phone_number = phone_number
         self.experience_level = experience_level
 
+        # -------------------------
 
         self.locator = {
             "next": (By.CSS_SELECTOR, "button[aria-label='Continue to next step']"),
