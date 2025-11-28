@@ -2,6 +2,7 @@
 Automate the application process on LinkedIn
 
 Write-up: https://substack.com/@nicolomantini - How to apply for 1,000 jobs while sleeping
+
 Video: https://www.youtube.com/watch?v=4R4E304fEAs
 
 ## Setup 
