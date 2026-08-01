@@ -55,7 +55,7 @@ list in the config file.
 
 ## Execute
 
-To execute the bot run the following in your terminal
+To execute the bot run the following in your terminal updted
 ```
 python3 easyapplybot.py
 ```
