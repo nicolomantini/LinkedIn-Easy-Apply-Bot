@@ -5,6 +5,27 @@ Write-up: https://substack.com/@nicolomantini/posts - How to apply for 1,000 job
 
 Video: https://www.youtube.com/watch?v=4R4E304fEAs
 
+## **Website & Autofill Extension**
+
+[![Apply to jobs in seconds with Zapply.](apply-faster-banner.png)](https://app.zapply.jobs/onboarding?ref=github-cta-nicolomantini)
+
+Explore Zapply’s website and check out:
+
+- Our Chrome extension, which autofills job applications in seconds.
+- A dedicated job board featuring the latest openings across various roles.
+- User accounts with multiple profiles for different resume types and roles.
+- Job application tracking with streaks and commitment awards.
+
+Experience an advanced career journey with us! 🚀
+
+<p align="center">
+    <a href="https://app.zapply.jobs/onboarding?ref=github-cta-nicolomantini">
+        <img src="get-started-button.png" alt="Visit Zapply" width="700">
+    </a>
+</p>
+
+<p align="right"><sub>Sponsored by Zapply</sub></p>
+
 ## Setup 
 
 Python 3.10 using a conda virtual environment on Linux (Ubuntu)
